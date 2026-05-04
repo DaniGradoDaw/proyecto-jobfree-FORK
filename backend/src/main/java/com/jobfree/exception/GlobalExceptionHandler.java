@@ -5,6 +5,9 @@ import com.jobfree.exception.auth.TokenExpiradoException;
 import com.jobfree.exception.auth.TokenInvalidoException;
 import com.jobfree.exception.categoria.CategoriaDuplicadaException;
 import com.jobfree.exception.categoria.CategoriaNotFoundException;
+import com.jobfree.exception.conversacion.ConversacionAccesoException;
+import com.jobfree.exception.conversacion.ConversacionNotFoundException;
+import com.jobfree.exception.mensaje.MensajeBloqueadoException;
 import com.jobfree.exception.mensaje.MensajeNotFoundException;
 import com.jobfree.exception.notificacion.NotificacionNotFoundException;
 import com.jobfree.exception.pago.PagoInvalidoException;
@@ -26,6 +29,7 @@ import com.jobfree.exception.valoracion.ValoracionNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -78,7 +82,8 @@ public class GlobalExceptionHandler {
         ProfesionalNotFoundException.class,
         MensajeNotFoundException.class,
         NotificacionNotFoundException.class,
-        ValoracionNotFoundException.class
+        ValoracionNotFoundException.class,
+        ConversacionNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req);
@@ -126,9 +131,15 @@ public class GlobalExceptionHandler {
     }
 
     // ------------------------------------------------------------------ 403
-    @ExceptionHandler(UsuarioAdminNoPermitidoException.class)
+    @ExceptionHandler({UsuarioAdminNoPermitidoException.class, ConversacionAccesoException.class, MensajeBloqueadoException.class})
     public ResponseEntity<ApiError> handleForbidden(RuntimeException ex, HttpServletRequest req) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), req);
+    }
+
+    // ------------------------------------------------------------------ 404 (ruta no encontrada)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResource(NoResourceFoundException ex, HttpServletRequest req) {
+        return build(HttpStatus.NOT_FOUND, "Recurso no encontrado", req);
     }
 
     // ------------------------------------------------------------------ 500

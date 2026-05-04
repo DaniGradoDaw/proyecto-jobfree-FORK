@@ -25,6 +25,7 @@ import com.jobfree.model.entity.Usuario;
 import com.jobfree.service.PagoService;
 import com.jobfree.service.ReservaService;
 import com.jobfree.service.StripeService;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
@@ -47,6 +48,7 @@ public class PagoController {
 	 *
 	 * @return lista de pagos en formato DTO
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<PagoDTO>> listarPagos() {
@@ -64,7 +66,8 @@ public class PagoController {
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/{id}")
 	public ResponseEntity<PagoDTO> obtenerPorId(@PathVariable Long id) {
-		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.obtenerPorId(id)));
+		Usuario usuario = getUsuarioAutenticado();
+		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.obtenerPorIdSeguro(id, usuario)));
 	}
 
 	/**
@@ -89,10 +92,10 @@ public class PagoController {
 	 * @param id identificador del pago
 	 * @return pago actualizado en formato DTO
 	 */
-	@PreAuthorize("isAuthenticated()")
+	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{id}/confirmar")
 	public ResponseEntity<PagoDTO> confirmarPago(@PathVariable Long id) {
-		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.confirmarPago(id)));
+		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.confirmarPagoManualAdmin(id)));
 	}
 
 	/**
@@ -105,10 +108,11 @@ public class PagoController {
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping
 	public ResponseEntity<PagoDTO> crearPago(@Valid @RequestBody PagoCreateDTO dto) {
+		Usuario usuario = getUsuarioAutenticado();
 
-		Reserva reserva = reservaService.obtenerPorId(dto.getReservaId());
+		Reserva reserva = reservaService.obtenerPorIdSeguro(dto.getReservaId(), usuario);
 
-		Pago nuevo = pagoService.guardarPago(PagoMapper.toEntity(dto, reserva));
+		Pago nuevo = pagoService.guardarPago(PagoMapper.toEntity(dto, reserva), usuario);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(PagoMapper.toDTO(nuevo));
 	}
@@ -123,7 +127,8 @@ public class PagoController {
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/{id}/stripe/payment-intent")
 	public ResponseEntity<Map<String, String>> crearPaymentIntent(@PathVariable Long id) {
-		Pago pago = pagoService.obtenerPorId(id);
+		Usuario usuario = getUsuarioAutenticado();
+		Pago pago = pagoService.obtenerParaPaymentIntent(id, usuario);
 		String clientSecret = stripeService.crearPaymentIntent(pago);
 		return ResponseEntity.ok(Map.of("clientSecret", clientSecret));
 	}
@@ -142,5 +147,9 @@ public class PagoController {
 
 		stripeService.procesarWebhook(payload, sigHeader);
 		return ResponseEntity.ok().build();
+	}
+
+	private Usuario getUsuarioAutenticado() {
+		return (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 }

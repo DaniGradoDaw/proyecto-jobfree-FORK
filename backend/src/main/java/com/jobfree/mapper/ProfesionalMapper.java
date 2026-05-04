@@ -5,6 +5,7 @@ import com.jobfree.dto.profesional.ProfesionalDTO;
 import com.jobfree.dto.profesional.ProfesionalPrivadoDTO;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.enums.Plan;
 
 /**
  * Mapper para convertir entre la entidad ProfesionalInfo y sus DTOs.
@@ -74,7 +75,7 @@ public class ProfesionalMapper {
         if (dto.getCif() != null) {
             p.setCif(dto.getCif().trim().toUpperCase());
         }
-        p.setPlan(dto.getPlan());
+        p.setPlan(Plan.BASICO);
         p.setCodigoPostal(dto.getCodigoPostal());
         p.setUsuario(usuario);
         return p;

@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { obtenerSubcategoriaPorId } from "api/subcategorias";
 import ServicioCard from "components/cards/ServicioCard";
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 
 function ServiciosSubcategoria() {
 
@@ -14,7 +13,7 @@ function ServiciosSubcategoria() {
   const [subcategoria, setSubcategoria] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
 
   useEffect(() => {
     setLoading(true);
@@ -30,16 +29,16 @@ function ServiciosSubcategoria() {
 
       <div className="mx-auto max-w-5xl">
         <h3 className="mb-8 text-center text-3xl font-bold text-gray-900">
-          {subcategoria?.nombre || t(idioma, "servicios.titulo")}
+          {subcategoria?.nombre ? tx(subcategoria.nombre) : tx("Encuentra lo que necesitas entre nuestros servicios")}
         </h3>
 
         {loading ? (
           <p className="text-center text-sm text-gray-500">
-            {t(idioma, "servicios.estado.cargando")}
+            {tx("Cargando...")}
           </p>
         ) : !subcategoria ? (
           <p className="text-center text-sm text-gray-500">
-            {t(idioma, "servicios.estado.sinResultados")}
+            {tx("No hay resultados")}
           </p>
         ) : (
           <div className="flex justify-start pl-2 sm:pl-6">

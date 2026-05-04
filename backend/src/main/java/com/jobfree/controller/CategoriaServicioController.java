@@ -19,6 +19,7 @@ import com.jobfree.dto.categoria.CategoriaDTO;
 import com.jobfree.mapper.CategoriaMapper;
 import com.jobfree.model.entity.CategoriaServicio;
 import com.jobfree.service.CategoriaServicioService;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
@@ -66,6 +67,7 @@ public class CategoriaServicioController {
 	 * @param dto datos de la categoría
 	 * @return ResponseEntity con la categoría creada
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ResponseEntity<CategoriaDTO> crearCategoria(@Valid @RequestBody CategoriaCreateDTO dto) {
@@ -82,6 +84,7 @@ public class CategoriaServicioController {
 	 * @param dto         nuevos datos de la categoría
 	 * @return ResponseEntity con la categoría actualizada
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{categoriaId}")
 	public ResponseEntity<CategoriaDTO> actualizarCategoria(@PathVariable Long categoriaId,
@@ -98,6 +101,7 @@ public class CategoriaServicioController {
 	 * @param categoriaId identificador de la categoría a eliminar
 	 * @return ResponseEntity sin contenido (204 No Content)
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{categoriaId}")
 	public ResponseEntity<Void> eliminarCategoria(@PathVariable Long categoriaId) {

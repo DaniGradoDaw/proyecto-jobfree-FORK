@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { obtenerSubcategoriasPorCategoria, obtenerTodasSubcategorias } from "api/subcategorias";
 import ServicioCard from "components/cards/ServicioCard";
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 
 function Servicios() {
   const TAMANO_PAGINA_BUSQUEDA = 8;
@@ -23,7 +22,7 @@ function Servicios() {
   // hook para leer la URL (query params)
   const location = useLocation();
 
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
 
   /**
    * Este useEffect se ejecuta cada vez que:
@@ -103,19 +102,19 @@ function Servicios() {
 
       {/* título */}
       <h3 className="text-3xl font-bold mb-8 text-center">
-        {t(idioma, "servicios.titulo")}
+        {tx("Encuentra lo que necesitas entre nuestros servicios")}
       </h3>
 
       {/* estado de carga */}
       {loading && (
         <p className="text-center mb-4 text-sm text-gray-500">
-          {t(idioma, "servicios.estado.cargando")}
+          {tx("Cargando...")}
         </p>
       )}
       {/* sin resultados */}
       {!loading && subcategorias.length === 0 && (
         <p className="text-center">
-          {t(idioma, "servicios.estado.sinResultados")}
+          {tx("No hay resultados")}
         </p>
       )}
 
@@ -146,9 +145,9 @@ function Servicios() {
 
         {/* TEXTO */}
         <p className="text-slate-600 text-sm">
-          {t(idioma, "servicios.paginacion.pagina")}{" "}
+          {tx("Página")}{" "}
           <strong className="text-slate-800">{pagina + 1}</strong>{" "}
-          {t(idioma, "servicios.paginacion.de")}{" "}
+          {tx("de")}{" "}
           <strong className="text-slate-800">{totalPaginas}</strong>
         </p>
 

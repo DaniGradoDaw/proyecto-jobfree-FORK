@@ -19,8 +19,16 @@ public class ValoracionMapper {
 	 * @return DTO con los datos necesarios para la respuesta
 	 */
 	public static ValoracionDTO toDTO(Valoracion v) {
-		return new ValoracionDTO(v.getId(), v.getEstrellas(), v.getComentario(), v.getFecha(), v.getReserva().getId(),
-				v.getCliente().getId(), v.getProfesional().getId());
+		return new ValoracionDTO(
+				v.getId(),
+				v.getEstrellas(),
+				v.getComentario(),
+				v.getFecha(),
+				v.getReserva().getId(),
+				v.getCliente().getId(),
+				v.getCliente().getNombreCompleto(),
+				v.getCliente().getFotoUrl(),
+				v.getProfesional().getId());
 	}
 
 	/**

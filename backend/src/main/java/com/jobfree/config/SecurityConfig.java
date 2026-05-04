@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,6 +22,7 @@ import org.springframework.web.filter.CorsFilter;
 import com.jobfree.security.CookieOAuth2AuthorizationRequestRepository;
 import com.jobfree.security.JwtAuthenticationFilter;
 import com.jobfree.security.OAuth2SuccessHandler;
+import com.jobfree.security.RateLimitFilter;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -34,13 +36,16 @@ public class SecurityConfig {
 	private final JwtAuthenticationFilter filtroJwt;
 	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 	private final CookieOAuth2AuthorizationRequestRepository cookieAuthRequestRepo;
+	private final RateLimitFilter rateLimitFilter;
 
 	public SecurityConfig(JwtAuthenticationFilter filtroJwt,
 	                      OAuth2SuccessHandler oAuth2SuccessHandler,
-	                      CookieOAuth2AuthorizationRequestRepository cookieAuthRequestRepo) {
+	                      CookieOAuth2AuthorizationRequestRepository cookieAuthRequestRepo,
+	                      RateLimitFilter rateLimitFilter) {
 		this.filtroJwt = filtroJwt;
 		this.oAuth2SuccessHandler = oAuth2SuccessHandler;
 		this.cookieAuthRequestRepo = cookieAuthRequestRepo;
+		this.rateLimitFilter = rateLimitFilter;
 	}
 
 	/**
@@ -64,7 +69,15 @@ public class SecurityConfig {
 			// pero también lo configuramos dentro de Spring Security
 			// para que los endpoints OAuth2 del propio framework también estén cubiertos.
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+			// API REST stateless con JWT en cookies SameSite=Lax:
+			// CSRF no es necesario porque el navegador no envía cookies Lax en peticiones POST cross-site.
 			.csrf(csrf -> csrf.disable())
+			.headers(headers -> headers
+				.referrerPolicy(referrer -> referrer.policy(
+					ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+				.permissionsPolicy(perms -> perms.policy(
+					"camera=(), microphone=(), geolocation=(), payment=(self)"))
+			)
 			.sessionManagement(session ->
 				session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 			)
@@ -93,6 +106,8 @@ public class SecurityConfig {
 				.requestMatchers("/login/oauth2/**").permitAll()
 				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 				.requestMatchers("/pagos/stripe/webhook").permitAll()
+				.requestMatchers("/actuator/health", "/actuator/info").permitAll()
+				.requestMatchers("/actuator/**").hasRole("ADMIN")
 				.requestMatchers("/usuarios/cliente").permitAll()
 				.requestMatchers("/usuarios/profesional").permitAll()
 
@@ -123,6 +138,7 @@ public class SecurityConfig {
 				)
 				.successHandler(oAuth2SuccessHandler)
 			)
+			.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
@@ -135,11 +151,11 @@ public class SecurityConfig {
 		config.setAllowedOrigins(List.of(frontendUrl));
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		// Cabeceras que el frontend puede enviar
-		config.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept", "X-Requested-With"));
+		config.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept", "X-Requested-With", "X-XSRF-TOKEN"));
 		config.setExposedHeaders(List.of("Authorization"));
 		config.setAllowCredentials(true);
-		// Cache de preflight 1 hora
-		config.setMaxAge(3600L);
+		// Cache de preflight 5 minutos
+		config.setMaxAge(300L);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);

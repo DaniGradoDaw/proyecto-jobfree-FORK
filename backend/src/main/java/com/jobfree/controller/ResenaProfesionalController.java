@@ -76,7 +76,7 @@ public class ResenaProfesionalController {
 
         Reserva reserva = null;
         if (dto.getReservaId() != null) {
-            reserva = reservaService.obtenerPorId(dto.getReservaId());
+            reserva = reservaService.obtenerPorIdSeguro(dto.getReservaId(), cliente);
         }
 
         ResenaProfesional nueva = resenaService.crear(

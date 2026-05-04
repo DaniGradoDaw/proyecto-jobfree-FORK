@@ -42,6 +42,10 @@ public class Conversacion {
 	@Column(name = "ultimo_mensaje_fecha")
 	private LocalDateTime ultimoMensajeFecha;
 
+	// Contenido del último mensaje (máx. 200 chars) — evita cargar toda la colección en el mapper
+	@Column(name = "ultimo_mensaje_contenido", length = 200)
+	private String ultimoMensajeContenido;
+
 	@PrePersist
 	public void prePersist() {
 		this.fechaCreacion = LocalDateTime.now();
@@ -51,6 +55,19 @@ public class Conversacion {
 	@JoinColumn(name = "reserva_id", unique = true, foreignKey = @ForeignKey(name = "fk_conversacion_reserva"))
 	@JsonIgnore
 	private Reserva reserva;
+
+	// null = no silenciada; fecha futura = silenciada hasta esa fecha; 9999-01-01 = siempre
+	@Column(name = "silenciada_cliente_hasta")
+	private LocalDateTime silenciadaClienteHasta;
+
+	@Column(name = "silenciada_profesional_hasta")
+	private LocalDateTime silenciadaProfesionalHasta;
+
+	@Column(name = "fijada_cliente", nullable = false)
+	private boolean fijadaCliente = false;
+
+	@Column(name = "fijada_profesional", nullable = false)
+	private boolean fijadaProfesional = false;
 
 	@Column(name = "contacto_clave", length = 64, unique = true)
 	private String contactoClave;
@@ -102,6 +119,14 @@ public class Conversacion {
 		this.ultimoMensajeFecha = ultimoMensajeFecha;
 	}
 
+	public String getUltimoMensajeContenido() {
+		return ultimoMensajeContenido;
+	}
+
+	public void setUltimoMensajeContenido(String ultimoMensajeContenido) {
+		this.ultimoMensajeContenido = ultimoMensajeContenido;
+	}
+
 	public Reserva getReserva() {
 		return reserva;
 	}
@@ -133,6 +158,18 @@ public class Conversacion {
 	public void setProfesional(Usuario profesional) {
 		this.profesional = profesional;
 	}
+
+	public LocalDateTime getSilenciadaClienteHasta() { return silenciadaClienteHasta; }
+	public void setSilenciadaClienteHasta(LocalDateTime silenciadaClienteHasta) { this.silenciadaClienteHasta = silenciadaClienteHasta; }
+
+	public LocalDateTime getSilenciadaProfesionalHasta() { return silenciadaProfesionalHasta; }
+	public void setSilenciadaProfesionalHasta(LocalDateTime silenciadaProfesionalHasta) { this.silenciadaProfesionalHasta = silenciadaProfesionalHasta; }
+
+	public boolean isFijadaCliente() { return fijadaCliente; }
+	public void setFijadaCliente(boolean fijadaCliente) { this.fijadaCliente = fijadaCliente; }
+
+	public boolean isFijadaProfesional() { return fijadaProfesional; }
+	public void setFijadaProfesional(boolean fijadaProfesional) { this.fijadaProfesional = fijadaProfesional; }
 
 	public List<Mensaje> getMensajes() {
 		return mensajes;

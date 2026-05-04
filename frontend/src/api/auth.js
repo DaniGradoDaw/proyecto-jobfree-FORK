@@ -12,7 +12,8 @@ export async function login(email, password) {
   } catch {
     throw new Error(ERROR_RED);
   }
-  if (!res.ok) throw new Error("Credenciales incorrectas");
+  if (res.status === 429) throw new Error(await extraerMensajeError(res, "Demasiados intentos. Espera un minuto."));
+  if (!res.ok) throw new Error(await extraerMensajeError(res, "Credenciales incorrectas"));
   return res.json(); // { usuario }
 }
 
@@ -79,6 +80,15 @@ export async function iniciarOAuth(rol) {
     });
   } catch {
     // Si falla, el backend usará CLIENTE por defecto
+  }
+}
+
+export async function refreshToken() {
+  try {
+    const res = await apiFetch("/auth/refresh", { method: "POST" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

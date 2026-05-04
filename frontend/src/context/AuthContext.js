@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { login as loginAPI, logout as logoutAPI, getMe, registrarCliente, registrarProfesional } from "../api/auth";
+import { login as loginAPI, logout as logoutAPI, getMe, registrarCliente, registrarProfesional, refreshToken } from "../api/auth";
 
 const AuthContext = createContext();
 
@@ -27,6 +27,21 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("auth:sesion-expirada", handleSesionExpirada);
   }, []);
 
+  // Renueva el token silenciosamente cada 90 min mientras el usuario está activo.
+  // El JWT dura 2h, así que el refresco se hace antes de que expire.
+  useEffect(() => {
+    if (!usuario?.id) return;
+    const MS_90_MIN = 90 * 60 * 1000;
+    const id = setInterval(async () => {
+      const ok = await refreshToken();
+      if (!ok) {
+        setUsuario(null);
+        window.location.href = "/login";
+      }
+    }, MS_90_MIN);
+    return () => clearInterval(id);
+  }, [usuario?.id]);
+
   async function iniciarSesion(email, password) {
     const respuesta = await loginAPI(email, password);
     setUsuario(respuesta.usuario);
@@ -39,7 +54,15 @@ export function AuthProvider({ children }) {
     } else {
       await registrarCliente(datos);
     }
-    return iniciarSesion(datos.email, datos.password);
+    try {
+      return await iniciarSesion(datos.email, datos.password);
+    } catch {
+      // Registro exitoso pero el auto-login falló; comunicarlo al llamador.
+      const err = new Error("Cuenta creada. Inicia sesión con tus credenciales.");
+      err.registroExitoso = true;
+      err.email = datos.email;
+      throw err;
+    }
   }
 
   async function completarLoginOAuth() {

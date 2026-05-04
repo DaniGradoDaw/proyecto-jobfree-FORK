@@ -18,8 +18,25 @@ public class MensajeMapper {
 	 * @return DTO con los datos necesarios para la respuesta
 	 */
 	public static MensajeDTO toDTO(Mensaje m) {
-		return new MensajeDTO(m.getId(), m.getContenido(), m.getClientMessageId(), m.isLeido(), m.isRecibido(), m.getFechaEnvio(), m.getRemitente().getId(),
+		MensajeDTO dto = new MensajeDTO(m.getId(), m.getContenido(), m.getClientMessageId(), m.isLeido(), m.isRecibido(), m.getFechaEnvio(), m.getRemitente().getId(),
 				m.getDestinatario().getId(), m.getConversacion().getId());
+		dto.setImagenUrl(m.getImagenUrl());
+		return dto;
+	}
+
+	public static MensajeDTO toDTOFull(Mensaje m) {
+		MensajeDTO dto = toDTO(m);
+		Mensaje mr = m.getMensajeRespondido();
+		if (mr != null) {
+			dto.setMensajeRespondidoId(mr.getId());
+			String contenido = mr.getContenido();
+			if (contenido == null || contenido.isBlank()) {
+				contenido = mr.getImagenUrl() != null ? "📷 Imagen" : "";
+			}
+			dto.setMensajeRespondidoContenido(contenido.length() > 120 ? contenido.substring(0, 117) + "..." : contenido);
+			dto.setMensajeRespondidoRemitenteId(mr.getRemitente().getId());
+		}
+		return dto;
 	}
 
 	/**
@@ -35,11 +52,12 @@ public class MensajeMapper {
 
 		Mensaje m = new Mensaje();
 
-		m.setContenido(dto.getContenido());
+		m.setContenido(dto.getContenido() != null ? dto.getContenido() : "");
 		m.setClientMessageId(dto.getClientMessageId());
 		m.setRemitente(remitente);
 		m.setDestinatario(destinatario);
 		m.setConversacion(conversacion);
+		m.setImagenUrl(dto.getImagenUrl());
 
 		return m;
 	}

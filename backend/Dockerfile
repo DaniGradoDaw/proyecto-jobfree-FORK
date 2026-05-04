@@ -2,10 +2,14 @@
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 
+# Capa de dependencias separada: se reconstruye solo si cambia pom.xml
 COPY pom.xml .
-COPY src ./src
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
 
-RUN apk add --no-cache maven && mvn -B package -DskipTests
+COPY src ./src
+RUN ./mvnw package -DskipTests -q
 
 # ── Fase 2: runtime ───────────────────────────────────────────────────────────
 FROM eclipse-temurin:17-jre-alpine

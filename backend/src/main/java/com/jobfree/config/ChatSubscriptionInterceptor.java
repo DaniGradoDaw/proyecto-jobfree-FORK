@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import com.jobfree.model.entity.Usuario;
@@ -48,7 +49,15 @@ public class ChatSubscriptionInterceptor implements ChannelInterceptor {
             throw new SecurityException("Se requiere autenticación para suscribirse a este canal");
         }
 
-        if (!(principal instanceof Usuario usuario)) {
+        // El principal puede ser el Usuario directamente o estar envuelto en un
+        // AbstractAuthenticationToken (caso habitual con JWT + Spring Security).
+        Usuario usuario;
+        if (principal instanceof Usuario u) {
+            usuario = u;
+        } else if (principal instanceof AbstractAuthenticationToken auth
+                && auth.getPrincipal() instanceof Usuario u) {
+            usuario = u;
+        } else {
             log.warn("Principal de tipo inesperado ({}) intentando suscribirse a: {}", principal.getClass().getSimpleName(), destino);
             throw new SecurityException("Usuario no autenticado para la suscripción");
         }

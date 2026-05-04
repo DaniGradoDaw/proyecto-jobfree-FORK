@@ -14,10 +14,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.jobfree.exception.conversacion.ConversacionAccesoException;
+import com.jobfree.exception.conversacion.ConversacionNotFoundException;
 import com.jobfree.model.entity.Conversacion;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.Rol;
 import com.jobfree.repository.ConversacionRepository;
+import com.jobfree.repository.MensajeRepository;
 import com.jobfree.repository.ReservaRepository;
 import com.jobfree.repository.UsuarioRepository;
 
@@ -27,6 +30,7 @@ class ConversacionServiceTest {
     @Mock ConversacionRepository conversacionRepository;
     @Mock ReservaRepository reservaRepository;
     @Mock UsuarioRepository usuarioRepository;
+    @Mock MensajeRepository mensajeRepository;
 
     @InjectMocks ConversacionService conversacionService;
 
@@ -64,7 +68,7 @@ class ConversacionServiceTest {
         when(conversacionRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> conversacionService.obtenerPorId(99L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ConversacionNotFoundException.class)
                 .hasMessageContaining("no encontrada");
     }
 
@@ -86,7 +90,7 @@ class ConversacionServiceTest {
         when(conversacionRepository.findById(10L)).thenReturn(Optional.of(conversacion));
 
         assertThatThrownBy(() -> conversacionService.obtenerPorIdSeguro(10L, ajeno))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ConversacionAccesoException.class)
                 .hasMessageContaining("acceso");
     }
 
@@ -96,6 +100,8 @@ class ConversacionServiceTest {
     void misConversaciones_retornaListaOrdenada() {
         when(conversacionRepository.findByClienteIdOrProfesionalIdOrderByFechaCreacionDesc(1L, 1L))
                 .thenReturn(List.of(conversacion));
+        when(mensajeRepository.findFirstByConversacionIdOrderByFechaEnvioDesc(10L))
+                .thenReturn(Optional.empty());
 
         List<Conversacion> resultado = conversacionService.misConversaciones(cliente);
 
@@ -172,7 +178,7 @@ class ConversacionServiceTest {
         setId(ajeno, 99L);
 
         assertThatThrownBy(() -> conversacionService.validarParticipante(conversacion, ajeno))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ConversacionAccesoException.class)
                 .hasMessageContaining("acceso");
     }
 

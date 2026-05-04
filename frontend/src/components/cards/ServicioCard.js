@@ -1,9 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 
 function ServicioCard({ subcategoria }) {
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
   const location = useLocation();
 
   const rutaProfesionales = location.pathname.startsWith("/dashboard/cliente")
@@ -26,12 +25,12 @@ function ServicioCard({ subcategoria }) {
 
         {/* título */}
         <h3 className="text-lg font-semibold text-gray-900">
-          {subcategoria.nombre}
+          {tx(subcategoria.nombre)}
         </h3>
 
         {/* descripción */}
         <p className="text-gray-600 mt-1 mb-4">
-          {subcategoria.descripcion}
+          {tx(subcategoria.descripcion)}
         </p>
 
         {/* botón */}
@@ -39,7 +38,7 @@ function ServicioCard({ subcategoria }) {
           to={rutaProfesionales}
           className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
         >
-          {t(idioma, "servicios.acciones.verProfesionales")}
+          {tx("Ver profesionales")}
         </Link>
 
       </div>

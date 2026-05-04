@@ -59,6 +59,7 @@ public class ProfesionalInfoService {
             }
             perfil.setCif(cifNormalizado);
         }
+        perfil.setPlan(Plan.BASICO);
         // Geocodificar si hay ciudad o código postal
         intentarGeocodificar(perfil, perfil.getUsuario().getCiudad(), perfil.getCodigoPostal(), false);
         return profesionalInfoRepository.save(perfil);
@@ -85,10 +86,6 @@ public class ProfesionalInfoService {
             }
             existente.setCif(cifNormalizado);
         }
-        if (dto.getPlan() != null) {
-            existente.setPlan(dto.getPlan());
-        }
-
         boolean codigoPostalCambio = dto.getCodigoPostal() != null
                 && !dto.getCodigoPostal().equals(existente.getCodigoPostal());
 

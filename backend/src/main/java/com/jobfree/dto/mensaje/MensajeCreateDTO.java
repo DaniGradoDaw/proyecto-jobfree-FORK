@@ -9,8 +9,7 @@ import jakarta.validation.constraints.Size;
  */
 public class MensajeCreateDTO {
 
-	@NotBlank
-	@Size(min = 1, max = 1000, message = "El mensaje debe tener entre 1 y 1000 caracteres")
+	@Size(max = 1000, message = "El mensaje no puede superar 1000 caracteres")
     private String contenido;
 	
     @NotNull
@@ -22,6 +21,10 @@ public class MensajeCreateDTO {
 	@NotBlank
 	@Size(min = 1, max = 36, message = "El identificador del cliente debe tener entre 1 y 36 caracteres")
 	private String clientMessageId;
+
+	private Long mensajeRespondidoId;
+
+	private String imagenUrl;
 
 	public String getContenido() {
 		return contenido;
@@ -53,5 +56,21 @@ public class MensajeCreateDTO {
 
 	public void setClientMessageId(String clientMessageId) {
 		this.clientMessageId = clientMessageId;
+	}
+
+	public Long getMensajeRespondidoId() {
+		return mensajeRespondidoId;
+	}
+
+	public void setMensajeRespondidoId(Long mensajeRespondidoId) {
+		this.mensajeRespondidoId = mensajeRespondidoId;
+	}
+
+	public String getImagenUrl() {
+		return imagenUrl;
+	}
+
+	public void setImagenUrl(String imagenUrl) {
+		this.imagenUrl = imagenUrl;
 	}
 }

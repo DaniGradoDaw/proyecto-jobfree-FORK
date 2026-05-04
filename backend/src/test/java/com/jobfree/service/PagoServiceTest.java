@@ -23,6 +23,7 @@ import com.jobfree.model.entity.ServicioOfrecido;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.EstadoPago;
 import com.jobfree.model.enums.MetodoPago;
+import com.jobfree.model.enums.Rol;
 import com.jobfree.repository.PagoRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,9 +43,11 @@ class PagoServiceTest {
     void setUp() {
         cliente = new Usuario();
         setId(cliente, 1L);
+        cliente.setRol(Rol.CLIENTE);
 
         usuarioProfesional = new Usuario();
         setId(usuarioProfesional, 2L);
+        usuarioProfesional.setRol(Rol.PROFESIONAL);
 
         ProfesionalInfo profesional = new ProfesionalInfo();
         setId(profesional, 10L);
@@ -90,7 +93,7 @@ class PagoServiceTest {
         when(pagoRepository.findByReservaId(50L)).thenReturn(Optional.empty());
         when(pagoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Pago resultado = pagoService.guardarPago(pago);
+        Pago resultado = pagoService.guardarPago(pago, cliente);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoPago.PENDIENTE);
         verify(pagoRepository).save(pago);
@@ -100,7 +103,7 @@ class PagoServiceTest {
     void guardarPago_sinReserva_lanzaExcepcion() {
         pago.setReserva(null);
 
-        assertThatThrownBy(() -> pagoService.guardarPago(pago))
+        assertThatThrownBy(() -> pagoService.guardarPago(pago, cliente))
                 .isInstanceOf(PagoInvalidoException.class)
                 .hasMessageContaining("reserva");
     }
@@ -109,7 +112,7 @@ class PagoServiceTest {
     void guardarPago_importeCero_lanzaExcepcion() {
         pago.setImporte(BigDecimal.ZERO);
 
-        assertThatThrownBy(() -> pagoService.guardarPago(pago))
+        assertThatThrownBy(() -> pagoService.guardarPago(pago, cliente))
                 .isInstanceOf(PagoInvalidoException.class)
                 .hasMessageContaining("importe");
     }
@@ -118,9 +121,16 @@ class PagoServiceTest {
     void guardarPago_duplicado_lanzaExcepcion() {
         when(pagoRepository.findByReservaId(50L)).thenReturn(Optional.of(pago));
 
-        assertThatThrownBy(() -> pagoService.guardarPago(pago))
+        assertThatThrownBy(() -> pagoService.guardarPago(pago, cliente))
                 .isInstanceOf(PagoInvalidoException.class)
                 .hasMessageContaining("ya tiene");
+    }
+
+    @Test
+    void guardarPago_usuarioNoCliente_lanzaExcepcion() {
+        assertThatThrownBy(() -> pagoService.guardarPago(pago, usuarioProfesional))
+                .isInstanceOf(PagoInvalidoException.class)
+                .hasMessageContaining("cliente");
     }
 
     // ── confirmarPago ─────────────────────────────────────────────────────────
@@ -130,7 +140,7 @@ class PagoServiceTest {
         when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
         when(pagoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Pago resultado = pagoService.confirmarPago(99L);
+        Pago resultado = pagoService.confirmarPagoManualAdmin(99L);
 
         assertThat(resultado.getEstado()).isEqualTo(EstadoPago.PAGADO);
         verify(notificacionService).crear(anyString(), eq(usuarioProfesional));
@@ -141,7 +151,7 @@ class PagoServiceTest {
         pago.setEstado(EstadoPago.PAGADO);
         when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
 
-        assertThatThrownBy(() -> pagoService.confirmarPago(99L))
+        assertThatThrownBy(() -> pagoService.confirmarPagoManualAdmin(99L))
                 .isInstanceOf(PagoInvalidoException.class)
                 .hasMessageContaining("ya ha sido");
     }
@@ -151,7 +161,7 @@ class PagoServiceTest {
         pago.setEstado(EstadoPago.REEMBOLSADO);
         when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
 
-        assertThatThrownBy(() -> pagoService.confirmarPago(99L))
+        assertThatThrownBy(() -> pagoService.confirmarPagoManualAdmin(99L))
                 .isInstanceOf(PagoInvalidoException.class)
                 .hasMessageContaining("reembolsado");
     }
@@ -219,6 +229,45 @@ class PagoServiceTest {
         assertThatThrownBy(() -> pagoService.obtenerPorReserva(50L, extraño))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("acceso");
+    }
+
+    @Test
+    void obtenerPorIdSeguro_participante_retorna() {
+        when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
+
+        Pago resultado = pagoService.obtenerPorIdSeguro(99L, usuarioProfesional);
+
+        assertThat(resultado).isEqualTo(pago);
+    }
+
+    @Test
+    void obtenerPorIdSeguro_usuarioSinAcceso_lanzaExcepcion() {
+        Usuario extraño = new Usuario();
+        setId(extraño, 999L);
+        extraño.setRol(Rol.CLIENTE);
+        when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
+
+        assertThatThrownBy(() -> pagoService.obtenerPorIdSeguro(99L, extraño))
+                .isInstanceOf(PagoInvalidoException.class)
+                .hasMessageContaining("acceso");
+    }
+
+    @Test
+    void obtenerParaPaymentIntent_clientePendienteTarjeta_retorna() {
+        when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
+
+        Pago resultado = pagoService.obtenerParaPaymentIntent(99L, cliente);
+
+        assertThat(resultado).isEqualTo(pago);
+    }
+
+    @Test
+    void obtenerParaPaymentIntent_profesional_lanzaExcepcion() {
+        when(pagoRepository.findById(99L)).thenReturn(Optional.of(pago));
+
+        assertThatThrownBy(() -> pagoService.obtenerParaPaymentIntent(99L, usuarioProfesional))
+                .isInstanceOf(PagoInvalidoException.class)
+                .hasMessageContaining("cliente");
     }
 
     private static void setId(Object obj, Long id) {

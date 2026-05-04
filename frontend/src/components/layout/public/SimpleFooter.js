@@ -1,12 +1,9 @@
 import { Link } from "react-router-dom";
 
-// importamos idioma
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 
 function SimpleFooter() {
-    // obtenemos idioma actual
-    const { idioma } = useLanguage();
+    const { tx } = useLanguage();
 
     return (
         <footer className="bg-gray-300 border-t border-gray-300 mt-auto">
@@ -14,11 +11,11 @@ function SimpleFooter() {
                 {/* enlaces */}
                 <div className="space-x-2">
                     <Link to="/terminos" className="hover:underline">
-                        {t(idioma, "footer.legal.terminos")}
+                        {tx("Terminos y condiciones")}
                     </Link>
                     <span>|</span>
                     <Link to="/privacidad" className="hover:underline">
-                        {t(idioma, "footer.legal.privacidad")}
+                        {tx("Politica de privacidad")}
                     </Link>
                 </div>
 

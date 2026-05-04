@@ -1,14 +1,30 @@
 import { apiFetch } from "./config";
 
-export async function obtenerMensajesDeConversacion(conversacionId) {
-  const res = await apiFetch(`/mensajes/conversaciones/${conversacionId}`);
+export async function obtenerMensajesDeConversacion(conversacionId, { before, size = 50 } = {}) {
+  const params = new URLSearchParams({ size });
+  if (before != null) params.set("before", before);
+  const res = await apiFetch(`/mensajes/conversaciones/${conversacionId}?${params}`);
   if (!res.ok) throw new Error("Error al obtener los mensajes");
-  return res.json();
+  const data = await res.json();
+  // Compatibilidad: si el backend devuelve array (formato legacy) lo normalizamos
+  if (Array.isArray(data)) return { mensajes: data, hayMas: false };
+  return data; // { mensajes: [], hayMas: bool }
 }
 
 export async function obtenerConteoMensajesNoLeidos() {
   const res = await apiFetch("/mensajes/no-leidos/count");
   if (!res.ok) throw new Error("Error al obtener el conteo de mensajes no leídos");
+  return res.json();
+}
+
+export async function subirImagenMensaje(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await apiFetch("/mensajes/upload-imagen", { method: "POST", body: formData });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.error || "Error al subir la imagen");
+  }
   return res.json();
 }
 

@@ -2,6 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+/* ── react-big-calendar overrides ──────────────────── */
+.rbc-calendar {
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+.rbc-header {
+  padding: 8px 4px;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0 !important;
+  text-transform: capitalize;
+}
+.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.rbc-toolbar {
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rbc-toolbar button {
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 5px 14px;
+  background: #fff;
+  transition: background 0.15s;
+}
+.rbc-toolbar button:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.rbc-toolbar button.rbc-active {
+  background: #1e293b;
+  color: #fff;
+  border-color: #1e293b;
+  box-shadow: none;
+}
+.rbc-toolbar button.rbc-active:hover {
+  background: #334155;
+}
+.rbc-today {
+  background-color: #f0fdf4;
+}
+.rbc-off-range-bg {
+  background: #f8fafc;
+}
+.rbc-date-cell {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+.rbc-date-cell.rbc-now {
+  font-weight: 700;
+  color: #059669;
+}
+.rbc-event {
+  border-radius: 6px !important;
+  border: none !important;
+  padding: 2px 6px !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+}
+.rbc-event:focus {
+  outline: none;
+}
+.rbc-event-label {
+  font-size: 0.68rem;
+}
+.rbc-show-more {
+  color: #059669;
+  font-weight: 600;
+  font-size: 0.72rem;
+  background: transparent;
+}
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row {
+  border-color: #e2e8f0 !important;
+}
+.rbc-header + .rbc-header {
+  border-color: #e2e8f0 !important;
+}
+
 .leaflet-container {
   font-family: inherit;
   z-index: 0 !important;

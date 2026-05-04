@@ -6,8 +6,12 @@ import API_URL from "api/config";
 const ChatSocketContext = createContext(null);
 
 function buildWebSocketUrl() {
-  const wsBase = API_URL.replace(/^http/i, "ws");
-  return `${wsBase}/ws`;
+  if (API_URL.startsWith("http")) {
+    return `${API_URL.replace(/^http/i, "ws")}/ws`;
+  }
+
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}/ws`;
 }
 
 function parseEvent(body) {
@@ -207,6 +211,12 @@ export function ChatSocketProvider({ children }) {
         current.delete(callback);
         teardownConversationSubscription(key);
       };
+    },
+    publish(destination, body) {
+      const client = clientRef.current;
+      if (client?.connected) {
+        client.publish({ destination, body: JSON.stringify(body) });
+      }
     },
   }), [connected, connectionState, reconnectVersion, ensureConversationSubscription, teardownConversationSubscription]);
 

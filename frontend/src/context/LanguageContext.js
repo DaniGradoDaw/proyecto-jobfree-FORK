@@ -1,34 +1,40 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { tx as txFn } from "i18n";
 
-// creamos el contexto del idioma
 const LanguageContext = createContext();
+const IDIOMAS_SOPORTADOS = new Set(["es", "en"]);
+const IDIOMA_POR_DEFECTO = "es";
+
+function resolverIdiomaInicial() {
+  const guardado = localStorage.getItem("lang");
+  if (guardado && IDIOMAS_SOPORTADOS.has(guardado)) return guardado;
+  // Forzar español por defecto para consistencia con el proyecto
+  return IDIOMA_POR_DEFECTO;
+}
 
 export function LanguageProvider({ children }) {
+  const [idioma, setIdioma] = useState(resolverIdiomaInicial);
 
-  // guardamos el idioma (lo cogemos del localStorage o usamos "es")
-  const [idioma, setIdioma] = useState(() => {
-    return localStorage.getItem("lang") || "es";
-  });
-
-  // función para cambiar el idioma
   const cambiarIdioma = (lang) => {
-    setIdioma(lang);
+    const normalizado = (lang || "").toLowerCase();
+    if (!IDIOMAS_SOPORTADOS.has(normalizado)) return;
+    setIdioma(normalizado);
   };
 
-  // cada vez que cambia el idioma, lo guardamos en localStorage
   useEffect(() => {
     localStorage.setItem("lang", idioma);
   }, [idioma]);
 
-  // pasamos idioma y función a toda la app
+  // tx(texto, variables?) → traducción automática según idioma activo
+  const tx = useCallback((texto, variables) => txFn(idioma, texto, variables), [idioma]);
+
   return (
-    <LanguageContext.Provider value={{ idioma, cambiarIdioma }}>
+    <LanguageContext.Provider value={{ idioma, cambiarIdioma, tx }}>
       {children}
     </LanguageContext.Provider>
   );
 }
 
-// hook para usar el idioma fácilmente
 export function useLanguage() {
   return useContext(LanguageContext);
 }

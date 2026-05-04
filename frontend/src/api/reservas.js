@@ -68,3 +68,17 @@ export async function completarReserva(id) {
   }
   return res.json();
 }
+
+export async function actualizarProgreso(id, progreso, notas) {
+  const body = { progreso };
+  if (notas !== undefined) body.notas = notas;
+  const res = await apiFetch(`/reservas/${id}/progreso`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Error al actualizar el progreso");
+  }
+  return res.json();
+}

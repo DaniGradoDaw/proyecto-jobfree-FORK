@@ -47,14 +47,14 @@ public class JwtUtil {
 	 * Genera un token JWT con el email del usuario.
 	 *
 	 * @param email email del usuario autenticado
-	 * @return token válido durante 24 horas
+	 * @return token válido durante 2 horas
 	 */
 	public String generarToken(String email) {
 		return Jwts.builder()
-				.setSubject(email) // guardamos el email en el token
-				.setIssuedAt(new Date()) // fecha de creación
-				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 día
-				.signWith(obtenerClave()) // firmamos el token
+				.setSubject(email)
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + 7_200_000)) // 2 horas
+				.signWith(obtenerClave())
 				.compact();
 	}
 
@@ -82,7 +82,7 @@ public class JwtUtil {
 				.httpOnly(true)
 				.secure(cookieSecure)
 				.path("/")
-				.maxAge(Duration.ofHours(24))
+				.maxAge(Duration.ofHours(2))
 				.sameSite("Lax")
 				.build();
 	}

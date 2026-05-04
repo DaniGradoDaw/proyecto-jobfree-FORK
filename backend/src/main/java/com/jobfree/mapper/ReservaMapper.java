@@ -35,6 +35,9 @@ public class ReservaMapper {
 		dto.setProfesionalFotoUrl(usuarioProfesional.getFotoUrl());
 		dto.setValorada(r.getValoracion() != null);
 		dto.setValoracionId(r.getValoracion() != null ? r.getValoracion().getId() : null);
+		dto.setProgreso(r.getProgreso());
+		dto.setNotasProgreso(r.getNotasProgreso());
+		dto.setDuracionMin(servicio.getDuracionMin());
 
 		return dto;
 	}

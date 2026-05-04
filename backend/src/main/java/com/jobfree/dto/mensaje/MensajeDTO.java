@@ -18,6 +18,12 @@ public class MensajeDTO {
 	private Long destinatarioId;
 	private Long conversacionId;
 
+	private Long mensajeRespondidoId;
+	private String mensajeRespondidoContenido;
+	private Long mensajeRespondidoRemitenteId;
+
+	private String imagenUrl;
+
 	public MensajeDTO() {
 	}
 
@@ -70,6 +76,38 @@ public class MensajeDTO {
 
 	public Long getConversacionId() {
 		return conversacionId;
+	}
+
+	public Long getMensajeRespondidoId() {
+		return mensajeRespondidoId;
+	}
+
+	public void setMensajeRespondidoId(Long mensajeRespondidoId) {
+		this.mensajeRespondidoId = mensajeRespondidoId;
+	}
+
+	public String getMensajeRespondidoContenido() {
+		return mensajeRespondidoContenido;
+	}
+
+	public void setMensajeRespondidoContenido(String mensajeRespondidoContenido) {
+		this.mensajeRespondidoContenido = mensajeRespondidoContenido;
+	}
+
+	public Long getMensajeRespondidoRemitenteId() {
+		return mensajeRespondidoRemitenteId;
+	}
+
+	public void setMensajeRespondidoRemitenteId(Long mensajeRespondidoRemitenteId) {
+		this.mensajeRespondidoRemitenteId = mensajeRespondidoRemitenteId;
+	}
+
+	public String getImagenUrl() {
+		return imagenUrl;
+	}
+
+	public void setImagenUrl(String imagenUrl) {
+		this.imagenUrl = imagenUrl;
 	}
 
 }

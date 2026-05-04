@@ -18,7 +18,10 @@ import com.jobfree.exception.resena.ResenaInvalidaException;
 import com.jobfree.exception.resena.ResenaNotFoundException;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.ResenaProfesional;
+import com.jobfree.model.entity.Reserva;
+import com.jobfree.model.entity.ServicioOfrecido;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.enums.EstadoReserva;
 import com.jobfree.repository.ResenaProfesionalRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +35,7 @@ class ResenaProfesionalServiceTest {
     private Usuario usuarioProfesional;
     private ProfesionalInfo profesional;
     private ResenaProfesional resena;
+    private Reserva reserva;
 
     @BeforeEach
     void setUp() {
@@ -47,6 +51,16 @@ class ResenaProfesionalServiceTest {
 
         resena = new ResenaProfesional(5, "Excelente profesional, muy puntual", cliente, profesional);
         setId(resena, 100L);
+
+        ServicioOfrecido servicio = new ServicioOfrecido();
+        setId(servicio, 200L);
+        servicio.setProfesional(profesional);
+
+        reserva = new Reserva();
+        setId(reserva, 300L);
+        reserva.setCliente(cliente);
+        reserva.setServicio(servicio);
+        reserva.setEstado(EstadoReserva.COMPLETADA);
     }
 
     // ── obtenerPorId ──────────────────────────────────────────────────────────
@@ -136,6 +150,59 @@ class ResenaProfesionalServiceTest {
         assertThatThrownBy(() -> resenaService.crear(resena))
                 .isInstanceOf(ResenaInvalidaException.class)
                 .hasMessageContaining("ti mismo");
+    }
+
+    @Test
+    void crear_conReservaCompletadaCorrespondiente_guardaYRetorna() {
+        resena.setReserva(reserva);
+        when(resenaRepository.existsByClienteIdAndProfesionalIdAndReservaId(1L, 10L, 300L)).thenReturn(false);
+        when(resenaRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ResenaProfesional resultado = resenaService.crear(resena);
+
+        assertThat(resultado.getReserva()).isEqualTo(reserva);
+        verify(resenaRepository).save(resena);
+    }
+
+    @Test
+    void crear_conReservaNoCompletada_lanzaExcepcion() {
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
+        resena.setReserva(reserva);
+
+        assertThatThrownBy(() -> resenaService.crear(resena))
+                .isInstanceOf(ResenaInvalidaException.class)
+                .hasMessageContaining("completadas");
+    }
+
+    @Test
+    void crear_conReservaDeOtroCliente_lanzaExcepcion() {
+        Usuario otroCliente = new Usuario();
+        setId(otroCliente, 999L);
+        reserva.setCliente(otroCliente);
+        resena.setReserva(reserva);
+
+        assertThatThrownBy(() -> resenaService.crear(resena))
+                .isInstanceOf(ResenaInvalidaException.class)
+                .hasMessageContaining("cliente");
+    }
+
+    @Test
+    void crear_conReservaDeOtroProfesional_lanzaExcepcion() {
+        ProfesionalInfo otroProfesional = new ProfesionalInfo();
+        setId(otroProfesional, 999L);
+        Usuario otroUsuarioProfesional = new Usuario();
+        setId(otroUsuarioProfesional, 998L);
+        otroProfesional.setUsuario(otroUsuarioProfesional);
+
+        ServicioOfrecido otroServicio = new ServicioOfrecido();
+        setId(otroServicio, 999L);
+        otroServicio.setProfesional(otroProfesional);
+        reserva.setServicio(otroServicio);
+        resena.setReserva(reserva);
+
+        assertThatThrownBy(() -> resenaService.crear(resena))
+                .isInstanceOf(ResenaInvalidaException.class)
+                .hasMessageContaining("profesional");
     }
 
     // ── eliminar ──────────────────────────────────────────────────────────────

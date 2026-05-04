@@ -144,7 +144,7 @@ class ReservaServiceTest {
 
         assertThatThrownBy(() -> reservaService.crearReserva(reserva))
                 .isInstanceOf(ReservaInvalidaException.class)
-                .hasMessageContaining("ya existe");
+                .hasMessageContaining("Ya existe");
     }
 
     // ── confirmarReserva ──────────────────────────────────────────────────────

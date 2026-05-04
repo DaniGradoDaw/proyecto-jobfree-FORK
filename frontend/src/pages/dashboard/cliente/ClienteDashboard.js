@@ -4,32 +4,39 @@ import Topbar from "components/layout/dashboard/Topbar";
 import { Outlet } from "react-router-dom";
 
 function ClienteDashboard() {
-  // controla sidebar en móvil
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem("sidebar-collapsed") === "true"; } catch { return false; }
+  });
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("sidebar-collapsed", String(next)); } catch {}
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen">
 
-      {/* sidebar lateral (menú del cliente) */}
-      <Sidebar 
+      <Sidebar
         tipo="cliente"
         open={open}
-        setOpen={setOpen} />
+        setOpen={setOpen}
+        collapsed={collapsed}
+        onToggle={toggleCollapsed}
+      />
 
-      {/* oscurece el fondo en versión móvil */}
       {open && (
         <div
           className="fixed inset-0 bg-black/30 z-40 md:hidden"
-          onClick={() => setOpen(false)} />
+          onClick={() => setOpen(false)}
+        />
       )}
 
-      {/* zona principal */}
-      <div className="ml-0 md:ml-64">
-
-        {/* barra superior */}
-        <Topbar setOpen={setOpen} />
-
-        {/* contenido del dashboard */}
+      <div className={`transition-all duration-300 ml-0 ${collapsed ? "md:ml-16" : "md:ml-64"}`}>
+        <Topbar setOpen={setOpen} collapsed={collapsed} />
         <div className="p-6 mt-16">
           <Outlet />
         </div>

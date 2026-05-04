@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,13 +30,17 @@ import com.jobfree.dto.usuario.UsuarioDTO;
 import com.jobfree.dto.usuario.UsuarioUpdateDTO;
 import com.jobfree.mapper.UsuarioMapper;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.enums.Rol;
 import com.jobfree.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
+
+	private static final long FOTO_MAX_BYTES = 5L * 1024L * 1024L;
 
 	private final UsuarioService usuarioService;
 
@@ -74,17 +77,21 @@ public class UsuarioController {
 			return ResponseEntity.badRequest().body(Map.of("error", "El archivo está vacío"));
 		}
 
-		String contentType = foto.getContentType();
-		if (contentType == null || !contentType.startsWith("image/")) {
-			return ResponseEntity.badRequest().body(Map.of("error", "Solo se permiten imágenes"));
+		if (foto.getSize() > FOTO_MAX_BYTES) {
+			return ResponseEntity.badRequest().body(Map.of("error", "La imagen no puede superar 5MB"));
 		}
 
-		String extension = obtenerExtension(foto.getOriginalFilename());
+		byte[] bytes = foto.getBytes();
+		String extension = detectarExtensionImagen(bytes);
+		if (extension == null) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Formato no permitido. Usa JPG, PNG, WebP o GIF"));
+		}
+
 		String nombreArchivo = UUID.randomUUID() + extension;
 
 		Path directorio = Paths.get(uploadDir, "fotos");
 		Files.createDirectories(directorio);
-		Files.copy(foto.getInputStream(), directorio.resolve(nombreArchivo), StandardCopyOption.REPLACE_EXISTING);
+		Files.write(directorio.resolve(nombreArchivo), bytes);
 
 		String fotoUrl = "/uploads/fotos/" + nombreArchivo;
 
@@ -94,9 +101,48 @@ public class UsuarioController {
 		return ResponseEntity.ok(Map.of("fotoUrl", fotoUrl));
 	}
 
-	private String obtenerExtension(String nombre) {
-		if (nombre == null || !nombre.contains(".")) return ".jpg";
-		return nombre.substring(nombre.lastIndexOf(".")).toLowerCase();
+	private String detectarExtensionImagen(byte[] bytes) {
+		if (bytes == null || bytes.length < 4) {
+			return null;
+		}
+		if (bytes.length >= 3
+				&& (bytes[0] & 0xFF) == 0xFF
+				&& (bytes[1] & 0xFF) == 0xD8
+				&& (bytes[2] & 0xFF) == 0xFF) {
+			return ".jpg";
+		}
+		if (bytes.length >= 8
+				&& (bytes[0] & 0xFF) == 0x89
+				&& bytes[1] == 0x50
+				&& bytes[2] == 0x4E
+				&& bytes[3] == 0x47
+				&& bytes[4] == 0x0D
+				&& bytes[5] == 0x0A
+				&& bytes[6] == 0x1A
+				&& bytes[7] == 0x0A) {
+			return ".png";
+		}
+		if (bytes.length >= 12
+				&& bytes[0] == 0x52
+				&& bytes[1] == 0x49
+				&& bytes[2] == 0x46
+				&& bytes[3] == 0x46
+				&& bytes[8] == 0x57
+				&& bytes[9] == 0x45
+				&& bytes[10] == 0x42
+				&& bytes[11] == 0x50) {
+			return ".webp";
+		}
+		if (bytes.length >= 6
+				&& bytes[0] == 0x47
+				&& bytes[1] == 0x49
+				&& bytes[2] == 0x46
+				&& bytes[3] == 0x38
+				&& (bytes[4] == 0x37 || bytes[4] == 0x39)
+				&& bytes[5] == 0x61) {
+			return ".gif";
+		}
+		return null;
 	}
 
 	/**
@@ -105,6 +151,7 @@ public class UsuarioController {
 	 *
 	 * @return lista de usuarios en formato DTO
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
@@ -122,6 +169,7 @@ public class UsuarioController {
 	 * @param id identificador del usuario
 	 * @return usuario encontrado en formato DTO
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
 	@GetMapping("/{id}")
 	public ResponseEntity<UsuarioDTO> obtenerPorId(@PathVariable Long id) {
@@ -165,6 +213,7 @@ public class UsuarioController {
 	 * @param dto datos a actualizar
 	 * @return usuario actualizado en formato DTO
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
 	@PatchMapping("/{id}")
 	public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id,
@@ -174,12 +223,27 @@ public class UsuarioController {
 		return ResponseEntity.ok(UsuarioMapper.toDTO(actualizado));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{id}/rol")
+	public ResponseEntity<UsuarioDTO> cambiarRol(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		String rolStr = body.get("rol");
+		if (rolStr == null || rolStr.isBlank()) return ResponseEntity.badRequest().build();
+		Rol rol;
+		try {
+			rol = Rol.valueOf(rolStr.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().build();
+		}
+		return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioService.cambiarRol(id, rol)));
+	}
+
 	/**
 	 * Elimina un usuario del sistema. Solo accesible por usuarios con rol ADMIN.
 	 *
 	 * @param id identificador del usuario a eliminar
 	 * @return respuesta sin contenido (204 No Content)
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {

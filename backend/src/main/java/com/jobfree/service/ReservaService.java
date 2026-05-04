@@ -166,6 +166,27 @@ public class ReservaService {
 		return reservaRepository.save(reserva);
 	}
 
+	public Reserva actualizarProgreso(Reserva reserva, int progreso, String notas, Usuario usuario) {
+		Long profesionalId = reserva.getServicio().getProfesional().getUsuario().getId();
+		if (!usuario.getId().equals(profesionalId)) {
+			throw new ReservaInvalidaException("Solo el profesional puede actualizar el progreso");
+		}
+		if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+			throw new ReservaInvalidaException("Solo se puede actualizar el progreso de reservas confirmadas");
+		}
+		reserva.setProgreso(progreso);
+		if (notas != null) {
+			reserva.setNotasProgreso(notas);
+		}
+		Reserva guardada = reservaRepository.save(reserva);
+		notificacionService.crear(
+				"El profesional ha actualizado el progreso de «" + guardada.getServicio().getTitulo() +
+				"» al " + guardada.getProgreso() + "%.",
+				guardada.getCliente()
+		);
+		return guardada;
+	}
+
 	/** El profesional marca el trabajo como completado */
 	public Reserva completarReserva(Reserva reserva, Usuario usuario) {
 		Long profesionalId = reserva.getServicio().getProfesional().getUsuario().getId();
@@ -177,6 +198,7 @@ public class ReservaService {
 			throw new ReservaInvalidaException("Solo se pueden completar reservas confirmadas");
 		}
 
+		reserva.setProgreso(100);
 		reserva.setEstado(EstadoReserva.COMPLETADA);
 		Reserva guardada = reservaRepository.save(reserva);
 
@@ -186,6 +208,19 @@ public class ReservaService {
 				guardada.getCliente()
 		);
 
+		return guardada;
+	}
+
+	public Reserva completarReservaAdmin(Reserva reserva) {
+		if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+			throw new ReservaInvalidaException("Solo se pueden completar reservas confirmadas");
+		}
+		reserva.setEstado(EstadoReserva.COMPLETADA);
+		Reserva guardada = reservaRepository.save(reserva);
+		notificacionService.crear(
+				"El administrador ha marcado «" + guardada.getServicio().getTitulo() + "» como completado. ¡Deja tu valoración!",
+				guardada.getCliente()
+		);
 		return guardada;
 	}
 

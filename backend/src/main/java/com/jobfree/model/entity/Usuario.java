@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jobfree.model.enums.Rol;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -67,6 +69,9 @@ public class Usuario implements Principal {
 	// URL de la foto de perfil (ruta relativa al directorio de uploads)
 	@Column(length = 255)
 	private String fotoUrl;
+
+	@Column
+	private LocalDateTime ultimaConexion;
 
 	// Un usuario puede tener un perfil profesional si es profesional
 	@JsonIgnore
@@ -199,6 +204,14 @@ public class Usuario implements Principal {
 
 	public void setFotoUrl(String fotoUrl) {
 		this.fotoUrl = fotoUrl;
+	}
+
+	public LocalDateTime getUltimaConexion() {
+		return ultimaConexion;
+	}
+
+	public void setUltimaConexion(LocalDateTime ultimaConexion) {
+		this.ultimaConexion = ultimaConexion;
 	}
 
 	public ProfesionalInfo getProfesionalInfo() {

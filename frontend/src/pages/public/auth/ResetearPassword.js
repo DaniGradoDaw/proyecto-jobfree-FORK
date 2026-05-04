@@ -5,11 +5,10 @@ import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outlin
 import logo from "assets/images/logo.png";
 import SimpleFooter from "components/layout/public/SimpleFooter";
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 import { resetearPassword } from "api/auth";
 
 function ResetearPassword() {
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
@@ -27,7 +26,7 @@ function ResetearPassword() {
     setError("");
 
     if (nuevaPassword !== confirmarPassword) {
-      setError(t(idioma, "auth.reset.errorNoCoinciden"));
+      setError(tx("Las contraseñas no coinciden."));
       return;
     }
 
@@ -40,9 +39,9 @@ function ResetearPassword() {
     } catch (err) {
       const msg = err.message || "";
       if (msg.includes("caducado") || msg.includes("expired")) {
-        setError(t(idioma, "auth.reset.errorTokenExpirado"));
+        setError(tx("El enlace ha caducado. Solicita uno nuevo."));
       } else {
-        setError(t(idioma, "auth.reset.errorTokenInvalido"));
+        setError(tx("El enlace no es válido o ya fue utilizado."));
       }
     } finally {
       setCargando(false);
@@ -54,9 +53,9 @@ function ResetearPassword() {
       <div className="flex flex-col min-h-screen bg-gradient-to-r from-green-500 to-emerald-400">
         <div className="flex flex-1 justify-center items-center">
           <div className="bg-gray-50 max-w-md w-full mx-4 p-8 rounded-xl shadow text-center">
-            <p className="text-red-500 mb-4">{t(idioma, "auth.reset.errorTokenInvalido")}</p>
+            <p className="text-red-500 mb-4">{tx("El enlace no es válido o ya fue utilizado.")}</p>
             <Link to="/recuperar-password" className="text-blue-600 text-sm hover:underline">
-              Solicitar nuevo enlace
+              {tx("Solicitar nuevo enlace")}
             </Link>
           </div>
         </div>
@@ -70,7 +69,7 @@ function ResetearPassword() {
       <div className="w-full px-4 pt-6">
         <Link to="/login" className="flex items-center gap-2 text-white/90 hover:text-white transition text-sm">
           <ArrowLeftIcon className="h-4 w-4" />
-          {t(idioma, "auth.general.volver")}
+          {tx("Volver atras")}
         </Link>
       </div>
 
@@ -82,24 +81,23 @@ function ResetearPassword() {
           </div>
 
           <h2 className="text-2xl font-semibold mb-2 text-center text-gray-900">
-            {t(idioma, "auth.reset.titulo")}
+            {tx("Crea una nueva contraseña")}
           </h2>
           <p className="text-center text-gray-500 mb-6 text-sm">
-            {t(idioma, "auth.reset.descripcion")}
+            {tx("Introduce tu nueva contraseña. Debe tener al menos 8 caracteres.")}
           </p>
 
           {exito ? (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-4 text-sm text-center">
-              <p>{t(idioma, "auth.reset.exito")}</p>
-              <p className="text-xs text-gray-400 mt-2">Redirigiendo al inicio de sesión...</p>
+              <p>{tx("Contraseña actualizada correctamente. Ya puedes iniciar sesión.")}</p>
+              <p className="text-xs text-gray-400 mt-2">{tx("Redirigiendo al inicio de sesión...")}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
 
-              {/* Nueva contraseña */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(idioma, "auth.reset.nuevaPassword")}
+                  {tx("Nueva contraseña")}
                 </label>
                 <div className="relative">
                   <input
@@ -119,10 +117,9 @@ function ResetearPassword() {
                 </div>
               </div>
 
-              {/* Confirmar contraseña */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t(idioma, "auth.reset.confirmarPassword")}
+                  {tx("Confirmar contraseña")}
                 </label>
                 <div className="relative">
                   <input
@@ -150,7 +147,7 @@ function ResetearPassword() {
                 type="submit"
                 disabled={cargando}
                 className="w-full bg-blue-600 py-2.5 rounded-full text-white hover:bg-blue-700 disabled:opacity-60">
-                {cargando ? "Guardando..." : t(idioma, "auth.reset.boton")}
+                {cargando ? tx("Guardando...") : tx("Guardar contraseña")}
               </button>
 
             </form>

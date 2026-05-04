@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.jobfree.exception.resena.ResenaInvalidaException;
 import com.jobfree.exception.resena.ResenaNotFoundException;
 import com.jobfree.model.entity.ResenaProfesional;
+import com.jobfree.model.enums.EstadoReserva;
 import com.jobfree.repository.ResenaProfesionalRepository;
 
 import jakarta.transaction.Transactional;
@@ -96,6 +97,21 @@ public class ResenaProfesionalService {
         }
         if (resena.getCliente().getId().equals(resena.getProfesional().getUsuario().getId())) {
             throw new ResenaInvalidaException("No puedes reseñarte a ti mismo");
+        }
+        if (resena.getReserva() != null) {
+            validarReserva(resena);
+        }
+    }
+
+    private void validarReserva(ResenaProfesional resena) {
+        if (resena.getReserva().getEstado() != EstadoReserva.COMPLETADA) {
+            throw new ResenaInvalidaException("Solo puedes reseñar reservas completadas");
+        }
+        if (!resena.getReserva().getCliente().getId().equals(resena.getCliente().getId())) {
+            throw new ResenaInvalidaException("La reserva no pertenece al cliente autenticado");
+        }
+        if (!resena.getReserva().getServicio().getProfesional().getId().equals(resena.getProfesional().getId())) {
+            throw new ResenaInvalidaException("La reserva no corresponde con este profesional");
         }
     }
 }

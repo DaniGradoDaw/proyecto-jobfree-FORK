@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
 import logo from "assets/images/logo.png";
 
-// importamos idioma
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 
 function Footer() {
 
-  // obtenemos idioma actual
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
 
   return (
     // footer principal
@@ -24,7 +21,7 @@ function Footer() {
 
             {/* texto newsletter */}
             <p className="mb-3 text-sm text-gray-200">
-              {t(idioma, "footer.newsletter")}
+              {tx("Suscribete a nuestra newsletter")}
             </p>
 
             {/* formulario */}
@@ -32,15 +29,15 @@ function Footer() {
               <input
                 type="email"
                 required
-                placeholder={t(idioma, "footer.emailPlaceholder")}
-                aria-label={t(idioma, "footer.emailPlaceholder")}
+                placeholder={tx("Introduce tu email")}
+                aria-label={tx("Introduce tu email")}
                 className="bg-[#5d6185] text-white text-sm rounded px-3 py-2 outline-none w-full md:max-w-[220px]"
               />
 
               <button
                 type="submit"
                 className="bg-white text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition whitespace-nowrap">
-                {t(idioma, "footer.suscribirse")}
+                {tx("Suscribirse")}
               </button>
             </form>
           </div>
@@ -48,25 +45,25 @@ function Footer() {
           {/* columna conocenos */}
           <div className="lg:w-1/4 md:w-1/2 w-full px-4">
             <h2 className="font-semibold text-sm mb-3 tracking-widest">
-              {t(idioma, "nav.conocenos")}
+              {tx("Conocenos")}
             </h2>
 
             <nav className="list-none mb-8 space-y-1">
               <li>
                 <Link to="/conocenos" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.empresa.quienesSomos")}
+                  {tx("Quienes somos")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/conocenos" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.empresa.queOfrecemos")}
+                  {tx("Que ofrecemos")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/contacto" className="text-gray-200 hover:text-white">
-                  {t(idioma, "nav.contacto")}
+                  {tx("Contacto")}
                 </Link>
               </li>
             </nav>
@@ -75,25 +72,25 @@ function Footer() {
           {/* columna servicios */}
           <div className="lg:w-1/4 md:w-1/2 w-full px-4">
             <h2 className="font-semibold text-sm mb-3 tracking-widest">
-              {t(idioma, "nav.servicios")}
+              {tx("Servicios")}
             </h2>
 
             <nav className="list-none mb-8 space-y-1">
               <li>
                 <Link to="/servicios" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.plataforma.serviciosDisponibles")}
+                  {tx("Servicios disponibles")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/servicios" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.plataforma.profesionales")}
+                  {tx("Profesionales")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/servicios" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.plataforma.reservas")}
+                  {tx("Reservas")}
                 </Link>
               </li>
             </nav>
@@ -102,25 +99,25 @@ function Footer() {
           {/* columna legal */}
           <div className="lg:w-1/4 md:w-1/2 w-full px-4">
             <h2 className="font-semibold text-sm mb-3 tracking-widest">
-              {t(idioma, "footer.legal.titulo")}
+              {tx("Legal")}
             </h2>
 
             <nav className="list-none mb-8 space-y-1">
               <li>
                 <Link to="/terminos" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.legal.terminos")}
+                  {tx("Terminos y condiciones")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/privacidad" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.legal.privacidad")}
+                  {tx("Politica de privacidad")}
                 </Link>
               </li>
 
               <li>
                 <Link to="/cookies" className="text-gray-200 hover:text-white">
-                  {t(idioma, "footer.legal.cookies")}
+                  {tx("Politica de cookies")}
                 </Link>
               </li>
             </nav>

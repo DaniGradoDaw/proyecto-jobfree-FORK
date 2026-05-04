@@ -27,6 +27,7 @@ import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.service.ProfesionalInfoService;
 import com.jobfree.util.GeoUtils;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
@@ -134,7 +135,7 @@ public class ProfesionalInfoController {
         return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(actualizado));
     }
 
-    /** Elimina un perfil (solo ADMIN). */
+    @Operation(hidden = true)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarPerfil(@PathVariable Long id) {

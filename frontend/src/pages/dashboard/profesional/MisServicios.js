@@ -19,16 +19,19 @@ import {
   activarServicio,
   desactivarServicio,
 } from "api/servicios";
+import { useLanguage } from "context/LanguageContext";
 
-const DURACIONES = [
-  { value: "30", label: "30 minutos" },
-  { value: "60", label: "1 hora" },
-  { value: "90", label: "1h 30min" },
-  { value: "120", label: "2 horas" },
-  { value: "180", label: "3 horas" },
-  { value: "240", label: "4 horas" },
-  { value: "480", label: "Jornada completa (8h)" },
-];
+const DURACION_KEYS = ["30", "60", "90", "120", "180", "240", "480"];
+
+const DURACION_LABELS = {
+  "30": "30 minutos",
+  "60": "1 hora",
+  "90": "1h 30min",
+  "120": "2 horas",
+  "180": "3 horas",
+  "240": "4 horas",
+  "480": "Jornada completa (8h)",
+};
 
 const FORM_VACIO = {
   subcategoriaId: "",
@@ -38,7 +41,6 @@ const FORM_VACIO = {
   duracionMin: "60",
 };
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 function findSubById(agrupadas, id) {
   for (const grupo of Object.values(agrupadas)) {
     const found = grupo.find(s => s.id === Number(id));
@@ -47,8 +49,7 @@ function findSubById(agrupadas, id) {
   return null;
 }
 
-// ── Combobox con búsqueda ─────────────────────────────────────────────────
-function SubcategoriaCombobox({ agrupadas, value, onChange }) {
+function SubcategoriaCombobox({ agrupadas, value, onChange, tx }) {
   const [query, setQuery] = useState("");
   const [abierto, setAbierto] = useState(false);
   const containerRef = useRef();
@@ -68,9 +69,7 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
 
   const filtradas = query.trim()
     ? Object.entries(agrupadas).reduce((acc, [cat, subs]) => {
-        const filtered = subs.filter(s =>
-          s.nombre.toLowerCase().includes(query.toLowerCase())
-        );
+        const filtered = subs.filter(s => s.nombre.toLowerCase().includes(query.toLowerCase()));
         if (filtered.length > 0) acc[cat] = filtered;
         return acc;
       }, {})
@@ -88,11 +87,9 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
     <div className="relative" ref={containerRef}>
       <div
         className={`flex items-center w-full border rounded-xl px-3.5 py-2.5 gap-2 cursor-text transition ${
-          abierto
-            ? "border-emerald-500 ring-2 ring-emerald-500"
-            : "border-gray-300 hover:border-gray-400"
+          abierto ? "border-emerald-500 ring-2 ring-emerald-500" : "border-gray-300 hover:border-gray-400"
         }`}
-        onClick={() => { setAbierto(true); }}>
+        onClick={() => setAbierto(true)}>
         {abierto ? (
           <>
             <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 shrink-0" />
@@ -101,14 +98,11 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar tipo de servicio..."
+              placeholder={tx("Buscar tipo de servicio...")}
               className="flex-1 text-sm bg-transparent outline-none text-gray-800 placeholder-gray-400"
             />
             {query && (
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); setQuery(""); }}
-                className="text-gray-400 hover:text-gray-600">
+              <button type="button" onClick={e => { e.stopPropagation(); setQuery(""); }} className="text-gray-400 hover:text-gray-600">
                 <XMarkIcon className="w-4 h-4" />
               </button>
             )}
@@ -116,7 +110,7 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
         ) : (
           <>
             <span className={`flex-1 text-sm ${seleccionada ? "text-gray-800" : "text-gray-400"}`}>
-              {seleccionada ? seleccionada.nombre : "Selecciona o busca un servicio..."}
+              {seleccionada ? tx(seleccionada.nombre) : tx("Selecciona o busca un servicio...")}
             </span>
             <ChevronDownIcon className="w-4 h-4 text-gray-400 shrink-0" />
           </>
@@ -126,14 +120,14 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
       {abierto && (
         <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
           {totalResultados === 0 ? (
-            <p className="px-4 py-4 text-sm text-gray-400 text-center">Sin resultados</p>
+            <p className="px-4 py-4 text-sm text-gray-400 text-center">{tx("Sin resultados")}</p>
           ) : (
             Object.entries(filtradas)
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([cat, subs]) => (
                 <div key={cat}>
                   <div className="sticky top-0 px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 border-b border-gray-100">
-                    {cat}
+                    {tx(cat)}
                   </div>
                   {subs.map(s => (
                     <button
@@ -146,7 +140,7 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
                           ? "bg-emerald-50 text-emerald-700 font-medium"
                           : "text-gray-700 hover:bg-gray-50"
                       }`}>
-                      {s.nombre}
+                      {tx(s.nombre)}
                     </button>
                   ))}
                 </div>
@@ -158,8 +152,8 @@ function SubcategoriaCombobox({ agrupadas, value, onChange }) {
   );
 }
 
-// ── Página principal ─────────────────────────────────────────────────────
 function MisServicios() {
+  const { tx } = useLanguage();
   const [subcategorias, setSubcategorias] = useState({});
   const [servicios, setServicios] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -173,6 +167,7 @@ function MisServicios() {
 
   const [confirmarBorrado, setConfirmarBorrado] = useState(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarDatos(); }, []);
 
   async function cargarDatos() {
@@ -191,12 +186,10 @@ function MisServicios() {
         acc[cat].push(sub);
         return acc;
       }, {});
-      Object.values(agrupadas).forEach(g =>
-        g.sort((a, b) => a.nombre.localeCompare(b.nombre))
-      );
+      Object.values(agrupadas).forEach(g => g.sort((a, b) => a.nombre.localeCompare(b.nombre)));
       setSubcategorias(agrupadas);
     } else {
-      setError("No se pudieron cargar los tipos de servicio.");
+      setError(tx("No se pudieron cargar los tipos de servicio."));
     }
 
     if (misResult.status === "fulfilled") {
@@ -243,7 +236,6 @@ function MisServicios() {
     setForm(prev => ({
       ...prev,
       subcategoriaId: String(id),
-      // Auto-rellena el título solo si aún no se ha personalizado (al crear)
       titulo: editandoId ? prev.titulo : (sub?.nombre || prev.titulo),
     }));
   }
@@ -251,7 +243,7 @@ function MisServicios() {
   async function handleGuardar(e) {
     e.preventDefault();
     if (!form.subcategoriaId) {
-      setErrorForm("Selecciona un tipo de servicio.");
+      setErrorForm(tx("Selecciona un tipo de servicio."));
       return;
     }
     setErrorForm("");
@@ -275,7 +267,7 @@ function MisServicios() {
       }
       cerrarModal();
     } catch (err) {
-      setErrorForm(err.message || "Error al guardar el servicio");
+      setErrorForm(err.message || tx("Error al guardar el servicio"));
     } finally {
       setGuardando(false);
     }
@@ -283,12 +275,10 @@ function MisServicios() {
 
   async function handleToggle(s) {
     try {
-      const actualizado = s.activa
-        ? await desactivarServicio(s.id)
-        : await activarServicio(s.id);
+      const actualizado = s.activa ? await desactivarServicio(s.id) : await activarServicio(s.id);
       setServicios(prev => prev.map(x => x.id === s.id ? actualizado : x));
     } catch (err) {
-      setError(err.message || "Error al cambiar el estado");
+      setError(err.message || tx("Error al cambiar el estado"));
     }
   }
 
@@ -298,13 +288,13 @@ function MisServicios() {
       setServicios(prev => prev.filter(s => s.id !== id));
       setConfirmarBorrado(null);
     } catch (err) {
-      setError(err.message || "Error al eliminar el servicio");
+      setError(err.message || tx("Error al eliminar el servicio"));
     }
   }
 
   function duracionLabel(min) {
-    const d = DURACIONES.find(d => d.value === String(min));
-    if (d) return d.label;
+    const texto = DURACION_LABELS[String(min)];
+    if (texto) return tx(texto);
     const h = Math.floor(min / 60), m = min % 60;
     return m > 0 ? `${h}h ${m}min` : `${h}h`;
   }
@@ -312,53 +302,49 @@ function MisServicios() {
   if (cargando) {
     return (
       <div className="flex items-center justify-center py-24 text-gray-400 text-sm">
-        Cargando servicios...
+        {tx("Cargando...")}
       </div>
     );
   }
 
+  const subTitulo = servicios.length === 0
+    ? tx("Aún no has publicado ningun servicio.")
+    : servicios.length === 1
+      ? tx("{count} servicio publicado", { count: 1 })
+      : tx("{count} servicios publicados", { count: servicios.length });
+
   return (
     <div className="max-w-4xl">
-
-      {/* Cabecera */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Mis servicios</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {servicios.length === 0
-              ? "Aún no has publicado ningún servicio."
-              : `${servicios.length} servicio${servicios.length !== 1 ? "s" : ""} publicado${servicios.length !== 1 ? "s" : ""}`}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800">{tx("Mis servicios")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{subTitulo}</p>
         </div>
         <button
           onClick={abrirCrear}
           className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition">
           <PlusIcon className="w-4 h-4" />
-          Nuevo servicio
+          {tx("Nuevo servicio")}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-6 text-sm">
-          {error}
-        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-6 text-sm">{error}</div>
       )}
 
-      {/* Lista vacía */}
       {servicios.length === 0 && !error && (
         <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <div className="text-5xl mb-4">🛠️</div>
-          <h3 className="text-gray-700 font-semibold mb-1">Sin servicios todavía</h3>
-          <p className="text-gray-400 text-sm mb-6">Publica tu primer servicio para aparecer en las búsquedas.</p>
+          <h3 className="text-gray-700 font-semibold mb-1">{tx("Sin servicios todavía")}</h3>
+          <p className="text-gray-400 text-sm mb-6">{tx("Publica tu primer servicio para aparecer en las búsquedas.")}</p>
           <button
             onClick={abrirCrear}
             className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition">
-            Publicar mi primer servicio
+            {tx("Publicar mi primer servicio")}
           </button>
         </div>
       )}
 
-      {/* Grid de tarjetas */}
       {servicios.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {servicios.map(s => (
@@ -372,20 +358,16 @@ function MisServicios() {
                   <span className="inline-block text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mb-1">
                     {s.subcategoriaNombre}
                   </span>
-                  <h3 className="font-semibold text-gray-800 text-sm leading-tight truncate">
-                    {s.titulo}
-                  </h3>
+                  <h3 className="font-semibold text-gray-800 text-sm leading-tight truncate">{s.titulo}</h3>
                 </div>
                 <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
                   s.activa ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"
                 }`}>
-                  {s.activa ? "Activo" : "Inactivo"}
+                  {s.activa ? tx("Activo") : tx("Inactivo")}
                 </span>
               </div>
 
-              <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                {s.descripcion}
-              </p>
+              <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{s.descripcion}</p>
 
               <div className="flex items-center gap-4 text-sm">
                 <span className="font-bold text-gray-800">{Number(s.precioHora).toFixed(2)} €/h</span>
@@ -394,25 +376,20 @@ function MisServicios() {
               </div>
 
               <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
-                <button
-                  onClick={() => abrirEditar(s)}
+                <button onClick={() => abrirEditar(s)}
                   className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition">
                   <PencilIcon className="w-3.5 h-3.5" />
-                  Editar
+                  {tx("Editar")}
                 </button>
-                <button
-                  onClick={() => handleToggle(s)}
+                <button onClick={() => handleToggle(s)}
                   className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition">
-                  {s.activa
-                    ? <EyeSlashIcon className="w-3.5 h-3.5" />
-                    : <EyeIcon className="w-3.5 h-3.5" />}
-                  {s.activa ? "Desactivar" : "Activar"}
+                  {s.activa ? <EyeSlashIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
+                  {s.activa ? tx("Desactivar") : tx("Activar")}
                 </button>
-                <button
-                  onClick={() => setConfirmarBorrado(s.id)}
+                <button onClick={() => setConfirmarBorrado(s.id)}
                   className="ml-auto flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition">
                   <TrashIcon className="w-3.5 h-3.5" />
-                  Eliminar
+                  {tx("Eliminar")}
                 </button>
               </div>
             </div>
@@ -420,14 +397,13 @@ function MisServicios() {
         </div>
       )}
 
-      {/* ── Modal crear / editar ─────────────────────────────────────────── */}
+      {/* Modal crear / editar */}
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold text-gray-800">
-                {editandoId ? "Editar servicio" : "Nuevo servicio"}
+                {editandoId ? tx("Editar servicio") : tx("Nuevo servicio")}
               </h2>
               <button onClick={cerrarModal} className="text-gray-400 hover:text-gray-600 transition">
                 <XMarkIcon className="w-5 h-5" />
@@ -435,135 +411,95 @@ function MisServicios() {
             </div>
 
             <form onSubmit={handleGuardar} className="space-y-4">
-
-              {/* Combobox subcategoría */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Tipo de servicio <span className="text-red-500">*</span>
+                  {tx("Tipo de servicio")} <span className="text-red-500">*</span>
                 </label>
-                <SubcategoriaCombobox
-                  agrupadas={subcategorias}
-                  value={form.subcategoriaId}
-                  onChange={handleSubcategoria}
-                />
+                <SubcategoriaCombobox agrupadas={subcategorias} value={form.subcategoriaId} onChange={handleSubcategoria} tx={tx} />
               </div>
 
-              {/* Título */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Título del anuncio <span className="text-red-500">*</span>
+                  {tx("Titulo del anuncio")} <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="titulo"
-                  value={form.titulo}
-                  onChange={handleChange}
-                  required
-                  maxLength={120}
-                  placeholder="Ej: Fontanero urgente en Madrid"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+                <input type="text" name="titulo" value={form.titulo} onChange={handleChange}
+                  required maxLength={120}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
               </div>
 
-              {/* Descripción */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Descripción <span className="text-red-500">*</span>
+                  {tx("Descripción")} <span className="text-red-500">*</span>
                 </label>
-                <textarea
-                  name="descripcion"
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  required
-                  rows={3}
-                  placeholder="Describe el servicio que ofreces, tu experiencia, lo que incluye..."
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-                />
+                <textarea name="descripcion" value={form.descripcion} onChange={handleChange}
+                  required rows={3}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" />
               </div>
 
-              {/* Precio y duración */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Precio / hora (€) <span className="text-red-500">*</span>
+                    {tx("Precio / hora (EUR)")} <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    name="precioHora"
-                    value={form.precioHora}
-                    onChange={handleChange}
-                    required
-                    min="1"
-                    step="0.5"
-                    placeholder="25"
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
+                  <input type="number" name="precioHora" value={form.precioHora} onChange={handleChange}
+                    required min="1" step="0.5"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Duración estimada
+                    {tx("Duracion estimada")}
                   </label>
-                  <select
-                    name="duracionMin"
-                    value={form.duracionMin}
-                    onChange={handleChange}
+                  <select name="duracionMin" value={form.duracionMin} onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                    {DURACIONES.map(d => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DURACION_KEYS.map(key => (
+                      <option key={key} value={key}>{tx(DURACION_LABELS[key])}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {errorForm && (
-                <p className="text-red-500 text-sm">{errorForm}</p>
-              )}
+              {errorForm && <p className="text-red-500 text-sm">{errorForm}</p>}
 
               <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
+                <button type="button" onClick={cerrarModal}
                   className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm font-medium">
-                  Cancelar
+                  {tx("Cancelar")}
                 </button>
-                <button
-                  type="submit"
-                  disabled={guardando}
+                <button type="submit" disabled={guardando}
                   className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition disabled:opacity-60 flex items-center justify-center gap-2">
-                  {guardando ? "Guardando..." : (
-                    <><CheckIcon className="w-4 h-4" />{editandoId ? "Guardar cambios" : "Publicar servicio"}</>
+                  {guardando ? tx("Guardando...") : (
+                    <>
+                      <CheckIcon className="w-4 h-4" />
+                      {editandoId ? tx("Guardar cambios") : tx("Publicar servicio")}
+                    </>
                   )}
                 </button>
               </div>
-
             </form>
           </div>
         </div>
       )}
 
-      {/* ── Modal confirmar borrado ──────────────────────────────────────── */}
+      {/* Modal confirmar borrado */}
       {confirmarBorrado !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-xs w-full text-center">
             <div className="text-4xl mb-3">🗑️</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">¿Eliminar servicio?</h3>
-            <p className="text-sm text-gray-400 mb-6">Esta acción no se puede deshacer.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{tx("Eliminar servicio?")}</h3>
+            <p className="text-sm text-gray-400 mb-6">{tx("Esta acción no se puede deshacer.")}</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmarBorrado(null)}
+              <button onClick={() => setConfirmarBorrado(null)}
                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm font-medium">
-                Cancelar
+                {tx("Cancelar")}
               </button>
-              <button
-                onClick={() => handleEliminar(confirmarBorrado)}
+              <button onClick={() => handleEliminar(confirmarBorrado)}
                 className="flex-1 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition text-sm font-medium">
-                Eliminar
+                {tx("Eliminar")}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

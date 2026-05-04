@@ -48,6 +48,27 @@ public class ChatRealtimePublisher {
 		}
 	}
 
+	/**
+	 * Envía un evento conversacion.actualizada personalizado para cada usuario,
+	 * con sus campos otroUsuario* y noLeidos ya calculados.
+	 */
+	public void publicarConversacionActualizadaPersonalizada(
+			Long conversacionId,
+			ConversacionDTO dtoA, String emailA,
+			ConversacionDTO dtoB, String emailB) {
+
+		if (emailA != null && !emailA.isBlank()) {
+			messagingTemplate.convertAndSendToUser(
+					emailA, "/queue/conversaciones",
+					new ConversacionActualizadaEventDTO(conversacionId, dtoA));
+		}
+		if (emailB != null && !emailB.isBlank()) {
+			messagingTemplate.convertAndSendToUser(
+					emailB, "/queue/conversaciones",
+					new ConversacionActualizadaEventDTO(conversacionId, dtoB));
+		}
+	}
+
 	public void publicarMensajeLeido(Long conversacionId, Long mensajeId, Long lectorId, String... usuariosDestino) {
 		publicarMensajeLeidoLote(conversacionId, List.of(mensajeId), lectorId, usuariosDestino);
 	}

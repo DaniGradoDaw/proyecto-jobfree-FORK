@@ -27,6 +27,10 @@ public class ReservaDTO {
 	private Long valoracionId;
 	private boolean valorada;
 
+	private int progreso;
+	private String notasProgreso;
+	private Integer duracionMin;
+
 	public ReservaDTO() {
 	}
 
@@ -79,4 +83,13 @@ public class ReservaDTO {
 
 	public boolean isValorada() { return valorada; }
 	public void setValorada(boolean valorada) { this.valorada = valorada; }
+
+	public int getProgreso() { return progreso; }
+	public void setProgreso(int progreso) { this.progreso = progreso; }
+
+	public String getNotasProgreso() { return notasProgreso; }
+	public void setNotasProgreso(String notasProgreso) { this.notasProgreso = notasProgreso; }
+
+	public Integer getDuracionMin() { return duracionMin; }
+	public void setDuracionMin(Integer duracionMin) { this.duracionMin = duracionMin; }
 }

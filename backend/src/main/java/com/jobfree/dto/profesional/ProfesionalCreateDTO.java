@@ -3,7 +3,6 @@ package com.jobfree.dto.profesional;
 import com.jobfree.model.enums.Plan;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 
@@ -15,7 +14,6 @@ public class ProfesionalCreateDTO {
 	@NotBlank(message = "La descripción es obligatoria")
 	private String descripcion;
 
-	@NotNull(message = "La experiencia es obligatoria")
 	@PositiveOrZero(message = "La experiencia no puede ser negativa")
 	private Integer experiencia;
 
@@ -24,7 +22,6 @@ public class ProfesionalCreateDTO {
 	@Pattern(regexp = "^[A-Za-z0-9]*$", message = "El CIF no es válido")
 	private String cif;
 
-	@NotNull(message = "El plan es obligatorio")
 	private Plan plan;
 
 	private String codigoPostal;

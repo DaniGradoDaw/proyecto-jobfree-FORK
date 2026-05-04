@@ -12,6 +12,7 @@ import com.jobfree.mapper.NotificacionMapper;
 import com.jobfree.model.entity.Notificacion;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.service.NotificacionService;
+import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/notificaciones")
@@ -28,6 +29,7 @@ public class NotificacionController {
 	 *
 	 * @return lista de notificaciones en formato DTO
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<NotificacionDTO>> listarNotificaciones() {

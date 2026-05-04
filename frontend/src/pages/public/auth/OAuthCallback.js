@@ -21,6 +21,7 @@ function OAuthCallback() {
         navigate(rol === "PROFESIONAL" ? "/dashboard/profesional" : "/dashboard/cliente");
       })
       .catch(() => navigate("/login?error=oauth"));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -20,6 +20,7 @@ import PerfilProfesional from "pages/public/profesionales/PerfilProfesional";
 import Conocenos from "pages/public/Conocenos";
 import ParaProfesionales from "pages/public/ParaProfesionales";
 import Contacto from "pages/public/Contacto";
+import Terminos from "pages/public/Terminos";
 import Login from "pages/public/auth/Login";
 import Registro from "pages/public/auth/Registro";
 import OAuthCallback from "pages/public/auth/OAuthCallback";
@@ -33,32 +34,56 @@ import MisFavoritos from "./pages/dashboard/cliente/MisFavoritos";
 import MisReservas from "./pages/dashboard/cliente/MisReservas";
 import MisResenas from "./pages/dashboard/cliente/MisResenas";
 import ValorarReserva from "./pages/dashboard/cliente/ValorarReserva";
+import PagarReserva from "./pages/dashboard/cliente/PagarReserva";
 import ProfesionalDashboard from "./pages/dashboard/profesional/ProfesionalDashboard";
 import ResenasRecibidas from "./pages/dashboard/profesional/ResenasRecibidas";
 import MisSolicitudes from "./pages/dashboard/profesional/MisSolicitudes";
 import MisServicios from "./pages/dashboard/profesional/MisServicios";
+import CalendarioProfesional from "./pages/dashboard/profesional/CalendarioProfesional";
 import Configuracion from "./pages/dashboard/Configuracion";
-import Conversaciones from "./pages/dashboard/mensajes/Conversaciones";
 import ChatReserva from "./pages/dashboard/mensajes/ChatReserva";
+import MensajesLayout, { PlaceholderChat } from "./pages/dashboard/mensajes/MensajesLayout";
+
+// ADMIN
+import AdminDashboard from "./pages/dashboard/admin/AdminDashboard";
+import PanelAdmin from "./pages/dashboard/admin/PanelAdmin";
+import UsuariosAdmin from "./pages/dashboard/admin/UsuariosAdmin";
+import ReservasAdmin from "./pages/dashboard/admin/ReservasAdmin";
+import PagosAdmin from "./pages/dashboard/admin/PagosAdmin";
+import NotificacionesAdmin from "./pages/dashboard/admin/NotificacionesAdmin";
+import CategoriasAdmin from "./pages/dashboard/admin/CategoriasAdmin";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { error: false };
+    this.state = { error: false, errorMsg: "", componentStack: "" };
   }
 
-  static getDerivedStateFromError() {
-    return { error: true };
+  static getDerivedStateFromError(error) {
+    return { error: true, errorMsg: String(error) };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("[ErrorBoundary]", error, info?.componentStack);
+    this.setState({ componentStack: info?.componentStack || "" });
   }
 
   render() {
     if (this.state.error) {
+      const isDev = process.env.NODE_ENV === "development";
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-gray-700">
-          <p className="text-lg font-semibold">Ha ocurrido un error inesperado.</p>
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-6" style={{fontFamily:"monospace"}}>
+          <p className="text-lg font-semibold text-red-700">
+            {isDev ? `Error: ${this.state.errorMsg}` : "Ha ocurrido un error inesperado."}
+          </p>
+          {isDev && (
+            <pre className="bg-gray-100 border rounded p-4 text-xs text-left max-w-2xl w-full overflow-auto max-h-64">
+              {this.state.componentStack}
+            </pre>
+          )}
           <button
             className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
-            onClick={() => { this.setState({ error: false }); window.location.href = "/"; }}
+            onClick={() => { this.setState({ error: false, errorMsg: "", componentStack: "" }); window.location.href = "/"; }}
           >
             Volver al inicio
           </button>
@@ -92,6 +117,9 @@ function App() {
               <Route path="/contacto" element={<Contacto />} />
             </Route>
 
+            {/* ── PÁGINAS LEGALES (sin navbar ni footer) ── */}
+            <Route path="/terminos" element={<Terminos />} />
+
             {/* ── AUTENTICACIÓN (sin layout) ── */}
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
@@ -106,7 +134,7 @@ function App() {
             <Route
               path="/dashboard/cliente"
               element={
-                <RutaProtegida rolRequerido="Cliente">
+                <RutaProtegida rolRequerido="CLIENTE">
                   <ClienteDashboard />
                 </RutaProtegida>
               }
@@ -120,9 +148,12 @@ function App() {
               <Route path="reservas" element={<MisReservas />} />
               <Route path="resenas" element={<MisResenas />} />
               <Route path="valorar/:reservaId" element={<ValorarReserva />} />
-              <Route path="mensajes" element={<Conversaciones />} />
-              <Route path="mensajes/:conversacionId" element={<ChatReserva />} />
-              <Route path="mensajes/reserva/:reservaId" element={<ChatReserva />} />
+              <Route path="pagar/:reservaId" element={<PagarReserva />} />
+              <Route path="mensajes" element={<MensajesLayout />}>
+                <Route index element={<PlaceholderChat />} />
+                <Route path=":conversacionId" element={<ChatReserva />} />
+                <Route path="reserva/:reservaId" element={<ChatReserva />} />
+              </Route>
               <Route path="buscar/servicios" element={<Servicios />} />
               <Route path="buscar/servicios/subcategoria/:id" element={<ServiciosSubcategoria />} />
               <Route path="buscar/profesionales/:id" element={<Profesionales />} />
@@ -134,7 +165,7 @@ function App() {
             <Route
               path="/dashboard/profesional"
               element={
-                <RutaProtegida rolRequerido="Profesional">
+                <RutaProtegida rolRequerido="PROFESIONAL">
                   <ProfesionalDashboard />
                 </RutaProtegida>
               }
@@ -148,16 +179,36 @@ function App() {
                 }
               />
               <Route path="solicitudes" element={<MisSolicitudes />} />
+              <Route path="calendario" element={<CalendarioProfesional />} />
               {/* Página para publicar y gestionar servicios */}
               <Route path="servicios" element={<MisServicios />} />
               <Route path="resenas" element={<ResenasRecibidas />} />
-              <Route path="mensajes" element={<Conversaciones />} />
-              <Route path="mensajes/:conversacionId" element={<ChatReserva />} />
-              <Route path="mensajes/reserva/:reservaId" element={<ChatReserva />} />
+              <Route path="mensajes" element={<MensajesLayout />}>
+                <Route index element={<PlaceholderChat />} />
+                <Route path=":conversacionId" element={<ChatReserva />} />
+                <Route path="reserva/:reservaId" element={<ChatReserva />} />
+              </Route>
               <Route path="buscar/servicios" element={<Servicios />} />
               <Route path="buscar/servicios/subcategoria/:id" element={<ServiciosSubcategoria />} />
               <Route path="buscar/profesionales/:id" element={<Profesionales />} />
               <Route path="configuracion" element={<Configuracion />} />
+            </Route>
+
+            {/* ── DASHBOARD ADMIN ── */}
+            <Route
+              path="/dashboard/admin"
+              element={
+                <RutaProtegida rolRequerido="ADMIN">
+                  <AdminDashboard />
+                </RutaProtegida>
+              }
+            >
+              <Route index element={<PanelAdmin />} />
+              <Route path="usuarios" element={<UsuariosAdmin />} />
+              <Route path="reservas" element={<ReservasAdmin />} />
+              <Route path="pagos" element={<PagosAdmin />} />
+              <Route path="notificaciones" element={<NotificacionesAdmin />} />
+              <Route path="categorias" element={<CategoriasAdmin />} />
             </Route>
 
           </Routes>

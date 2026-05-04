@@ -9,12 +9,19 @@ backend/.env
 # Archivos subidos por usuarios — solo se guardan en el servidor, nunca en git
 backend/uploads/
 
-# IDE (Eclipse)
+# IDE (Eclipse / IntelliJ / VS Code)
 .project
 .classpath
 .settings/
+.idea/
+*.iml
+.vscode/
+.claude/
 
 # Logs
 *.log
 
+# React — dependencias y builds
 frontend/node_modules/
+frontend/build/
+frontend/build-*/

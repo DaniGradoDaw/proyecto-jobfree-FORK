@@ -8,15 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 import LanguageMenu from "components/layout/public/LanguageMenu";
 import { useAuth } from "context/AuthContext";
 import { useTheme } from "context/ThemeContext";
 import { obtenerTodasSubcategorias } from "api/subcategorias";
 import API_URL from "api/config";
 import { obtenerMisNotificaciones, marcarNotificacionComoLeida } from "api/notificaciones";
-import { obtenerConteoMensajesNoLeidos } from "api/mensajes";
-import { obtenerMisReservas, obtenerMisSolicitudes } from "api/reservas";
 import { useChatSocket } from "context/ChatSocketContext";
 
 function formatearFechaNotificacion(fecha) {
@@ -29,7 +26,7 @@ function formatearFechaNotificacion(fecha) {
   });
 }
 
-function Topbar({ setOpen }) {
+function Topbar({ setOpen, collapsed = false }) {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -38,23 +35,21 @@ function Topbar({ setOpen }) {
   const [query, setQuery] = useState("");
   const [todosServicios, setTodosServicios] = useState([]);
   const [resultados, setResultados] = useState([]);
+  const [indiceActivo, setIndiceActivo] = useState(-1);
   const [notificaciones, setNotificaciones] = useState([]);
-  const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
-  const [pendientes, setPendientes] = useState(0);
 
   const menuRef = useRef();
   const bellRef = useRef();
   const buscadorRef = useRef();
 
   const navigate = useNavigate();
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
   const { usuario, cerrarSesion } = useAuth();
   const { tema } = useTheme();
-  const { subscribeToUserQueue } = useChatSocket();
+  useChatSocket();
 
   const esTemaOscuro = tema.texto === "#ffffff";
-  const notificacionesNoLeidas = notificaciones.filter((item) => !item.leida).length;
-  const totalAlertas = mensajesNoLeidos + pendientes;
+  const noLeidas = notificaciones.filter((n) => !n.leida);
 
   useEffect(() => {
     obtenerTodasSubcategorias()
@@ -65,8 +60,6 @@ function Topbar({ setOpen }) {
   useEffect(() => {
     if (!usuario?.id) {
       setNotificaciones([]);
-      setMensajesNoLeidos(0);
-      setPendientes(0);
       return undefined;
     }
 
@@ -76,51 +69,19 @@ function Topbar({ setOpen }) {
         .catch(() => {});
     }
 
-    function cargarMensajesNoLeidos() {
-      obtenerConteoMensajesNoLeidos()
-        .then((data) => setMensajesNoLeidos(Number(data?.total || 0)))
-        .catch(() => {});
-    }
-
-    function cargarPendientes() {
-      const esProfesional = usuario?.rol?.toUpperCase() === "PROFESIONAL";
-      const request = esProfesional ? obtenerMisSolicitudes() : obtenerMisReservas();
-
-      request
-        .then((lista) => setPendientes(lista.filter((item) => item.estado === "PENDIENTE").length))
-        .catch(() => setPendientes(0));
-    }
-
     cargarNotificaciones();
-    cargarMensajesNoLeidos();
-    cargarPendientes();
 
-    function handleReservasActualizadas() {
-      cargarPendientes();
-      cargarNotificaciones();
-    }
+    // Refrescar notificaciones cuando cambian reservas
+    window.addEventListener("reservas:actualizadas", cargarNotificaciones);
 
-    window.addEventListener("reservas:actualizadas", handleReservasActualizadas);
-
-    const unsubscribe = subscribeToUserQueue((evento) => {
-      if (
-        evento?.tipo === "mensaje.nuevo"
-        || evento?.tipo === "mensaje.leido"
-        || evento?.tipo === "mensaje.leido.lote"
-        || evento?.tipo === "mensaje.recibido"
-        || evento?.tipo === "mensaje.recibido.lote"
-        || evento?.tipo === "usuario.mensajes.actualizados"
-        || evento?.tipo === "conversacion.actualizada"
-      ) {
-        cargarMensajesNoLeidos();
-      }
-    });
+    // Refrescar silenciosamente cada minuto
+    const intervalo = setInterval(cargarNotificaciones, 60_000);
 
     return () => {
-      window.removeEventListener("reservas:actualizadas", handleReservasActualizadas);
-      unsubscribe();
+      window.removeEventListener("reservas:actualizadas", cargarNotificaciones);
+      clearInterval(intervalo);
     };
-  }, [usuario?.id, usuario?.rol, subscribeToUserQueue]);
+  }, [usuario?.id]);
 
   function resolverImagenBusqueda(imagen) {
     if (!imagen) return null;
@@ -136,6 +97,7 @@ function Topbar({ setOpen }) {
       if (buscadorRef.current && !buscadorRef.current.contains(e.target)) {
         setQuery("");
         setResultados([]);
+        setIndiceActivo(-1);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -154,11 +116,13 @@ function Topbar({ setOpen }) {
     navigate(base ? `${base}/servicios/subcategoria/${id}` : `/servicios/subcategoria/${id}`);
     setQuery("");
     setResultados([]);
+    setIndiceActivo(-1);
   }
 
   function handleQuery(e) {
     const valor = e.target.value;
     setQuery(valor);
+    setIndiceActivo(-1);
     if (!valor.trim()) { setResultados([]); return; }
     setResultados(
       todosServicios
@@ -168,16 +132,38 @@ function Topbar({ setOpen }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === "Enter" && query.trim()) {
+    if (e.key === "ArrowDown") {
+      if (resultados.length === 0) return;
       e.preventDefault();
-      const base = obtenerBaseBusquedaDashboard();
-      navigate(base
-        ? `${base}/servicios?q=${encodeURIComponent(query.trim())}`
-        : `/servicios?q=${encodeURIComponent(query.trim())}`);
+      setIndiceActivo((prev) => (prev + 1) % resultados.length);
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      if (resultados.length === 0) return;
+      e.preventDefault();
+      setIndiceActivo((prev) => (prev <= 0 ? resultados.length - 1 : prev - 1));
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (resultados.length > 0 && indiceActivo >= 0) {
+        navegarASubcategoria(resultados[indiceActivo].id);
+      } else if (query.trim()) {
+        const base = obtenerBaseBusquedaDashboard();
+        navigate(base
+          ? `${base}/servicios?q=${encodeURIComponent(query.trim())}`
+          : `/servicios?q=${encodeURIComponent(query.trim())}`);
+        setQuery("");
+        setResultados([]);
+        setIndiceActivo(-1);
+      }
+      return;
+    }
+    if (e.key === "Escape") {
       setQuery("");
       setResultados([]);
+      setIndiceActivo(-1);
     }
-    if (e.key === "Escape") { setQuery(""); setResultados([]); }
   }
 
   function handleCerrarSesion() {
@@ -185,15 +171,32 @@ function Topbar({ setOpen }) {
     navigate("/");
   }
 
-  async function handleMarcarNotificacion(notificacionId) {
-    try {
-      const actualizada = await marcarNotificacionComoLeida(notificacionId);
-      setNotificaciones((prev) => prev.map((item) => (
-        item.id === actualizada.id ? actualizada : item
-      )));
-    } catch {
-      // No bloqueamos la UX por un fallo puntual.
+  function rutaDesdeNotificacion(mensaje) {
+    const rol = usuario?.rol?.toLowerCase();
+    const base = rol === "profesional" ? "/dashboard/profesional" : "/dashboard/cliente";
+    const m = mensaje?.toLowerCase() ?? "";
+    if (m.includes("solicitud") && rol === "profesional") return `${base}/solicitudes`;
+    if (m.includes("solicitud") || m.includes("aceptada") || m.includes("rechazada")) return `${base}/reservas`;
+    if (m.includes("completado") || m.includes("valoración") || m.includes("valoracion")) return `${base}/reservas`;
+    if (m.includes("pago")) return rol === "profesional" ? `${base}/solicitudes` : `${base}/reservas`;
+    return `${base}/reservas`;
+  }
+
+  async function handleClickNotificacion(item) {
+    setBellOpen(false);
+    if (!item.leida) {
+      try {
+        const actualizada = await marcarNotificacionComoLeida(item.id);
+        setNotificaciones((prev) => prev.map((n) => n.id === actualizada.id ? actualizada : n));
+      } catch { /* silencioso */ }
     }
+    navigate(rutaDesdeNotificacion(item.mensaje));
+  }
+
+  async function handleMarcarTodasLeidas() {
+    const sinLeer = notificaciones.filter((n) => !n.leida);
+    await Promise.allSettled(sinLeer.map((n) => marcarNotificacionComoLeida(n.id)));
+    setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
   }
 
   function obtenerRutaConfiguracion() {
@@ -208,7 +211,7 @@ function Topbar({ setOpen }) {
   return (
     <header
       style={{ backgroundColor: tema.bg, borderColor: tema.borde }}
-      className="h-16 border-b flex items-center px-6 fixed top-0 right-0 left-0 md:left-64 z-30 transition-colors duration-300"
+      className={`h-16 border-b flex items-center px-6 fixed top-0 right-0 left-0 z-30 transition-all duration-300 ${collapsed ? "md:left-16" : "md:left-64"}`}
     >
       {/* Botón menú móvil */}
       <button onClick={() => setOpen(true)} className={`md:hidden mr-4 ${clsIcono}`}>
@@ -223,7 +226,7 @@ function Topbar({ setOpen }) {
             value={query}
             onChange={handleQuery}
             onKeyDown={handleKeyDown}
-            placeholder={t(idioma, "nav.buscar")}
+            placeholder={tx("Buscar servicios...")}
             style={{
               color: tema.texto,
               backgroundColor: esTemaOscuro ? "rgba(255,255,255,0.1)" : "#f9fafb",
@@ -236,11 +239,14 @@ function Topbar({ setOpen }) {
           {query.trim().length > 0 && (
             <div className="absolute top-full mt-1 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden" style={{boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"}}>
               {resultados.length > 0 ? (
-                resultados.map(s => (
+                resultados.map((s, index) => (
                   <button
                     key={s.id}
                     onClick={() => navegarASubcategoria(s.id)}
-                    className="w-full text-left flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 border-b last:border-0 transition">
+                    onMouseEnter={() => setIndiceActivo(index)}
+                    className={`w-full text-left flex items-center gap-3 px-3 py-2.5 border-b last:border-0 transition ${
+                      indiceActivo === index ? "bg-emerald-50" : "hover:bg-gray-50"
+                    }`}>
                     {s.imagen ? (
                       <img
                         src={resolverImagenBusqueda(s.imagen)}
@@ -253,19 +259,19 @@ function Topbar({ setOpen }) {
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{s.nombre}</p>
+                      <p className="text-sm font-semibold text-gray-800 truncate">{tx(s.nombre)}</p>
                       {s.categoriaNombre && (
-                        <p className="text-xs text-gray-400 truncate">{s.categoriaNombre}</p>
+                        <p className="text-xs text-gray-400 truncate">{tx(s.categoriaNombre)}</p>
                       )}
                       {s.descripcion && (
-                        <p className="text-xs text-gray-500 truncate">{s.descripcion}</p>
+                        <p className="text-xs text-gray-500 truncate">{tx(s.descripcion)}</p>
                       )}
                     </div>
                   </button>
                 ))
               ) : (
                 <p className="px-4 py-3 text-sm text-gray-400">
-                  {t(idioma, "servicios.estado.sinResultados")}
+                  {tx("No hay resultados")}
                 </p>
               )}
             </div>
@@ -282,45 +288,54 @@ function Topbar({ setOpen }) {
             onClick={() => { setBellOpen(v => !v); setUserMenuOpen(false); }}
             className={`relative p-1.5 rounded-full transition ${clsIcono}`}>
             <BellIcon className="w-6 h-6" />
-            {totalAlertas > 0 && (
+            {noLeidas.length > 0 && (
               <span className="absolute -right-1 -top-1 flex min-w-[1.1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                {totalAlertas > 99 ? "99+" : totalAlertas}
+                {noLeidas.length > 99 ? "99+" : noLeidas.length}
               </span>
             )}
           </button>
 
           {bellOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-100 rounded-2xl shadow-xl z-30 overflow-hidden" style={{boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)"}}>
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                <span className="font-semibold text-gray-800 text-sm">Notificaciones</span>
-                <span className="text-xs text-gray-400">{notificacionesNoLeidas} nuevas</span>
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-30 overflow-hidden" style={{boxShadow: "0 20px 40px -8px rgba(0,0,0,0.15)"}}>
+              {/* Cabecera */}
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">{tx("Notificaciones")}</p>
+                  {noLeidas.length > 0 && (
+                    <p className="text-xs text-slate-400">{tx("{count} sin leer", { count: noLeidas.length })}</p>
+                  )}
+                </div>
+                {noLeidas.length > 0 && (
+                  <button
+                    onClick={handleMarcarTodasLeidas}
+                    className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition">
+                    {tx("Marcar todas leídas")}
+                  </button>
+                )}
               </div>
-              <div className="border-b border-gray-100 px-4 py-3 text-xs text-gray-500 space-y-1 bg-white">
-                <p>Solicitudes pendientes: <span className="font-semibold text-gray-700">{pendientes}</span></p>
-                <p>Mensajes sin leer: <span className="font-semibold text-gray-700">{mensajesNoLeidos}</span></p>
-              </div>
-              {notificaciones.length === 0 ? (
-                <div className="py-10 text-center">
-                  <BellIcon className="w-8 h-8 mx-auto text-gray-200 mb-2" />
-                  <p className="text-sm text-gray-400">No tienes notificaciones</p>
+
+              {/* Lista — solo no leídas */}
+              {noLeidas.length === 0 ? (
+                <div className="py-12 text-center px-4">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+                    <BellIcon className="w-6 h-6 text-slate-300" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">{tx("Todo al día")}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">{tx("No tienes notificaciones nuevas")}</p>
                 </div>
               ) : (
-                <div className="max-h-80 overflow-y-auto">
-                  {notificaciones.slice(0, 8).map((item) => (
+                <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+                  {noLeidas.map((item) => (
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => handleMarcarNotificacion(item.id)}
-                      className={`w-full border-b border-gray-100 px-4 py-3 text-left transition hover:bg-gray-50 ${item.leida ? "bg-white" : "bg-emerald-50/70"}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <p className={`text-sm ${item.leida ? "text-gray-600" : "font-medium text-gray-800"}`}>
-                          {item.mensaje}
-                        </p>
-                        {!item.leida && (
-                          <span className="mt-1 h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                        )}
+                      onClick={() => handleClickNotificacion(item)}
+                      className="w-full px-4 py-3.5 text-left transition hover:bg-slate-50 flex items-start gap-3">
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800 leading-snug">{item.mensaje}</p>
+                        <p className="mt-1 text-xs text-slate-400">{formatearFechaNotificacion(item.fecha)}</p>
                       </div>
-                      <p className="mt-1 text-xs text-gray-400">{formatearFechaNotificacion(item.fecha)}</p>
                     </button>
                   ))}
                 </div>
@@ -359,18 +374,18 @@ function Topbar({ setOpen }) {
               <button
                 onClick={() => { setUserMenuOpen(false); navigate("/perfil"); }}
                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 transition">
-                {t(idioma, "dashboard.perfil")}
+                {tx("Perfil")}
               </button>
               <button
                 onClick={() => { setUserMenuOpen(false); navigate(obtenerRutaConfiguracion()); }}
                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 transition">
-                {t(idioma, "dashboard.configuracion")}
+                {tx("Configuración")}
               </button>
               <div className="border-t border-gray-100" />
               <button
                 onClick={() => { setUserMenuOpen(false); setConfirmarCierre(true); }}
                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 text-red-500 transition">
-                {t(idioma, "dashboard.cerrarSesion")}
+                {tx("Cerrar sesión")}
               </button>
             </div>
           )}
@@ -382,13 +397,13 @@ function Topbar({ setOpen }) {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-xs w-full text-center border border-gray-100">
             <div className="text-4xl mb-3">👋</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">¿Cerrar sesión?</h3>
-            <p className="text-sm text-gray-400 mb-6">Podrás volver a entrar cuando quieras.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{tx("Cerrar sesión?")}</h3>
+            <p className="text-sm text-gray-400 mb-6">{tx("Podras volver a entrar cuando quieras.")}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmarCierre(false)}
                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-sm font-medium">
-                Cancelar
+                {tx("Cancelar")}
               </button>
               <button
                 onClick={handleCerrarSesion}

@@ -83,7 +83,8 @@ public class UsuarioService {
 		}
 
 		if (usuarioRepository.existsByTelefono(usuario.getTelefono())) {
-			throw new UsuarioDuplicadoException("teléfono");
+			// Mensaje genérico para no revelar si el teléfono está registrado (enumeration)
+			throw new UsuarioDuplicadoException("email o teléfono");
 		}
 
 		Usuario guardado = usuarioRepository.save(usuario);
@@ -160,7 +161,7 @@ public class UsuarioService {
 			if (!datos.getTelefono().equals(existente.getTelefono())
 					&& usuarioRepository.existsByTelefono(datos.getTelefono())) {
 
-				throw new UsuarioDuplicadoException("teléfono");
+				throw new UsuarioDuplicadoException("email o teléfono");
 			}
 
 			existente.setTelefono(datos.getTelefono());
@@ -265,6 +266,12 @@ public class UsuarioService {
 	 *
 	 * @param id identificador del usuario
 	 */
+	public Usuario cambiarRol(Long id, Rol rol) {
+		Usuario usuario = obtenerPorId(id);
+		usuario.setRol(rol);
+		return usuarioRepository.save(usuario);
+	}
+
 	public void eliminarUsuario(Long id) {
 		Usuario usuario = obtenerPorId(id);
 		usuarioRepository.delete(usuario);

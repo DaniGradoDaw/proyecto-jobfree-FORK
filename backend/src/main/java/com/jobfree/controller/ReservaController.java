@@ -1,6 +1,7 @@
 package com.jobfree.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import com.jobfree.model.entity.ServicioOfrecido;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.service.ReservaService;
 import com.jobfree.service.ServicioOfrecidoService;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
@@ -38,6 +40,7 @@ public class ReservaController {
 		this.servicioService = servicioService;
 	}
 
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<ReservaDTO>> listarReservas() {
@@ -106,6 +109,19 @@ public class ReservaController {
 		return ResponseEntity.ok(ReservaMapper.toDTO(reservaService.cancelarReserva(reserva)));
 	}
 
+	/** El profesional actualiza el progreso del trabajo (0-100) */
+	@PreAuthorize("isAuthenticated()")
+	@PatchMapping("/{id}/progreso")
+	public ResponseEntity<ReservaDTO> actualizarProgreso(
+			@PathVariable Long id,
+			@RequestBody Map<String, Object> body) {
+		Usuario usuario = getUsuarioAutenticado();
+		Reserva reserva = reservaService.obtenerPorIdSeguro(id, usuario);
+		int progreso = body.containsKey("progreso") ? ((Number) body.get("progreso")).intValue() : reserva.getProgreso();
+		String notas = body.containsKey("notas") ? (String) body.get("notas") : null;
+		return ResponseEntity.ok(ReservaMapper.toDTO(reservaService.actualizarProgreso(reserva, progreso, notas, usuario)));
+	}
+
 	/** El profesional marca el trabajo como completado */
 	@PreAuthorize("isAuthenticated()")
 	@PatchMapping("/{id}/completar")
@@ -115,6 +131,21 @@ public class ReservaController {
 		return ResponseEntity.ok(ReservaMapper.toDTO(reservaService.completarReserva(reserva, usuario)));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{id}/admin/cancelar")
+	public ResponseEntity<ReservaDTO> cancelarReservaAdmin(@PathVariable Long id) {
+		Reserva reserva = reservaService.obtenerPorId(id);
+		return ResponseEntity.ok(ReservaMapper.toDTO(reservaService.cancelarReserva(reserva)));
+	}
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{id}/admin/completar")
+	public ResponseEntity<ReservaDTO> completarReservaAdmin(@PathVariable Long id) {
+		Reserva reserva = reservaService.obtenerPorId(id);
+		return ResponseEntity.ok(ReservaMapper.toDTO(reservaService.completarReservaAdmin(reserva)));
+	}
+
+	@Operation(hidden = true)
 	@PreAuthorize("isAuthenticated()")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminarReserva(@PathVariable Long id) {

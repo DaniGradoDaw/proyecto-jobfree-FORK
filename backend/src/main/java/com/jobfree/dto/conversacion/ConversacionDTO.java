@@ -19,6 +19,16 @@ public class ConversacionDTO {
 	private String servicioTitulo;
 	private String ultimoMensaje;
 	private LocalDateTime fechaUltimoMensaje;
+	private String estadoReserva;
+
+	// Calculado según el usuario autenticado: mensajes no leídos por el receptor
+	private int noLeidos;
+
+	// Calculado en endpoints REST según el usuario autenticado; null en eventos WebSocket
+	private Long otroUsuarioId;
+	private String otroUsuarioNombre;
+	private String otroUsuarioFoto;
+	private LocalDateTime otroUsuarioUltimaConexion;
 
 	public Long getId() {
 		return id;
@@ -115,4 +125,45 @@ public class ConversacionDTO {
 	public void setFechaUltimoMensaje(LocalDateTime fechaUltimoMensaje) {
 		this.fechaUltimoMensaje = fechaUltimoMensaje;
 	}
+
+	public String getEstadoReserva() {
+		return estadoReserva;
+	}
+
+	public void setEstadoReserva(String estadoReserva) {
+		this.estadoReserva = estadoReserva;
+	}
+
+	public int getNoLeidos() { return noLeidos; }
+	public void setNoLeidos(int noLeidos) { this.noLeidos = noLeidos; }
+
+	public Long getOtroUsuarioId() { return otroUsuarioId; }
+	public void setOtroUsuarioId(Long otroUsuarioId) { this.otroUsuarioId = otroUsuarioId; }
+
+	public String getOtroUsuarioNombre() { return otroUsuarioNombre; }
+	public void setOtroUsuarioNombre(String otroUsuarioNombre) { this.otroUsuarioNombre = otroUsuarioNombre; }
+
+	public String getOtroUsuarioFoto() { return otroUsuarioFoto; }
+	public void setOtroUsuarioFoto(String otroUsuarioFoto) { this.otroUsuarioFoto = otroUsuarioFoto; }
+
+	public LocalDateTime getOtroUsuarioUltimaConexion() { return otroUsuarioUltimaConexion; }
+	public void setOtroUsuarioUltimaConexion(LocalDateTime otroUsuarioUltimaConexion) {
+		this.otroUsuarioUltimaConexion = otroUsuarioUltimaConexion;
+	}
+
+	private boolean silenciada;
+	public boolean isSilenciada() { return silenciada; }
+	public void setSilenciada(boolean silenciada) { this.silenciada = silenciada; }
+
+	private boolean bloqueado;
+	public boolean isBloqueado() { return bloqueado; }
+	public void setBloqueado(boolean bloqueado) { this.bloqueado = bloqueado; }
+
+	private boolean meBloqueo;
+	public boolean isMeBloqueo() { return meBloqueo; }
+	public void setMeBloqueo(boolean meBloqueo) { this.meBloqueo = meBloqueo; }
+
+	private boolean fijada;
+	public boolean isFijada() { return fijada; }
+	public void setFijada(boolean fijada) { this.fijada = fijada; }
 }

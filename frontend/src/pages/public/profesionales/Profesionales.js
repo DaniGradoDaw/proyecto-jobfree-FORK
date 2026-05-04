@@ -21,7 +21,6 @@ import { useLanguage } from "context/LanguageContext";
 import { useAuth } from "context/AuthContext";
 import { useGeolocalizacion } from "hooks/useGeolocalizacion";
 import { anadirFavorito, eliminarFavorito, obtenerMisFavoritos } from "api/favoritos";
-import { t } from "i18n";
 import API_URL from "api/config";
 import "leaflet/dist/leaflet.css";
 import { Circle, CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
@@ -217,9 +216,9 @@ function Estrellas({ valor, max = 5 }) {
 // ── Skeleton ──────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.28)]">
+    <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
-        <div className="h-11 w-11 shrink-0 rounded-full bg-slate-200" />
+        <div className="h-12 w-12 shrink-0 rounded-xl bg-slate-200" />
         <div className="flex-1 space-y-2">
           <div className="h-4 w-2/3 rounded bg-slate-200" />
           <div className="h-3 w-1/3 rounded bg-slate-100" />
@@ -231,11 +230,11 @@ function SkeletonCard() {
         <div className="h-3 w-full rounded bg-slate-100" />
         <div className="h-3 w-5/6 rounded bg-slate-100" />
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <div className="h-6 w-16 rounded bg-slate-200" />
         <div className="flex gap-2">
-          <div className="h-7 w-20 rounded-full bg-slate-100" />
-          <div className="h-7 w-20 rounded-full bg-slate-200" />
+          <div className="h-8 w-20 rounded-xl bg-slate-100" />
+          <div className="h-8 w-24 rounded-xl bg-slate-200" />
         </div>
       </div>
     </div>
@@ -244,7 +243,7 @@ function SkeletonCard() {
 
 // ── Tarjeta de profesional ────────────────────────────────────
 function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorito, puedeFavorito, onVerPerfil }) {
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
 
   const foto = servicio.fotoUrlProfesional
     ? servicio.fotoUrlProfesional.startsWith("http")
@@ -265,108 +264,98 @@ function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorit
       : `${servicio.duracionMin} min`;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-30px_rgba(15,23,42,0.34)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400 opacity-80" />
-      {/* Cabecera */}
-      <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-5 py-4">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      {/* Cabecera: avatar + profesional + favorito */}
+      <div className="flex items-start gap-3 px-5 pt-5 pb-4">
         {foto ? (
-          <img
-            src={foto}
-            alt=""
-            className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white shadow"
-          />
+          <img src={foto} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
         ) : (
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white shadow">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
             {iniciales}
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-900">
-            {servicio.nombreProfesional}
-          </p>
-          <span className="flex items-center gap-1 text-xs text-slate-400">
+          <p className="truncate text-sm font-semibold text-slate-900">{servicio.nombreProfesional}</p>
+          <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
             <MapPinIcon className="h-3 w-3 shrink-0" />
-            {servicio.ciudadProfesional || "Zona no indicada"}
+            {servicio.ciudadProfesional || tx("Zona no indicada")}
           </span>
-        </div>
-
-        <div className="flex flex-col items-end gap-0.5 shrink-0">
-          {puedeFavorito && (
-            <button
-              type="button"
-              onClick={() => onToggleFavorito(servicio)}
-              className={`mb-1 rounded-full border p-2 transition ${
-                esFavorito
-                  ? "border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100"
-                  : "border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-rose-500"
-              }`}
-              aria-label={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
-            >
-              {esFavorito ? <HeartSolid className="h-4 w-4" /> : <HeartIcon className="h-4 w-4" />}
-            </button>
-          )}
           {servicio.valoracionMedia ? (
-            <>
-              <span className="flex items-center gap-1 text-sm font-bold text-slate-800">
-                <StarSolid className="h-3.5 w-3.5 text-amber-400" />
-                {Number(servicio.valoracionMedia).toFixed(1)}
-              </span>
+            <span className="mt-1 flex items-center gap-1">
+              <StarSolid className="h-3 w-3 text-amber-400" />
+              <span className="text-xs font-semibold text-slate-700">{Number(servicio.valoracionMedia).toFixed(1)}</span>
               {servicio.numeroValoraciones > 0 && (
-                <span className="text-xs text-slate-400">
-                  {servicio.numeroValoraciones}{" "}
-                  {t(idioma, "servicios.cards.opiniones")}
-                </span>
+                <span className="text-xs text-slate-400">· {servicio.numeroValoraciones} {tx("opiniones")}</span>
               )}
-            </>
+            </span>
           ) : (
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
-              Nuevo
+            <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
+              {tx("Nuevo")}
             </span>
           )}
         </div>
+
+        {puedeFavorito && (
+          <button
+            type="button"
+            onClick={() => onToggleFavorito(servicio)}
+            className={`shrink-0 rounded-lg p-1.5 transition ${
+              esFavorito
+                ? "text-rose-500 hover:bg-rose-50"
+                : "text-slate-300 hover:text-rose-400 hover:bg-rose-50"
+            }`}
+            aria-label={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
+          >
+            {esFavorito ? <HeartSolid className="h-4 w-4" /> : <HeartIcon className="h-4 w-4" />}
+          </button>
+        )}
       </div>
 
-      {/* Cuerpo */}
-      <div className="flex flex-1 flex-col px-5 py-5">
-        <h3 className="mb-1.5 text-[15px] font-semibold leading-snug text-slate-900">
-          {servicio.titulo}
+      {/* Separador */}
+      <div className="mx-5 h-px bg-slate-100" />
+
+      {/* Cuerpo: servicio */}
+      <div className="flex flex-1 flex-col px-5 py-4">
+        <h3 className="mb-1 text-[14px] font-semibold text-slate-900 leading-snug">
+          {tx(servicio.titulo)}
         </h3>
-        <p className="line-clamp-2 flex-1 text-sm leading-relaxed text-slate-500">
-          {servicio.descripcion}
+        <p className="line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">
+          {tx(servicio.descripcion)}
         </p>
 
-        <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
-          <span className="flex items-center gap-1">
-            <ClockIcon className="h-3.5 w-3.5" />
-            {duracionFormateada}
-          </span>
+        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
+          <ClockIcon className="h-3.5 w-3.5 shrink-0" />
+          <span>{duracionFormateada}</span>
+          <span className="mx-1 text-slate-200">·</span>
           <Estrellas valor={servicio.valoracionMedia} />
         </div>
+      </div>
 
-        {/* Precio + acciones */}
-        <div className="mt-4 flex items-end justify-between gap-3">
-          <div>
-            <p className="text-xs text-slate-400">{t(idioma, "servicios.cards.desde")}</p>
-            <p className="text-xl font-bold leading-none text-slate-900">
-              {Number(servicio.precioHora).toFixed(0)}€
-              <span className="text-xs font-normal text-slate-400">
-                /{t(idioma, "servicios.cards.hora")}
-              </span>
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => onVerPerfil(servicio)}
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 active:scale-95">
-              {t(idioma, "servicios.cards.verPerfil")}
-            </button>
-            <button
-              onClick={() => onContratar(servicio)}
-              className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800 active:scale-95">
-              Contactar
-            </button>
-          </div>
+      {/* Pie: precio + acciones */}
+      <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5">
+        <div>
+          <p className="text-[10px] uppercase tracking-wide text-slate-400">{tx("Desde")}</p>
+          <p className="text-lg font-bold leading-tight text-slate-900">
+            {Number(servicio.precioHora).toFixed(0)}€
+            <span className="text-xs font-normal text-slate-400">/{tx("hora")}</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onVerPerfil(servicio)}
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:border-slate-300"
+          >
+            {tx("Ver perfil")}
+          </button>
+          <button
+            type="button"
+            onClick={() => onContratar(servicio)}
+            className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600 active:scale-95"
+          >
+            {tx("Contactar")}
+          </button>
         </div>
       </div>
     </article>
@@ -375,6 +364,7 @@ function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorit
 
 // ── Modal de contacto ─────────────────────────────────────
 function ModalContratacion({ servicio, onClose, onExito }) {
+  const { tx } = useLanguage();
   const [descripcion, setDescripcion] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
@@ -383,7 +373,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
     e.preventDefault();
     const contenido = descripcion.trim();
     if (!contenido) {
-      setError("Escribe el primer mensaje para iniciar la conversación.");
+      setError(tx("Escribe el primer mensaje para iniciar la conversación."));
       return;
     }
 
@@ -392,9 +382,18 @@ function ModalContratacion({ servicio, onClose, onExito }) {
     try {
       const profesionalUsuarioId = servicio.profesionalUsuarioId;
       if (!profesionalUsuarioId) {
-        throw new Error("No se pudo identificar al profesional.");
+        throw new Error(tx("No se pudo identificar al profesional."));
       }
       const conversacion = await crearOObtenerConversacionContacto(profesionalUsuarioId);
+      const contexto = `📌 ${tx("Consulta sobre")}: ${servicio.titulo}`;
+      if (conversacion.ultimoMensaje !== contexto) {
+        await enviarMensaje({
+          contenido: contexto,
+          destinatarioId: profesionalUsuarioId,
+          conversacionId: conversacion.id,
+          clientMessageId: generarClientMessageId(),
+        });
+      }
       await enviarMensaje({
         contenido,
         destinatarioId: profesionalUsuarioId,
@@ -403,7 +402,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
       });
       onExito(conversacion);
     } catch (err) {
-      setError(err.message || "No se pudo iniciar la conversación.");
+      setError(err.message || tx("No se pudo iniciar la conversación."));
     } finally {
       setEnviando(false);
     }
@@ -414,7 +413,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
       <div className="w-full max-w-md overflow-hidden rounded-[24px] bg-white shadow-2xl">
         <div className="border-b border-slate-100 px-6 py-5 flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-widest text-emerald-600">Nuevo contacto</p>
+            <p className="text-xs font-medium uppercase tracking-widest text-emerald-600">{tx("Nuevo contacto")}</p>
             <h2 className="mt-0.5 text-lg font-semibold text-slate-900 leading-tight">{servicio.titulo}</h2>
             <p className="text-sm text-slate-500">{servicio.nombreProfesional}</p>
           </div>
@@ -426,14 +425,14 @@ function ModalContratacion({ servicio, onClose, onExito }) {
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Cuéntale qué necesitas
+              {tx("Cuentale que necesitas")}
             </label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               rows={4}
               maxLength={1000}
-              placeholder="Describe brevemente tu necesidad, cuándo lo necesitas, cualquier detalle relevante…"
+              placeholder={tx("Describe brevemente tu necesidad, cuando lo necesitas, cualquier detalle relevante...")}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-800 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
               required
             />
@@ -442,10 +441,10 @@ function ModalContratacion({ servicio, onClose, onExito }) {
 
           <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-500">Precio estimado</span>
-              <span className="font-semibold text-slate-900">{Number(servicio.precioHora).toFixed(0)}€/hora</span>
+              <span className="text-slate-500">{tx("Precio estimado")}</span>
+              <span className="font-semibold text-slate-900">{Number(servicio.precioHora).toFixed(0)}€/{tx("hora")}</span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">El precio final se acordará con el profesional.</p>
+            <p className="mt-1 text-xs text-slate-400">{tx("El precio final se acordara con el profesional.")}</p>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -453,11 +452,11 @@ function ModalContratacion({ servicio, onClose, onExito }) {
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 rounded-full border border-slate-300 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
-              Cancelar
+              {tx("Cancelar")}
             </button>
             <button type="submit" disabled={enviando}
               className="flex-1 rounded-full bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition disabled:opacity-60">
-              {enviando ? "Abriendo chat…" : "Ir al chat"}
+              {enviando ? tx("Abriendo chat...") : tx("Ir al chat")}
             </button>
           </div>
         </form>
@@ -517,6 +516,7 @@ function FilaFiltro({ titulo, valor, onClick }) {
 }
 
 function MapaBusqueda({ posicion, distanciaKm, cargandoUbicacion, onSolicitarUbicacion }) {
+  const { tx } = useLanguage();
   const hayPosicion = Boolean(posicion);
   const center = hayPosicion
     ? [posicion.latitud, posicion.longitud]
@@ -557,7 +557,7 @@ function MapaBusqueda({ posicion, distanciaKm, cargandoUbicacion, onSolicitarUbi
         ) : (
           <MapPinIcon className="h-5 w-5 text-slate-800" />
         )}
-        Estoy aquí
+        {tx("Estoy aquí")}
       </button>
     </div>
   );
@@ -590,13 +590,14 @@ function ModalUbicacion({
   aplicarUbicacion,
   limpiarUbicacion,
 }) {
+  const { tx } = useLanguage();
   if (!abierto) return null;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/45 px-4 py-4 backdrop-blur-sm sm:py-6">
       <div className="w-full max-w-[520px] overflow-hidden rounded-[24px] bg-white p-4 shadow-2xl sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-[22px] font-semibold tracking-tight text-slate-900">¿Dónde buscas?</h2>
+          <h2 className="text-[22px] font-semibold tracking-tight text-slate-900">{tx("Donde buscas?")}</h2>
           <button
             onClick={onClose}
             className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
@@ -612,7 +613,7 @@ function ModalUbicacion({
               tabUbicacion === "cerca" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-700"
             }`}
           >
-            Cerca de mí
+            {tx("Cerca de mi")}
           </button>
           <button
             onClick={() => setTabUbicacion("ciudad")}
@@ -620,7 +621,7 @@ function ModalUbicacion({
               tabUbicacion === "ciudad" ? "bg-white text-slate-900 shadow-sm" : "text-slate-700"
             }`}
           >
-            Provincia / Ciudad
+            {tx("Provincia / Ciudad")}
           </button>
         </div>
 
@@ -637,7 +638,7 @@ function ModalUbicacion({
                 <button
                   type="submit"
                   className="shrink-0 text-slate-500 transition hover:text-emerald-700"
-                  aria-label="Buscar ubicación"
+                  aria-label={tx("Buscar ubicación")}
                 >
                   {buscandoUbicacion ? (
                     <ArrowPathIcon className="h-5 w-5 animate-spin text-emerald-700" />
@@ -649,7 +650,7 @@ function ModalUbicacion({
                   type="text"
                   value={textoUbicacionTemporal}
                   onChange={(e) => setTextoUbicacionTemporal(e.target.value)}
-                  placeholder="Escribe una dirección o C.P."
+                  placeholder={tx("Escribe una dirección o C.P.")}
                   className="w-full border-0 bg-transparent text-sm text-slate-800 outline-none"
                 />
                 {textoUbicacionTemporal && (
@@ -657,7 +658,7 @@ function ModalUbicacion({
                     type="button"
                     onClick={limpiarTextoUbicacion}
                     className="shrink-0 rounded-full p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                    aria-label="Limpiar ubicación"
+                    aria-label={tx("Limpiar ubicación")}
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </button>
@@ -674,7 +675,7 @@ function ModalUbicacion({
 
             {(() => {
               const kmActual = PASOS_DISTANCIA[distanciaTemporal];
-              const etiqueta = kmActual === null ? "Toda España" : `${kmActual} km`;
+              const etiqueta = kmActual === null ? tx("Toda España") : `${kmActual} km`;
               const pct = distanciaTemporal / (PASOS_DISTANCIA.length - 1); // 0..1
               return (
                 <div className="px-1 pt-7">
@@ -700,7 +701,7 @@ function ModalUbicacion({
                   />
                   <div className="mt-1 flex items-center justify-between text-sm text-slate-500">
                     <span>3 km</span>
-                    <span>Toda España</span>
+                    <span>{tx("Toda España")}</span>
                   </div>
                 </div>
               );
@@ -719,7 +720,7 @@ function ModalUbicacion({
                   type="text"
                   value={zonaTemporal}
                   onChange={(e) => setZonaTemporal(e.target.value)}
-                  placeholder="Provincia o ciudad"
+                  placeholder={tx("Provincia o ciudad")}
                   className="w-full border-0 bg-transparent text-[15px] text-slate-800 outline-none"
                 />
                 {zonaTemporal && (
@@ -727,7 +728,7 @@ function ModalUbicacion({
                     type="button"
                     onClick={limpiarZonaTemporal}
                     className="shrink-0 rounded-full p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                    aria-label="Limpiar provincia o ciudad"
+                    aria-label={tx("Limpiar provincia o ciudad")}
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </button>
@@ -739,7 +740,7 @@ function ModalUbicacion({
               {cargandoSugerenciasZona && (
                 <div className="flex items-center gap-3 px-2 py-2 text-sm text-slate-500">
                   <ArrowPathIcon className="h-5 w-5 animate-spin text-emerald-700" />
-                  Buscando sugerencias...
+                  {tx("Buscando sugerencias...")}
                 </div>
               )}
 
@@ -767,11 +768,11 @@ function ModalUbicacion({
               )}
 
               {!cargandoSugerenciasZona && zonaTemporal.trim().length > 0 && zonaTemporal.trim().length < 3 && (
-                <p className="px-2 py-2 text-sm text-slate-400">Escribe al menos 3 letras para ver sugerencias.</p>
+                <p className="px-2 py-2 text-sm text-slate-400">{tx("Escribe al menos 3 letras para ver sugerencias.")}</p>
               )}
 
               {!cargandoSugerenciasZona && !errorSugerenciasZona && zonaTemporal.trim().length >= 3 && sugerenciasZona.length === 0 && (
-                <p className="px-2 py-2 text-sm text-slate-500">No encontramos ubicaciones con ese nombre.</p>
+                <p className="px-2 py-2 text-sm text-slate-500">{tx("No encontramos ubicaciones con ese nombre.")}</p>
               )}
             </div>
           </div>
@@ -782,13 +783,13 @@ function ModalUbicacion({
             onClick={limpiarUbicacion}
             className="rounded-full border border-slate-300 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
           >
-            Limpiar
+            {tx("Limpiar")}
           </button>
           <button
             onClick={aplicarUbicacion}
             className="flex-1 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Aplicar ubicación
+            {tx("Aplicar ubicación")}
           </button>
         </div>
       </div>
@@ -806,76 +807,91 @@ function PanelFiltros({
   setPrecioMax,
   valoracionMin,
   setValoracionMin,
-  hayFiltros,
-  limpiarFiltros,
 }) {
-  return (
-    <div>
-      <FilaFiltro titulo="Ubicación" valor={resumenUbicacion} onClick={abrirUbicacion} />
+  const { tx } = useLanguage();
 
-      <SeccionFiltro titulo="Precio por hora (€)">
-        {(() => {
-          const errorPrecio =
-            precioMin !== "" && precioMax !== "" && Number(precioMin) > Number(precioMax);
-          const cls = (hasError) =>
-            `w-full rounded-md border px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-500 ${
-              hasError ? "border-red-400 bg-red-50" : "border-slate-300"
-            }`;
-          return (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
+  const errorPrecio =
+    precioMin !== "" && precioMax !== "" && Number(precioMin) > Number(precioMax);
+
+  const OPCIONES_VALORACION = [
+    { valor: 0,   estrellas: 0, label: tx("Cualquier valoración") },
+    { valor: 3,   estrellas: 3, label: "3+" },
+    { valor: 4,   estrellas: 4, label: "4+" },
+    { valor: 4.5, estrellas: 5, label: "4.5+" },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+      {/* Cabecera del panel */}
+      <div className="flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-3">
+        <AdjustmentsHorizontalIcon className="h-4 w-4 text-slate-500 shrink-0" />
+        <span className="text-sm font-semibold text-slate-700">{tx("Filtros")}</span>
+      </div>
+
+      <div className="px-4 pb-1">
+        <FilaFiltro titulo={tx("Ubicación")} valor={resumenUbicacion} onClick={abrirUbicacion} />
+
+        <SeccionFiltro titulo={tx("Precio por hora (€)")}>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className={`flex flex-1 items-center rounded-xl border px-3 py-2 gap-1 ${errorPrecio ? "border-red-300 bg-red-50" : "border-slate-200 bg-white"}`}>
+                <span className="text-xs font-medium text-slate-400">€</span>
                 <input
                   type="number"
                   min={0}
-                  placeholder="Mín"
+                  placeholder="0"
                   value={precioMin}
                   onChange={(e) => setPrecioMin(e.target.value)}
-                  className={cls(errorPrecio)}
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none"
                 />
+              </div>
+              <span className="text-slate-300 text-sm">—</span>
+              <div className={`flex flex-1 items-center rounded-xl border px-3 py-2 gap-1 ${errorPrecio ? "border-red-300 bg-red-50" : "border-slate-200 bg-white"}`}>
+                <span className="text-xs font-medium text-slate-400">€</span>
                 <input
                   type="number"
                   min={0}
-                  placeholder="Máx"
+                  placeholder={tx("máx")}
                   value={precioMax}
                   onChange={(e) => setPrecioMax(e.target.value)}
-                  className={cls(errorPrecio)}
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none"
                 />
               </div>
-              {errorPrecio && (
-                <p className="text-xs text-red-500">El mínimo no puede superar el máximo.</p>
-              )}
             </div>
-          );
-        })()}
-      </SeccionFiltro>
+            {errorPrecio && (
+              <p className="text-xs text-red-500">{tx("El mínimo no puede superar el máximo.")}</p>
+            )}
+          </div>
+        </SeccionFiltro>
 
-      <SeccionFiltro titulo="Valoración mínima">
-        <div className="space-y-2">
-          <select
-            value={valoracionMin}
-            onChange={(e) => setValoracionMin(Number(e.target.value))}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-500"
-          >
-            {[
-              { valor: 0,   label: "Cualquier valoración", estrellas: 0 },
-              { valor: 3,   label: "3 o más",              estrellas: 3 },
-              { valor: 4,   label: "4 o más",              estrellas: 4 },
-              { valor: 4.5, label: "4,5 o más",            estrellas: 5 },
-            ].map((op) => (
-              <option key={op.valor} value={op.valor}>
-                {op.label}
-              </option>
+        <SeccionFiltro titulo={tx("Valoración mínima")}>
+          <div className="flex flex-wrap gap-1.5">
+            {OPCIONES_VALORACION.map((op) => (
+              <button
+                key={op.valor}
+                type="button"
+                onClick={() => setValoracionMin(op.valor)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  valoracionMin === op.valor
+                    ? "bg-amber-100 text-amber-800 ring-1 ring-amber-200"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-amber-200 hover:bg-amber-50"
+                }`}
+              >
+                {op.estrellas > 0
+                  ? <span>{"★".repeat(op.estrellas)} {op.label}</span>
+                  : op.label}
+              </button>
             ))}
-          </select>
-        </div>
-      </SeccionFiltro>
-
+          </div>
+        </SeccionFiltro>
+      </div>
     </div>
   );
 }
 
 // ── Paginación ────────────────────────────────────────────────
 function Paginacion({ pagina, totalPaginas, onChange }) {
+  const { tx } = useLanguage();
   if (totalPaginas <= 1) return null;
 
   const rango = Array.from({ length: totalPaginas }, (_, i) => i).filter(
@@ -889,7 +905,7 @@ function Paginacion({ pagina, totalPaginas, onChange }) {
         disabled={pagina === 0}
         className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        ← Anterior
+        ← {tx("Anterior")}
       </button>
 
       {rango[0] > 0 && (
@@ -925,7 +941,7 @@ function Paginacion({ pagina, totalPaginas, onChange }) {
         disabled={pagina >= totalPaginas - 1}
         className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Siguiente →
+        {tx("Siguiente")} →
       </button>
     </nav>
   );
@@ -937,6 +953,7 @@ function Profesionales() {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario } = useAuth();
+  const { tx } = useLanguage();
   const { posicion, cargando: cargandoGeo, error: errorGeo, obtenerPosicion } = useGeolocalizacion();
 
   const [subcategoria, setSubcategoria]         = useState(null);
@@ -1163,7 +1180,7 @@ function Profesionales() {
     if (tabUbicacion === "cerca") {
       const kmSeleccionado = PASOS_DISTANCIA[distanciaTemporal];
       if (kmSeleccionado !== null && !coordenadasBusquedaTemporal) {
-        setErrorBusquedaUbicacion("Introduce una dirección o pulsa «Estoy aquí» para buscar por distancia.");
+        setErrorBusquedaUbicacion(tx("Introduce una dirección o pulsa Estoy aquí para buscar por distancia."));
         return;
       }
       setZonaSeleccionada("");
@@ -1176,7 +1193,7 @@ function Profesionales() {
       }
     } else {
       if (zonaTemporal.trim() && !zonaTemporalValida) {
-        setErrorSugerenciasZona("Selecciona una provincia o ciudad válida de la lista.");
+        setErrorSugerenciasZona(tx("Selecciona una provincia o ciudad válida de la lista."));
         return;
       }
       setDistanciaMax(0);
@@ -1199,6 +1216,8 @@ function Profesionales() {
     setErrorBusquedaUbicacion("");
   }
 
+  const IDX_DEFECTO_KM = PASOS_DISTANCIA.indexOf(10); // índice 2 → 10 km
+
   async function buscarUbicacionManual() {
     try {
       setBuscandoUbicacion(true);
@@ -1206,6 +1225,10 @@ function Profesionales() {
       const resultado = await buscarUbicacionEnEspana(textoUbicacionTemporal);
       setCoordenadasBusquedaTemporal(resultado);
       setTextoUbicacionTemporal(resultado.etiqueta);
+      // Si el slider está en "Toda España", saltar a 10 km por defecto
+      setDistanciaTemporal((prev) =>
+        PASOS_DISTANCIA[prev] === null ? IDX_DEFECTO_KM : prev
+      );
     } catch (error) {
       setErrorBusquedaUbicacion(error.message || "No se pudo buscar esa ubicación.");
     } finally {
@@ -1218,19 +1241,20 @@ function Profesionales() {
       setBuscandoUbicacion(true);
       setErrorBusquedaUbicacion("");
       const coords = await obtenerPosicion();
-      let etiqueta = "Ubicación actual detectada";
+      let etiqueta = tx("Ubicación actual detectada");
 
       try {
         etiqueta = await obtenerDireccionDesdeCoordenadas(coords.latitud, coords.longitud);
       } catch {
-        etiqueta = "Ubicación actual detectada";
+        etiqueta = tx("Ubicación actual detectada");
       }
 
-      setCoordenadasBusquedaTemporal({
-        ...coords,
-        etiqueta,
-      });
+      setCoordenadasBusquedaTemporal({ ...coords, etiqueta });
       setTextoUbicacionTemporal(etiqueta);
+      // Si el slider está en "Toda España", saltar a 10 km por defecto
+      setDistanciaTemporal((prev) =>
+        PASOS_DISTANCIA[prev] === null ? IDX_DEFECTO_KM : prev
+      );
     } catch {
       // El hook ya expone el mensaje de error; aquí solo evitamos romper el flujo.
     } finally {
@@ -1262,7 +1286,7 @@ function Profesionales() {
     }
 
     if (!esCliente) {
-      alert("Solo los clientes pueden guardar servicios como favorito.");
+      alert(tx("Solo los clientes pueden guardar servicios como favorito."));
       return;
     }
 
@@ -1278,7 +1302,7 @@ function Profesionales() {
         const revertido = new Set(siguiente);
         revertido.add(servicio.id);
         setFavoritosIds(revertido);
-        alert(error.message || "No se pudo actualizar favoritos.");
+        alert(error.message || tx("No se pudo actualizar favoritos."));
       }
       return;
     }
@@ -1291,7 +1315,7 @@ function Profesionales() {
       const revertido = new Set(siguiente);
       revertido.delete(servicio.id);
       setFavoritosIds(revertido);
-      alert(error.message || "No se pudo actualizar favoritos.");
+      alert(error.message || tx("No se pudo actualizar favoritos."));
     }
   }
 
@@ -1313,40 +1337,44 @@ function Profesionales() {
 
   // Chips de filtros activos
   const chips = [
-    zonaSeleccionada && { key: "zona",     label: `Zona: ${zonaSeleccionada}`, remove: () => setZonaSeleccionada("") },
-    precioMin !== "" && { key: "pmin",     label: `Desde ${precioMin}€`, remove: () => setPrecioMin("") },
-    precioMax !== "" && { key: "pmax",     label: `Hasta ${precioMax}€`, remove: () => setPrecioMax("") },
-    valoracionMin > 0 && { key: "val",    label: `${valoracionMin}+ ⭐`,  remove: () => setValoracionMin(0) },
-    distanciaMax > 0 && { key: "dist",    label: `Hasta ${distanciaMax} km`, remove: () => setDistanciaMax(0) },
+    zonaSeleccionada && { key: "zona",  label: `${tx("Zona")}: ${zonaSeleccionada}`, remove: () => setZonaSeleccionada("") },
+    precioMin !== "" && { key: "pmin",  label: `${tx("Desde")} ${precioMin}€`,       remove: () => setPrecioMin("") },
+    precioMax !== "" && { key: "pmax",  label: `${tx("Hasta")} ${precioMax}€`,       remove: () => setPrecioMax("") },
+    valoracionMin > 0 && { key: "val", label: `${valoracionMin}+ ⭐`,                remove: () => setValoracionMin(0) },
+    distanciaMax > 0 && { key: "dist", label: `${tx("Hasta")} ${distanciaMax} km`,  remove: () => setDistanciaMax(0) },
   ].filter(Boolean);
 
   const filtrosProps = {
     precioMin, setPrecioMin, precioMax, setPrecioMax,
     valoracionMin, setValoracionMin,
     resumenUbicacion: distanciaMax > 0
-      ? `Hasta ${distanciaMax} km de mí`
-      : zonaSeleccionada || "Toda España",
+      ? tx("Hasta {n} km de mi", { n: distanciaMax })
+      : zonaSeleccionada || tx("Toda España"),
     abrirUbicacion,
     hayFiltros, limpiarFiltros,
   };
 
+  const enDashboard = location.pathname.startsWith("/dashboard/");
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.18),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#eef4f8_100%)]">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className={enDashboard ? "-m-6 min-h-[calc(100vh-4rem)] bg-slate-50" : "bg-slate-50"}>
+      <div className="mx-auto max-w-6xl px-6 py-6">
         <div className="mb-5 border-b border-slate-200 pb-4">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
-            Servicios
+            {tx("Servicios")}
           </p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                {loading ? "Cargando..." : subcategoria?.nombre || "Profesionales disponibles"}
+                {loading ? tx("Cargando...") : (subcategoria?.nombre ? tx(subcategoria.nombre) : tx("Profesionales disponibles"))}
               </h1>
               {!loading && (
                 <p className="mt-1 text-sm text-slate-500">
                   {serviciosFiltrados.length === servicios.length
-                    ? `${servicios.length} profesional${servicios.length !== 1 ? "es" : ""} disponible${servicios.length !== 1 ? "s" : ""}`
-                    : `${serviciosFiltrados.length} de ${servicios.length} profesionales`}
+                    ? (servicios.length === 1
+                        ? tx("1 profesional disponible")
+                        : tx("{n} profesionales disponibles", { n: servicios.length }))
+                    : tx("{filtrados} de {total} profesionales", { filtrados: serviciosFiltrados.length, total: servicios.length })}
                 </p>
               )}
             </div>
@@ -1361,7 +1389,7 @@ function Profesionales() {
             className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 lg:hidden"
           >
             <AdjustmentsHorizontalIcon className="h-4 w-4" />
-            Filtros
+            {tx("Filtros")}
             {chips.length > 0 && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">
                 {chips.length}
@@ -1381,18 +1409,18 @@ function Profesionales() {
 
           {/* Sidebar desktop */}
           <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-lg border border-slate-200 bg-white p-4">
+            <div className="sticky top-24 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-900">Filtros</h2>
-                  <p className="mt-1 text-xs text-slate-500">Ajusta la búsqueda sin perder espacio.</p>
+                  <h2 className="text-sm font-semibold text-slate-900">{tx("Filtros")}</h2>
+                  <p className="mt-1 text-xs text-slate-500">{tx("Afina los resultados.")}</p>
                 </div>
                 {hayFiltros && (
                   <button
                     onClick={limpiarFiltros}
                     className="text-xs font-medium text-slate-500 transition hover:text-slate-700 hover:underline"
                   >
-                    Limpiar
+                    {tx("Limpiar")}
                   </button>
                 )}
               </div>
@@ -1405,7 +1433,7 @@ function Profesionales() {
             {cargandoDistancia && (
               <div className="mb-4 flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm text-sky-700">
                 <ArrowPathIcon className="h-4 w-4 shrink-0 animate-spin" />
-                Buscando profesionales en la zona…
+                {tx("Buscando profesionales en la zona...")}
               </div>
             )}
             {loading ? (
@@ -1414,20 +1442,20 @@ function Profesionales() {
               </div>
             ) : serviciosFiltrados.length === 0 ? (
               /* Estado vacío */
-              <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-300 bg-white/90 px-8 py-16 text-center shadow-[0_20px_60px_-35px_rgba(15,23,42,0.25)]">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-8 py-16 text-center shadow-sm">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
                   <AdjustmentsHorizontalIcon className="h-8 w-8 text-slate-400" />
                 </div>
-                <p className="text-base font-semibold text-slate-700">Sin resultados</p>
+                <p className="text-base font-semibold text-slate-700">{tx("Sin resultados")}</p>
                 <p className="mt-1 text-sm text-slate-400">
-                  Prueba a modificar o eliminar algún filtro
+                  {tx("Prueba a modificar o eliminar algun filtro")}
                 </p>
                 {hayFiltros && (
                   <button
                     onClick={limpiarFiltros}
                     className="mt-5 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                   >
-                    Ver todos los profesionales
+                    {tx("Ver todos los profesionales")}
                   </button>
                 )}
               </div>
@@ -1520,8 +1548,8 @@ function Profesionales() {
 
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Filtros</h2>
-                <p className="mt-1 text-xs text-slate-500">Ajusta la búsqueda sin perder espacio.</p>
+                <h2 className="text-base font-bold text-slate-900">{tx("Filtros")}</h2>
+                <p className="mt-1 text-xs text-slate-500">{tx("Afina los resultados.")}</p>
               </div>
               <button
                 onClick={() => setDrawerAbierto(false)}
@@ -1537,7 +1565,9 @@ function Profesionales() {
               onClick={() => setDrawerAbierto(false)}
               className="mt-5 w-full rounded-2xl bg-slate-900 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
             >
-              Ver {serviciosFiltrados.length} resultado{serviciosFiltrados.length !== 1 ? "s" : ""}
+              {serviciosFiltrados.length === 1
+                ? tx("Ver 1 resultado")
+                : tx("Ver {n} resultados", { n: serviciosFiltrados.length })}
             </button>
           </div>
         </div>

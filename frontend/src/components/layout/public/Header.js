@@ -3,13 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import logo from "assets/images/logo.png";
 import { useLanguage } from "context/LanguageContext";
-import { t } from "i18n";
 import { obtenerTodasSubcategorias } from "api/subcategorias";
 import API_URL from "api/config";
 
 function Header() {
 
-  const { idioma } = useLanguage();
+  const { tx } = useLanguage();
   const navigate = useNavigate();
 
   // texto que escribe el usuario
@@ -20,6 +19,7 @@ function Header() {
 
   // resultados filtrados para el dropdown
   const [resultados, setResultados] = useState([]);
+  const [indiceActivo, setIndiceActivo] = useState(-1);
 
   // referencia para cerrar el dropdown al hacer click fuera
   const buscadorRef = useRef();
@@ -44,6 +44,7 @@ function Header() {
       if (buscadorRef.current && !buscadorRef.current.contains(event.target)) {
         setQuery("");
         setResultados([]);
+        setIndiceActivo(-1);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -59,6 +60,7 @@ function Header() {
 
     if (!valor.trim()) {
       setResultados([]);
+      setIndiceActivo(-1);
       return;
     }
 
@@ -67,6 +69,7 @@ function Header() {
     );
 
     setResultados(filtrados.slice(0, 6));
+    setIndiceActivo(-1);
   }
 
   /**
@@ -74,19 +77,37 @@ function Header() {
    * Escape: cierra el dropdown.
    */
   function handleKeyDown(e) {
+    if (e.key === "ArrowDown") {
+      if (resultados.length === 0) return;
+      e.preventDefault();
+      setIndiceActivo((prev) => (prev + 1) % resultados.length);
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      if (resultados.length === 0) return;
+      e.preventDefault();
+      setIndiceActivo((prev) => (prev <= 0 ? resultados.length - 1 : prev - 1));
+      return;
+    }
+
     if (e.key === "Enter") {
       e.preventDefault();
-      if (query.trim()) {
+      if (resultados.length > 0 && indiceActivo >= 0) {
+        navigate(`/servicios/subcategoria/${resultados[indiceActivo].id}`);
+      } else if (query.trim()) {
         navigate(`/servicios?q=${encodeURIComponent(query.trim())}`);
       } else if (resultados.length > 0) {
         navigate(`/servicios/subcategoria/${resultados[0].id}`);
       }
       setQuery("");
       setResultados([]);
+      setIndiceActivo(-1);
     }
     if (e.key === "Escape") {
       setQuery("");
       setResultados([]);
+      setIndiceActivo(-1);
     }
   }
 
@@ -110,25 +131,41 @@ function Header() {
             value={query}
             onChange={handleQuery}
             onKeyDown={handleKeyDown}
-            placeholder={t(idioma, "nav.buscar")}
-            aria-label={t(idioma, "nav.buscar")}
+            placeholder={tx("Buscar servicios...")}
+            aria-label={tx("Buscar servicios...")}
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={query.trim().length > 0}
+            aria-controls="header-search-results"
+            aria-activedescendant={indiceActivo >= 0 ? `header-search-option-${resultados[indiceActivo]?.id}` : undefined}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           {/* Dropdown — aparece solo cuando hay texto */}
           {query.trim().length > 0 && (
-            <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+            <div
+              id="header-search-results"
+              role="listbox"
+              className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden"
+            >
 
               {resultados.length > 0 ? (
-                resultados.map(sub => (
+                resultados.map((sub, index) => (
                   <button
+                    id={`header-search-option-${sub.id}`}
                     key={sub.id}
                     onClick={() => {
                       navigate(`/servicios/subcategoria/${sub.id}`);
                       setQuery("");
                       setResultados([]);
+                      setIndiceActivo(-1);
                     }}
-                    className="w-full text-left flex items-center gap-4 px-4 py-3 hover:bg-gray-50 border-b last:border-0 transition">
+                    onMouseEnter={() => setIndiceActivo(index)}
+                    role="option"
+                    aria-selected={indiceActivo === index}
+                    className={`w-full text-left flex items-center gap-4 px-4 py-3 border-b last:border-0 transition ${
+                      indiceActivo === index ? "bg-blue-50" : "hover:bg-gray-50"
+                    }`}>
                     {sub.imagen ? (
                       <img
                         src={resolverImagenBusqueda(sub.imagen)}
@@ -141,19 +178,19 @@ function Header() {
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{sub.nombre}</p>
+                      <p className="text-sm font-semibold text-gray-800 truncate">{tx(sub.nombre)}</p>
                       {sub.categoriaNombre && (
-                        <p className="text-xs text-gray-400 truncate">{sub.categoriaNombre}</p>
+                        <p className="text-xs text-gray-400 truncate">{tx(sub.categoriaNombre)}</p>
                       )}
                       {sub.descripcion && (
-                        <p className="text-xs text-gray-500 truncate">{sub.descripcion}</p>
+                        <p className="text-xs text-gray-500 truncate">{tx(sub.descripcion)}</p>
                       )}
                     </div>
                   </button>
                 ))
               ) : (
                 <p className="px-4 py-3 text-sm text-gray-400">
-                  {t(idioma, "servicios.estado.sinResultados")}
+                  {tx("No hay resultados")}
                 </p>
               )}
 
@@ -166,11 +203,11 @@ function Header() {
       <nav className="flex gap-3">
 
         <Link to="/login" className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-full whitespace-nowrap hover:bg-blue-50 transition font-medium">
-          {t(idioma, "auth.general.iniciarSesion")}
+          {tx("Iniciar sesión")}
         </Link>
 
         <Link to="/registro" className="bg-blue-600 text-white px-4 py-2 rounded-full whitespace-nowrap hover:bg-blue-700 hover:shadow-md transition font-medium">
-          {t(idioma, "auth.general.registrarse")}
+          {tx("Registrarse")}
         </Link>
 
       </nav>

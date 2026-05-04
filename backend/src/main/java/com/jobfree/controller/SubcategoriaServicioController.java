@@ -23,6 +23,7 @@ import com.jobfree.model.entity.CategoriaServicio;
 import com.jobfree.model.entity.SubcategoriaServicio;
 import com.jobfree.service.CategoriaServicioService;
 import com.jobfree.service.SubcategoriaServicioService;
+import io.swagger.v3.oas.annotations.Operation;
 
 import jakarta.validation.Valid;
 
@@ -88,6 +89,7 @@ public class SubcategoriaServicioController {
 	 * @param dto datos de entrada
 	 * @return subcategoría creada
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ResponseEntity<SubcategoriaDTO> crearSubcategoria(@Valid @RequestBody SubcategoriaCreateDTO dto) {
@@ -106,6 +108,7 @@ public class SubcategoriaServicioController {
 	 * @param dto nuevos datos de la subcategoría
 	 * @return subcategoría actualizada con los nuevos datos
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{id}")
 	public ResponseEntity<SubcategoriaDTO> actualizarSubcategoria(@PathVariable Long id,
@@ -129,6 +132,7 @@ public class SubcategoriaServicioController {
 	 * @param id identificador de la subcategoría
 	 * @return respuesta sin contenido (204 No Content)
 	 */
+	@Operation(hidden = true)
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> eliminarSubcategoria(@PathVariable Long id) {

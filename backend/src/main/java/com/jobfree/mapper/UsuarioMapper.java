@@ -67,7 +67,26 @@ public final class UsuarioMapper {
                 usuario.getCiudad(),
                 usuario.getDireccion(),
                 usuario.getFotoUrl(),
-                usuario.getRol().getLabel()
+                usuario.getRol().name()
+        );
+    }
+
+    /**
+     * DTO sin datos sensibles (dirección, teléfono) para contextos donde el
+     * usuario es visible a terceros (ej. participante de una conversación).
+     */
+    public static UsuarioDTO toDTOPublico(Usuario usuario) {
+        return new UsuarioDTO(
+                usuario.getId(),
+                usuario.getNombre(),
+                usuario.getApellidos(),
+                usuario.getNombreCompleto(),
+                usuario.getEmail(),
+                null,
+                usuario.getCiudad(),
+                null,
+                usuario.getFotoUrl(),
+                usuario.getRol().name()
         );
     }
 }

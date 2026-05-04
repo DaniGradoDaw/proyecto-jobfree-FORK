@@ -33,7 +33,10 @@ function RutaProtegida({ children, rolRequerido }) {
   // Si se ha especificado un rol concreto y el usuario no lo tiene,
   // lo redirigimos al dashboard que le corresponde según su rol real
   if (rolRequerido && usuario.rol !== rolRequerido) {
-    if (usuario.rol === "Profesional") {
+    if (usuario.rol === "ADMIN") {
+      return <Navigate to="/dashboard/admin" replace />;
+    }
+    if (usuario.rol === "PROFESIONAL") {
       return <Navigate to="/dashboard/profesional" replace />;
     }
     return <Navigate to="/dashboard/cliente" replace />;

@@ -1,17 +1,27 @@
 package com.jobfree.service;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.jobfree.exception.conversacion.ConversacionAccesoException;
+import com.jobfree.exception.conversacion.ConversacionNotFoundException;
+import com.jobfree.exception.reserva.ReservaNotFoundException;
+import com.jobfree.exception.usuario.UsuarioNotFoundException;
 import com.jobfree.model.entity.Conversacion;
 import com.jobfree.model.entity.Reserva;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.Rol;
+import com.jobfree.repository.BloqueoUsuarioRepository;
 import com.jobfree.repository.ConversacionRepository;
+import com.jobfree.repository.MensajeRepository;
 import com.jobfree.repository.ReservaRepository;
 import com.jobfree.repository.UsuarioRepository;
 
@@ -26,17 +36,22 @@ public class ConversacionService {
 	private final ConversacionRepository conversacionRepository;
 	private final ReservaRepository reservaRepository;
 	private final UsuarioRepository usuarioRepository;
+	private final MensajeRepository mensajeRepository;
+	private final BloqueoUsuarioRepository bloqueoRepository;
 
 	public ConversacionService(ConversacionRepository conversacionRepository, ReservaRepository reservaRepository,
-			UsuarioRepository usuarioRepository) {
+			UsuarioRepository usuarioRepository, MensajeRepository mensajeRepository,
+			BloqueoUsuarioRepository bloqueoRepository) {
 		this.conversacionRepository = conversacionRepository;
 		this.reservaRepository = reservaRepository;
 		this.usuarioRepository = usuarioRepository;
+		this.mensajeRepository = mensajeRepository;
+		this.bloqueoRepository = bloqueoRepository;
 	}
 
 	public Conversacion obtenerPorId(Long id) {
 		return conversacionRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Conversación no encontrada"));
+				.orElseThrow(() -> new ConversacionNotFoundException(id));
 	}
 
 	public Conversacion obtenerPorIdSeguro(Long id, Usuario usuario) {
@@ -47,16 +62,35 @@ public class ConversacionService {
 
 	public Conversacion obtenerPorReservaSeguro(Long reservaId, Usuario usuario) {
 		Reserva reserva = reservaRepository.findById(reservaId)
-				.orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada"));
+				.orElseThrow(() -> new ReservaNotFoundException(reservaId));
 		Conversacion conversacion = obtenerOCrearPorReserva(reserva);
 		validarParticipante(conversacion, usuario);
 		return conversacion;
 	}
 
 	public List<Conversacion> misConversaciones(Usuario usuario) {
-		// El repositorio ordena por COALESCE(ultimoMensajeFecha, fechaCreacion) DESC — sin lazy loading
-		return conversacionRepository
-				.findByClienteIdOrProfesionalIdOrderByFechaCreacionDesc(usuario.getId(), usuario.getId());
+		// Obtener primero los IDs ordenados con LIMIT (evita paginación en memoria de Hibernate con JOIN FETCH)
+		List<Long> ids = conversacionRepository.findTopIdsByParticipanteId(
+				usuario.getId(), PageRequest.of(0, 100));
+		if (ids.isEmpty()) return Collections.emptyList();
+
+		List<Conversacion> conversaciones = conversacionRepository.findByIdsWithParticipantes(ids);
+
+		// Re-ordenar según el orden original de IDs (la query de IDs ya vino ordenada)
+		conversaciones.sort(Comparator.comparingInt((Conversacion c) -> ids.indexOf(c.getId())));
+
+		// Auto-backfill: si ultimoMensajeContenido es null, rellenarlo desde la tabla mensaje (solo ocurre en datos legacy)
+		conversaciones.stream()
+				.filter(c -> c.getUltimoMensajeContenido() == null)
+				.forEach(c -> mensajeRepository.findFirstByConversacionIdOrderByFechaEnvioDesc(c.getId())
+						.ifPresent(m -> {
+							c.setUltimoMensajeContenido(resumirMensaje(m));
+							if (c.getUltimoMensajeFecha() == null) {
+								c.setUltimoMensajeFecha(m.getFechaEnvio());
+							}
+						}));
+
+		return conversaciones;
 	}
 
 	public Conversacion obtenerOCrearPorReserva(Reserva reserva) {
@@ -66,9 +100,9 @@ public class ConversacionService {
 
 	public Conversacion crearOObtenerConversacion(Long clienteId, Long profesionalId) {
 		Usuario cliente = usuarioRepository.findById(clienteId)
-				.orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+				.orElseThrow(() -> new UsuarioNotFoundException(clienteId));
 		Usuario profesional = usuarioRepository.findById(profesionalId)
-				.orElseThrow(() -> new IllegalArgumentException("Profesional no encontrado"));
+				.orElseThrow(() -> new UsuarioNotFoundException(profesionalId));
 
 		if (cliente.getRol() != Rol.CLIENTE) {
 			throw new IllegalArgumentException("Solo un cliente puede iniciar una conversación");
@@ -90,13 +124,55 @@ public class ConversacionService {
 				.orElseGet(() -> crearConversacionContacto(cliente, profesional, contactoClave));
 	}
 
+	public Conversacion silenciar(Long conversacionId, Usuario usuario, String duracion) {
+		Conversacion conversacion = obtenerPorIdSeguro(conversacionId, usuario);
+		boolean esCliente = conversacion.getCliente().getId().equals(usuario.getId());
+		LocalDateTime hasta;
+		if (duracion == null) {
+			hasta = null;
+		} else if ("8h".equals(duracion)) {
+			hasta = LocalDateTime.now().plusHours(8);
+		} else if ("1s".equals(duracion)) {
+			hasta = LocalDateTime.now().plusWeeks(1);
+		} else {
+			hasta = LocalDateTime.of(9999, 1, 1, 0, 0);
+		}
+		if (esCliente) {
+			conversacion.setSilenciadaClienteHasta(hasta);
+		} else {
+			conversacion.setSilenciadaProfesionalHasta(hasta);
+		}
+		return conversacionRepository.save(conversacion);
+	}
+
+	public Conversacion toggleFijar(Long conversacionId, Usuario usuario) {
+		Conversacion conversacion = obtenerPorIdSeguro(conversacionId, usuario);
+		boolean esCliente = conversacion.getCliente().getId().equals(usuario.getId());
+		if (esCliente) {
+			conversacion.setFijadaCliente(!conversacion.isFijadaCliente());
+		} else {
+			conversacion.setFijadaProfesional(!conversacion.isFijadaProfesional());
+		}
+		return conversacionRepository.save(conversacion);
+	}
+
+	public boolean isSilenciadaPara(Conversacion conversacion, Usuario usuario) {
+		boolean esCliente = conversacion.getCliente().getId().equals(usuario.getId());
+		LocalDateTime hasta = esCliente ? conversacion.getSilenciadaClienteHasta() : conversacion.getSilenciadaProfesionalHasta();
+		return hasta != null && LocalDateTime.now().isBefore(hasta);
+	}
+
+	public boolean esBloqueadoPor(Long bloqueadorId, Long bloqueadoId) {
+		return bloqueoRepository.existsByBloqueadorIdAndBloqueadoId(bloqueadorId, bloqueadoId);
+	}
+
 	public void validarParticipante(Conversacion conversacion, Usuario usuario) {
 		Long usuarioId = usuario.getId();
 		boolean esCliente = conversacion.getCliente().getId().equals(usuarioId);
 		boolean esProfesional = conversacion.getProfesional().getId().equals(usuarioId);
 
 		if (!esCliente && !esProfesional) {
-			throw new IllegalArgumentException("No tienes acceso a esta conversación");
+			throw new ConversacionAccesoException();
 		}
 	}
 
@@ -105,13 +181,24 @@ public class ConversacionService {
 		Usuario profesional = reserva.getServicio().getProfesional().getUsuario();
 		String contactoClave = buildContactoClave(cliente.getId(), profesional.getId());
 
-		Conversacion conversacionExistente = conversacionRepository.findByContactoClave(contactoClave).orElse(null);
-		if (conversacionExistente != null) {
-			conversacionExistente.setReserva(reserva);
-			conversacionExistente.setContactoClave(null);
-			return conversacionRepository.save(conversacionExistente);
+		// 1. Conversación de contacto inicial (aún no tiene reserva)
+		Conversacion porClave = conversacionRepository.findByContactoClave(contactoClave).orElse(null);
+		if (porClave != null) {
+			porClave.setReserva(reserva);
+			porClave.setContactoClave(null);
+			return conversacionRepository.save(porClave);
 		}
 
+		// 2. Conversación ya existente entre este par (segunda reserva o posterior)
+		Conversacion existente = conversacionRepository
+				.findFirstByClienteIdAndProfesionalIdOrderByFechaCreacionDesc(cliente.getId(), profesional.getId())
+				.orElse(null);
+		if (existente != null) {
+			existente.setReserva(reserva);
+			return conversacionRepository.save(existente);
+		}
+
+		// 3. Primera vez que se cruzan sin haber pasado por el chat de contacto
 		return conversacionRepository.save(new Conversacion(reserva, cliente, profesional));
 	}
 
@@ -129,5 +216,13 @@ public class ConversacionService {
 
 	private String buildContactoClave(Long clienteId, Long profesionalId) {
 		return clienteId + ":" + profesionalId;
+	}
+
+	private String resumirMensaje(com.jobfree.model.entity.Mensaje mensaje) {
+		String contenido = mensaje.getContenido();
+		String resumen = (contenido == null || contenido.isBlank())
+				? "[Imagen]"
+				: contenido;
+		return resumen.length() > 200 ? resumen.substring(0, 197) + "..." : resumen;
 	}
 }

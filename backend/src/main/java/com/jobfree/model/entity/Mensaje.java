@@ -31,9 +31,11 @@ public class Mensaje {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private Long id;
 
-	@NotBlank(message = "El contenido es obligatorio")
 	@Column(nullable = false, length = 1000)
 	private String contenido;
+
+	@Column(name = "imagen_url", length = 500)
+	private String imagenUrl;
 
 	@NotBlank(message = "El identificador del cliente es obligatorio")
 	@Column(name = "client_message_id", nullable = false, length = 36)
@@ -73,6 +75,11 @@ public class Mensaje {
 	@JsonIgnore
 	@JoinColumn(name = "conversacion_id", nullable = false, foreignKey = @ForeignKey(name = "fk_mensaje_conversacion"))
 	private Conversacion conversacion;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore
+	@JoinColumn(name = "mensaje_respondido_id")
+	private Mensaje mensajeRespondido;
 
 	// Constructor vacío obligatorio
 	public Mensaje() {
@@ -148,6 +155,22 @@ public class Mensaje {
 
 	public void setConversacion(Conversacion conversacion) {
 		this.conversacion = conversacion;
+	}
+
+	public Mensaje getMensajeRespondido() {
+		return mensajeRespondido;
+	}
+
+	public void setMensajeRespondido(Mensaje mensajeRespondido) {
+		this.mensajeRespondido = mensajeRespondido;
+	}
+
+	public String getImagenUrl() {
+		return imagenUrl;
+	}
+
+	public void setImagenUrl(String imagenUrl) {
+		this.imagenUrl = imagenUrl;
 	}
 
 }

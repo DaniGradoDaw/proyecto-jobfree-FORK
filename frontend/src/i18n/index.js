@@ -1,31 +1,29 @@
-// Importamos los textos
-import { textos } from "i18n/textos";
+import traduccionesAuto from "i18n/traducciones-auto.json";
 
-// Exportamos textos para poder usarlos en otros archivos
-export { textos };
+const IDIOMA_FALLBACK = "es";
 
-// Función para traducir según idioma y clave
-export function t(idioma, clave, variables = {}) {
+function escaparRegex(valor) {
+  return valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
-  const partes = clave.split(".");
-  let resultado = textos[idioma];
-
-  // Recorremos la clave (ej: servicios.titulo)
-  for (let parte of partes) {
-    if (resultado && resultado[parte] !== undefined) {
-      resultado = resultado[parte];
-    } else {
-      return clave;
+// El texto en español ES la clave → tx(idioma, "Texto en español")
+// Traducciones generadas automáticamente con: npm run traducir
+export function tx(idioma, texto, variables = {}) {
+  let resultado = texto;
+  if (texto && idioma !== IDIOMA_FALLBACK) {
+    const entrada = traduccionesAuto[texto];
+    if (entrada && entrada[idioma]) {
+      resultado = entrada[idioma];
+      // Si el original empieza en mayúscula, la traducción también
+      if (texto.charAt(0) !== texto.charAt(0).toLowerCase()) {
+        resultado = resultado.charAt(0).toUpperCase() + resultado.slice(1);
+      }
     }
   }
-
-  // Si es array, lo devolvemos directamente
-  if (typeof resultado !== "string") return resultado;
-
-  // Reemplazo de variables
-  for (let key in variables) {
-    resultado = resultado.replace(`{${key}}`, variables[key]);
+  if (!resultado) return texto;
+  for (const key of Object.keys(variables)) {
+    const patron = new RegExp(`\\{${escaparRegex(key)}\\}`, "g");
+    resultado = resultado.replace(patron, String(variables[key]));
   }
-
   return resultado;
 }

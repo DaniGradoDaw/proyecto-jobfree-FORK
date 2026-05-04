@@ -1,23 +1,31 @@
 package com.jobfree.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.jobfree.dto.conversacion.ConversacionDTO;
 import com.jobfree.dto.mensaje.MensajeBatchUpdateDTO;
 import com.jobfree.dto.mensaje.MensajeCreateDTO;
 import com.jobfree.dto.mensaje.MensajeDTO;
+import com.jobfree.dto.mensaje.MensajePageDTO;
+import com.jobfree.exception.mensaje.MensajeBloqueadoException;
 import com.jobfree.exception.mensaje.MensajeNotFoundException;
 import com.jobfree.mapper.ConversacionMapper;
 import com.jobfree.mapper.MensajeMapper;
 import com.jobfree.model.entity.Conversacion;
 import com.jobfree.model.entity.Mensaje;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.repository.BloqueoUsuarioRepository;
 import com.jobfree.repository.MensajeRepository;
 
 import jakarta.transaction.Transactional;
@@ -26,17 +34,24 @@ import jakarta.transaction.Transactional;
 @Transactional
 public class MensajeService {
 
+	private static final Logger log = LoggerFactory.getLogger(MensajeService.class);
+	private static final long INTERVALO_MINIMO_MS = 300; // máx ~3 mensajes/segundo por usuario
+
+	private final ConcurrentHashMap<Long, Long> ultimoEnvioPorUsuario = new ConcurrentHashMap<>();
 	private final MensajeRepository mensajeRepository;
 	private final UsuarioService usuarioService;
 	private final ConversacionService conversacionService;
 	private final ChatRealtimePublisher chatRealtimePublisher;
+	private final BloqueoUsuarioRepository bloqueoRepository;
 
 	public MensajeService(MensajeRepository mensajeRepository, UsuarioService usuarioService,
-			ConversacionService conversacionService, ChatRealtimePublisher chatRealtimePublisher) {
+			ConversacionService conversacionService, ChatRealtimePublisher chatRealtimePublisher,
+			BloqueoUsuarioRepository bloqueoRepository) {
 		this.mensajeRepository = mensajeRepository;
 		this.usuarioService = usuarioService;
 		this.conversacionService = conversacionService;
 		this.chatRealtimePublisher = chatRealtimePublisher;
+		this.bloqueoRepository = bloqueoRepository;
 	}
 
 	/**
@@ -67,10 +82,17 @@ public class MensajeService {
 	 * @param usuario   usuario autenticado
 	 * @return lista de mensajes ordenados por fecha
 	 */
-	public List<Mensaje> obtenerPorConversacion(Long conversacionId, Usuario usuario) {
-
+	public MensajePageDTO obtenerPorConversacion(Long conversacionId, Usuario usuario, Long before, int size) {
 		Conversacion conversacion = conversacionService.obtenerPorIdSeguro(conversacionId, usuario);
-		return mensajeRepository.findByConversacionIdOrderByFechaEnvioAsc(conversacion.getId());
+		int fetchSize = Math.min(size, 100) + 1;
+		List<Mensaje> mensajes = (before != null)
+				? mensajeRepository.findByConversacionIdBeforeDesc(conversacion.getId(), before, PageRequest.of(0, fetchSize))
+				: mensajeRepository.findLatestByConversacionId(conversacion.getId(), PageRequest.of(0, fetchSize));
+		boolean hayMas = mensajes.size() > size;
+		if (hayMas) mensajes = new ArrayList<>(mensajes.subList(0, size));
+		Collections.reverse(mensajes);
+		List<MensajeDTO> dtos = mensajes.stream().map(MensajeMapper::toDTOFull).toList();
+		return new MensajePageDTO(dtos, hayMas);
 	}
 
 	/**
@@ -81,40 +103,75 @@ public class MensajeService {
 	 * @param remitente usuario autenticado
 	 * @return mensaje creado
 	 */
-	public Mensaje crear(MensajeCreateDTO dto, Usuario remitente) {
+	public MensajeDTO crear(MensajeCreateDTO dto, Usuario remitente) {
+
+		// Deduplicación PRIMERO: un reintento del mismo mensaje (misma red caída, mismo
+		// clientMessageId) no debe tocar el rate limit ni contar como nuevo envío.
+		Mensaje existente = mensajeRepository.findByConversacionIdAndRemitenteIdAndClientMessageId(
+				dto.getConversacionId(),
+				remitente.getId(),
+				dto.getClientMessageId()
+		).orElse(null);
+		if (existente != null) {
+			return MensajeMapper.toDTOFull(existente);
+		}
+
+		// Rate limit: solo actualiza el timestamp si el envío no está limitado.
+		// Usar get+put condicional evita la "ventana deslizante" que bloqueaba al
+		// usuario indefinidamente cuando cualquier error anterior actualizaba el reloj.
+		long ahora = System.currentTimeMillis();
+		Long ultimoEnvio = ultimoEnvioPorUsuario.get(remitente.getId());
+		if (ultimoEnvio != null && ahora - ultimoEnvio < INTERVALO_MINIMO_MS) {
+			throw new IllegalArgumentException("Estás enviando mensajes muy rápido. Espera un momento.");
+		}
+		ultimoEnvioPorUsuario.put(remitente.getId(), ahora);
 
 		Usuario destinatario = usuarioService.obtenerPorId(dto.getDestinatarioId());
 		Conversacion conversacion = conversacionService.obtenerPorIdSeguro(dto.getConversacionId(), remitente);
 
-		// Validar remitente (seguridad real)
 		conversacionService.validarParticipante(conversacion, remitente);
+
+		// Bloqueo bidireccional: si cualquiera bloqueó al otro, rechazar el mensaje
+		if (bloqueoRepository.existsByBloqueadorIdAndBloqueadoId(destinatario.getId(), remitente.getId())
+				|| bloqueoRepository.existsByBloqueadorIdAndBloqueadoId(remitente.getId(), destinatario.getId())) {
+			throw new MensajeBloqueadoException();
+		}
+
+		boolean tieneContenido = dto.getContenido() != null && !dto.getContenido().isBlank();
+		boolean tieneImagen = dto.getImagenUrl() != null && !dto.getImagenUrl().isBlank();
+		if (!tieneContenido && !tieneImagen) {
+			throw new IllegalArgumentException("El mensaje debe tener contenido o una imagen");
+		}
 
 		Usuario cliente = conversacion.getCliente();
 		Usuario profesional = conversacion.getProfesional();
 
-		// Validar destinatario
 		if (!cliente.getId().equals(destinatario.getId()) && !profesional.getId().equals(destinatario.getId())) {
-
+			log.warn("Intento de envío con destinatario ajeno a la conversación: usuario={} conversacion={} destinatario={}",
+					remitente.getId(), conversacion.getId(), destinatario.getId());
 			throw new IllegalArgumentException("El destinatario no pertenece a la conversación");
 		}
 
-		Mensaje existente = mensajeRepository.findByConversacionIdAndRemitenteIdAndClientMessageId(
-				conversacion.getId(),
-				remitente.getId(),
-				dto.getClientMessageId()
-		).orElse(null);
+		Mensaje mensaje = MensajeMapper.toEntity(dto, remitente, destinatario, conversacion);
 
-		if (existente != null) {
-			return existente;
+		if (dto.getMensajeRespondidoId() != null) {
+			mensajeRepository.findByIdAndConversacionId(dto.getMensajeRespondidoId(), conversacion.getId())
+					.ifPresent(mensaje::setMensajeRespondido);
 		}
 
-		Mensaje mensaje = MensajeMapper.toEntity(dto, remitente, destinatario, conversacion);
 		Mensaje guardado = mensajeRepository.save(mensaje);
 
-		// Actualizar fecha de actividad de la conversación (evita lazy loading en el listado)
 		conversacion.setUltimoMensajeFecha(guardado.getFechaEnvio());
-		MensajeDTO mensajeDTO = MensajeMapper.toDTO(guardado);
-		ConversacionDTO conversacionDTO = ConversacionMapper.toDTO(conversacion);
+		String contenido = guardado.getContenido();
+		String contenidoResumen = (contenido == null || contenido.isBlank())
+				? "[Imagen]"
+				: contenido;
+		contenidoResumen = contenidoResumen.length() > 200
+				? contenidoResumen.substring(0, 197) + "..."
+				: contenidoResumen;
+		conversacion.setUltimoMensajeContenido(contenidoResumen);
+
+		MensajeDTO mensajeDTO = MensajeMapper.toDTOFull(guardado);
 
 		chatRealtimePublisher.publicarMensajeNuevo(
 				conversacion.getId(),
@@ -122,14 +179,9 @@ public class MensajeService {
 				destinatario.getEmail()
 		);
 
-		chatRealtimePublisher.publicarConversacionActualizada(
-				conversacion.getId(),
-				conversacionDTO,
-				cliente.getEmail(),
-				profesional.getEmail()
-		);
+		publicarActualizacionConversacion(conversacion);
 
-		return guardado;
+		return mensajeDTO;
 	}
 
 	/**
@@ -145,6 +197,7 @@ public class MensajeService {
 
 		// Seguridad clave
 		if (!mensaje.getDestinatario().getId().equals(usuario.getId())) {
+			log.warn("Intento de marcar mensaje ajeno como leído: usuario={} mensaje={}", usuario.getId(), id);
 			throw new IllegalArgumentException("No puedes marcar este mensaje");
 		}
 
@@ -160,7 +213,6 @@ public class MensajeService {
 
 		Mensaje guardado = mensajeRepository.save(mensaje);
 		Conversacion conversacion = guardado.getConversacion();
-		ConversacionDTO conversacionDTO = ConversacionMapper.toDTO(conversacion);
 
 		chatRealtimePublisher.publicarMensajeLeido(
 				conversacion.getId(),
@@ -180,12 +232,7 @@ public class MensajeService {
 			);
 		}
 
-		chatRealtimePublisher.publicarConversacionActualizada(
-				conversacion.getId(),
-				conversacionDTO,
-				conversacion.getCliente().getEmail(),
-				conversacion.getProfesional().getEmail()
-		);
+		publicarActualizacionConversacion(conversacion);
 
 		return guardado;
 	}
@@ -195,6 +242,7 @@ public class MensajeService {
 		Mensaje mensaje = obtenerPorId(id);
 
 		if (!mensaje.getDestinatario().getId().equals(usuario.getId())) {
+			log.warn("Intento de marcar mensaje ajeno como recibido: usuario={} mensaje={}", usuario.getId(), id);
 			throw new IllegalArgumentException("No puedes marcar este mensaje");
 		}
 
@@ -206,7 +254,6 @@ public class MensajeService {
 
 		Mensaje guardado = mensajeRepository.save(mensaje);
 		Conversacion conversacion = guardado.getConversacion();
-		ConversacionDTO conversacionDTO = ConversacionMapper.toDTO(conversacion);
 
 		chatRealtimePublisher.publicarMensajeRecibido(
 				conversacion.getId(),
@@ -216,69 +263,53 @@ public class MensajeService {
 				conversacion.getProfesional().getEmail()
 		);
 
-		chatRealtimePublisher.publicarConversacionActualizada(
-				conversacion.getId(),
-				conversacionDTO,
-				conversacion.getCliente().getEmail(),
-				conversacion.getProfesional().getEmail()
-		);
+		publicarActualizacionConversacion(conversacion);
 
 		return guardado;
 	}
 
 	public List<Mensaje> marcarComoRecibidoBatch(MensajeBatchUpdateDTO dto, Usuario usuario) {
 		List<Mensaje> mensajes = obtenerMensajesBatchDelDestinatario(dto, usuario);
-		List<Mensaje> actualizados = new ArrayList<>();
-
-		for (Mensaje mensaje : mensajes) {
-			if (mensaje.isRecibido()) {
-				continue;
-			}
-
-			mensaje.setRecibido(true);
-			actualizados.add(mensaje);
-		}
-
-		if (actualizados.isEmpty()) {
-			return mensajes;
-		}
-
-		List<Mensaje> guardados = mensajeRepository.saveAll(actualizados);
-		publicarEventosBatchRecibido(guardados, usuario);
+		List<Mensaje> actualizados = mensajes.stream()
+				.filter(m -> !m.isRecibido())
+				.peek(m -> m.setRecibido(true))
+				.collect(Collectors.toList());
+		if (actualizados.isEmpty()) return mensajes;
+		publicarEventosBatchRecibido(mensajeRepository.saveAll(actualizados), usuario);
 		return mensajes;
 	}
 
 	public List<Mensaje> marcarComoLeidoBatch(MensajeBatchUpdateDTO dto, Usuario usuario) {
 		List<Mensaje> mensajes = obtenerMensajesBatchDelDestinatario(dto, usuario);
-		List<Mensaje> actualizados = new ArrayList<>();
-		List<Mensaje> marcadosComoRecibidos = new ArrayList<>();
-
-		for (Mensaje mensaje : mensajes) {
-			if (mensaje.isLeido()) {
-				continue;
-			}
-
-			if (!mensaje.isRecibido()) {
-				mensaje.setRecibido(true);
-				marcadosComoRecibidos.add(mensaje);
-			}
-
-			mensaje.setLeido(true);
-			actualizados.add(mensaje);
-		}
-
-		if (actualizados.isEmpty()) {
-			return mensajes;
-		}
-
-		List<Mensaje> guardados = mensajeRepository.saveAll(actualizados);
-		List<Long> idsRecibidos = marcadosComoRecibidos.stream().map(Mensaje::getId).collect(Collectors.toList());
-		publicarEventosBatchLeido(guardados, idsRecibidos, usuario);
+		List<Long> idsNuevosRecibidos = new ArrayList<>();
+		List<Mensaje> actualizados = mensajes.stream()
+				.filter(m -> !m.isLeido())
+				.peek(m -> {
+					if (!m.isRecibido()) {
+						m.setRecibido(true);
+						idsNuevosRecibidos.add(m.getId());
+					}
+					m.setLeido(true);
+				})
+				.collect(Collectors.toList());
+		if (actualizados.isEmpty()) return mensajes;
+		publicarEventosBatchLeido(mensajeRepository.saveAll(actualizados), idsNuevosRecibidos, usuario);
 		return mensajes;
 	}
 
 	public long contarNoLeidos(Usuario usuario) {
-		return mensajeRepository.countByDestinatarioIdAndLeidoFalse(usuario.getId());
+		return mensajeRepository.countNoLeidosExcluyendoSilenciados(usuario.getId());
+	}
+
+	public Map<Long, Integer> contarNoLeidosPorConversaciones(List<Long> conversacionIds, Long usuarioId) {
+		if (conversacionIds == null || conversacionIds.isEmpty()) {
+			return Map.of();
+		}
+		return mensajeRepository.countNoLeidosPorConversaciones(conversacionIds, usuarioId).stream()
+				.collect(Collectors.toMap(
+						row -> (Long) row[0],
+						row -> ((Number) row[1]).intValue()
+				));
 	}
 
 	private List<Mensaje> obtenerMensajesBatchDelDestinatario(MensajeBatchUpdateDTO dto, Usuario usuario) {
@@ -299,7 +330,6 @@ public class MensajeService {
 
 		for (List<Mensaje> mensajesConversacion : porConversacion.values()) {
 			Conversacion conversacion = mensajesConversacion.get(0).getConversacion();
-			ConversacionDTO conversacionDTO = ConversacionMapper.toDTO(conversacion);
 
 			chatRealtimePublisher.publicarMensajeRecibidoLoteDesdeMensajes(
 					conversacion.getId(),
@@ -309,12 +339,7 @@ public class MensajeService {
 					conversacion.getProfesional().getEmail()
 			);
 
-			chatRealtimePublisher.publicarConversacionActualizada(
-					conversacion.getId(),
-					conversacionDTO,
-					conversacion.getCliente().getEmail(),
-					conversacion.getProfesional().getEmail()
-			);
+			publicarActualizacionConversacion(conversacion);
 		}
 	}
 
@@ -325,7 +350,6 @@ public class MensajeService {
 
 		for (List<Mensaje> mensajesConversacion : porConversacion.values()) {
 			Conversacion conversacion = mensajesConversacion.get(0).getConversacion();
-			ConversacionDTO conversacionDTO = ConversacionMapper.toDTO(conversacion);
 
 			if (mensajesConversacion.stream().anyMatch(mensaje -> idsRecibidosSet.contains(mensaje.getId()))) {
 				List<Mensaje> mensajesRecibidos = mensajesConversacion.stream()
@@ -349,12 +373,25 @@ public class MensajeService {
 					conversacion.getProfesional().getEmail()
 			);
 
-			chatRealtimePublisher.publicarConversacionActualizada(
-					conversacion.getId(),
-					conversacionDTO,
-					conversacion.getCliente().getEmail(),
-					conversacion.getProfesional().getEmail()
-			);
+			publicarActualizacionConversacion(conversacion);
 		}
+	}
+
+	private void publicarActualizacionConversacion(Conversacion conversacion) {
+		int noLeidosCliente = mensajeRepository.countNoLeidosPorConversacion(
+				conversacion.getId(), conversacion.getCliente().getId());
+		int noLeidosProfesional = mensajeRepository.countNoLeidosPorConversacion(
+				conversacion.getId(), conversacion.getProfesional().getId());
+
+		ConversacionDTO dtoCliente = ConversacionMapper.toDTO(conversacion, conversacion.getCliente());
+		dtoCliente.setNoLeidos(noLeidosCliente);
+
+		ConversacionDTO dtoProfesional = ConversacionMapper.toDTO(conversacion, conversacion.getProfesional());
+		dtoProfesional.setNoLeidos(noLeidosProfesional);
+
+		chatRealtimePublisher.publicarConversacionActualizadaPersonalizada(
+				conversacion.getId(),
+				dtoCliente, conversacion.getCliente().getEmail(),
+				dtoProfesional, conversacion.getProfesional().getEmail());
 	}
 }

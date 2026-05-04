@@ -51,6 +51,12 @@ public class Reserva {
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime fechaCreacion;
 
+	@Column(nullable = false)
+	private int progreso = 0;
+
+	@Column(length = 500)
+	private String notasProgreso;
+
 	@PrePersist
 	public void prePersist() {
 		this.fechaCreacion = LocalDateTime.now();
@@ -180,6 +186,22 @@ public class Reserva {
 
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
+	}
+
+	public int getProgreso() {
+		return progreso;
+	}
+
+	public void setProgreso(int progreso) {
+		this.progreso = Math.max(0, Math.min(100, progreso));
+	}
+
+	public String getNotasProgreso() {
+		return notasProgreso;
+	}
+
+	public void setNotasProgreso(String notasProgreso) {
+		this.notasProgreso = notasProgreso;
 	}
 
 }

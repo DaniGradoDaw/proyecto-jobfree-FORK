@@ -113,4 +113,13 @@ public class AuthController {
 				.getPrincipal();
 		return ResponseEntity.ok(UsuarioMapper.toDTO(usuario));
 	}
+
+	@PreAuthorize("isAuthenticated()")
+	@PostMapping("/refresh")
+	public ResponseEntity<Void> refresh(HttpServletResponse response) {
+		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String token = jwtUtil.generarToken(usuario.getEmail());
+		response.addHeader(HttpHeaders.SET_COOKIE, jwtUtil.crearCookieJwt(token).toString());
+		return ResponseEntity.noContent().build();
+	}
 }
