@@ -1,15 +1,20 @@
-# Maven
-target/
+# ── Maven ─────────────────────────────────────────────────────
+**/target/
 
-# Secretos locales — NUNCA subir al repositorio
+# ── Secretos y variables de entorno ──────────────────────────
 .env
 *.env
 backend/.env
+.env.local
+.env.*.local
 
-# Archivos subidos por usuarios — solo se guardan en el servidor, nunca en git
+# ── Archivos subidos por usuarios ────────────────────────────
 backend/uploads/
 
-# IDE (Eclipse / IntelliJ / VS Code)
+# ── Base de datos — datos reales ─────────────────────────────
+database/jobfree.sql
+
+# ── IDE ───────────────────────────────────────────────────────
 .project
 .classpath
 .settings/
@@ -17,11 +22,27 @@ backend/uploads/
 *.iml
 .vscode/
 .claude/
+*.swp
+*.swo
+*~
 
-# Logs
+# ── Sistema operativo ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
 *.log
+logs/
 
-# React — dependencias y builds
+# ── Docker ────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── React — dependencias y builds ────────────────────────────
 frontend/node_modules/
 frontend/build/
 frontend/build-*/
+
+# ── Archivos temporales de sesiones ──────────────────────────
+cambios-sesion*.html
