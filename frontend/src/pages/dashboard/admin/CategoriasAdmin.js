@@ -359,7 +359,7 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
 
         {subcats.length === 0 && !creando && (
           <p className="text-xs text-slate-400 text-center py-8">
-            {tx("Esta categoria no tiene subcategorias todavía.")}
+            {tx("Esta categoría no tiene subcategorías todavía.")}
           </p>
         )}
       </div>

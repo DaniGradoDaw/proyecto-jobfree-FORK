@@ -1,4 +1,10 @@
 {
+  "Empezar aquí": {
+    "en": "Get started"
+  },
+  "Cómo funciona JobFree": {
+    "en": "How JobFree works"
+  },
   "Perfil visible en la plataforma": {
     "en": "Profile visible on the platform"
   },
@@ -461,11 +467,26 @@
   "Servicios guardados para volver a ellos mas tarde.": {
     "en": "Saved services to return to later."
   },
+  "Servicios guardados para volver a ellos más tarde.": {
+    "en": "Saved services to return to later."
+  },
   "Zona no indicada": {
     "en": "Area not indicated"
   },
   "Ver servicio": {
-    "en": "See service"
+    "en": "View service"
+  },
+  "Ver": {
+    "en": "View"
+  },
+  "servicio": {
+    "en": "service"
+  },
+  "servicios": {
+    "en": "services"
+  },
+  "Eliminar de favoritos": {
+    "en": "Remove from favorites"
   },
   "Opiniones que has dejado tras completar un servicio.": {
     "en": "Reviews you have left after completing a service."
@@ -2455,5 +2476,50 @@
   },
   "Consulta sobre": {
     "en": "Inquiry about"
+  },
+  "Seguridad": {
+    "en": "Security"
+  },
+  "Deja los campos vacíos si no quieres cambiarla.": {
+    "en": "Leave the fields empty if you do not want to change it."
+  },
+  "1 mayúscula": {
+    "en": "1 capital letter"
+  },
+  "Guardar perfil": {
+    "en": "Save profile"
+  },
+  "Nombre de empresa": {
+    "en": "Company name"
+  },
+  "Ciudades donde trabajo": {
+    "en": "Cities where I work"
+  },
+  "Añade todas las ciudades en las que ofreces tus servicios. Aparecerás en búsquedas de esas zonas.": {
+    "en": "Add all the cities where you offer your services. You will appear in searches in those areas."
+  },
+  "Busca una ciudad, pueblo o zona...": {
+    "en": "Search for a city, town or area..."
+  },
+  "Añadir": {
+    "en": "Add"
+  },
+  "Aún no has añadido ninguna ciudad.": {
+    "en": "You haven't added any city yet."
+  },
+  "Ciudades guardadas correctamente.": {
+    "en": "Cities saved successfully."
+  },
+  "Guardar ciudades": {
+    "en": "Save cities"
+  },
+  "Error al guardar las ciudades.": {
+    "en": "Error saving cities."
+  },
+  "años": {
+    "en": "years"
+  },
+  "Máximo 40 años": {
+    "en": "Maximum 40 years"
   }
 }

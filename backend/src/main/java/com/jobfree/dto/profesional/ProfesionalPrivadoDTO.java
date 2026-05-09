@@ -1,11 +1,8 @@
 package com.jobfree.dto.profesional;
 
 import com.jobfree.model.enums.Plan;
+import java.util.List;
 
-/**
- * DTO para el propio profesional autenticado.
- * Incluye coordenadas para que pueda gestionar su ubicación desde el dashboard.
- */
 public class ProfesionalPrivadoDTO {
 
     private Long id;
@@ -18,17 +15,14 @@ public class ProfesionalPrivadoDTO {
     private Double valoracionMedia;
     private Integer numeroValoraciones;
     private Long usuarioId;
-    private Double latitud;
-    private Double longitud;
-    private Boolean ubicacionManual;
+    private List<String> ciudadesServicio;
 
     public ProfesionalPrivadoDTO() {
     }
 
     public ProfesionalPrivadoDTO(Long id, String descripcion, Integer experiencia, String nombreEmpresa,
             String cif, Plan plan, String codigoPostal, Double valoracionMedia,
-            Integer numeroValoraciones, Long usuarioId, Double latitud, Double longitud,
-            Boolean ubicacionManual) {
+            Integer numeroValoraciones, Long usuarioId, List<String> ciudadesServicio) {
         this.id = id;
         this.descripcion = descripcion;
         this.experiencia = experiencia;
@@ -39,9 +33,7 @@ public class ProfesionalPrivadoDTO {
         this.valoracionMedia = valoracionMedia;
         this.numeroValoraciones = numeroValoraciones;
         this.usuarioId = usuarioId;
-        this.latitud = latitud;
-        this.longitud = longitud;
-        this.ubicacionManual = ubicacionManual;
+        this.ciudadesServicio = ciudadesServicio;
     }
 
     public Long getId() { return id; }
@@ -54,7 +46,5 @@ public class ProfesionalPrivadoDTO {
     public Double getValoracionMedia() { return valoracionMedia; }
     public Integer getNumeroValoraciones() { return numeroValoraciones; }
     public Long getUsuarioId() { return usuarioId; }
-    public Double getLatitud() { return latitud; }
-    public Double getLongitud() { return longitud; }
-    public Boolean getUbicacionManual() { return ubicacionManual; }
+    public List<String> getCiudadesServicio() { return ciudadesServicio; }
 }

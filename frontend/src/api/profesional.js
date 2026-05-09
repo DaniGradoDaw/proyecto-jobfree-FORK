@@ -36,44 +36,18 @@ export async function actualizarMiPerfil(id, datos) {
   return res.json();
 }
 
-/**
- * Guarda las coordenadas GPS del profesional autenticado.
- * @param {number} latitud
- * @param {number} longitud
- */
-export async function actualizarUbicacion(latitud, longitud) {
-  const res = await apiFetch("/profesionales/mio/ubicacion", {
-    method: "PATCH",
-    body: JSON.stringify({ latitud, longitud }),
+export async function actualizarCiudadesServicio(ciudades) {
+  const res = await apiFetch("/profesionales/mio/ciudades", {
+    method: "PUT",
+    body: JSON.stringify(ciudades),
   });
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
-    throw new Error(json.message || "Error al guardar la ubicación");
+    throw new Error(json.message || "Error al guardar las ciudades");
   }
   return res.json();
 }
 
-/**
- * Elimina las coordenadas GPS del profesional autenticado.
- */
-export async function limpiarUbicacion() {
-  const res = await apiFetch("/profesionales/mio/ubicacion/limpiar", {
-    method: "PATCH",
-  });
-  if (!res.ok) {
-    const json = await res.json().catch(() => ({}));
-    throw new Error(json.message || "Error al limpiar la ubicación");
-  }
-  return res.json();
-}
-
-/**
- * Busca profesionales cercanos a unas coordenadas.
- * @param {number} lat
- * @param {number} lng
- * @param {number} radio - radio en km (por defecto 20)
- * @returns {Promise<Array>} lista de ProfesionalDTO con campo distanciaKm
- */
 export async function obtenerProfesionalesCercanos(lat, lng, radio = 20) {
   const res = await apiFetch(`/profesionales/cercanos?lat=${lat}&lng=${lng}&radio=${radio}`);
   if (!res.ok) throw new Error("Error al buscar profesionales cercanos");

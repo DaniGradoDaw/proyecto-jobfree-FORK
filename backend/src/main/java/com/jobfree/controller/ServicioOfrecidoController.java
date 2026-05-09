@@ -172,6 +172,7 @@ public class ServicioOfrecidoController {
                 nuevo.isActiva(),
                 subcategoria.getId(),
                 subcategoria.getNombre(),
+                subcategoria.getImagen(),
                 profesional.getId(),
                 usuario.getId(),
                 usuario.getNombreCompleto(),

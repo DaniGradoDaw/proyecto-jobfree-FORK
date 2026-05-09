@@ -75,7 +75,7 @@ function Login() {
       }
 
     } catch (err) {
-      setError(err.message || tx("Credenciales incorrectas. Intentalo de nuevo."));
+      setError(err.message || tx("Credenciales incorrectas. Inténtalo de nuevo."));
     } finally {
       setCargando(false);
     }
@@ -87,7 +87,7 @@ function Login() {
       <div className="w-full px-4 pt-6">
         <Link to="/" className="flex items-center gap-2 text-white/90 hover:text-white transition text-sm">
           <ArrowLeftIcon className="h-4 w-4" />
-          {tx("Volver atras")}
+          {tx("Volver atrás")}
         </Link>
       </div>
 
@@ -196,7 +196,7 @@ function Login() {
           </div>
 
           <p className="text-center mt-2">
-            {tx("No estas registrado?")}{" "}
+            {tx("¿No estás registrado?")}{" "}
             <Link to="/registro" className="text-blue-600">
               {tx("Darse de alta")}
             </Link>

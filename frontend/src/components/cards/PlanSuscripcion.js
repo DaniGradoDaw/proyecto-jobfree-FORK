@@ -23,7 +23,7 @@ function PlanSuscripcion({ esAnual }) {
         tx("Todo en PRO"),
         tx("Máxima visibilidad"),
         tx("Insignia Top Profesional"),
-        tx("Comisiones aún mas bajas"),
+        tx("Comisiones aún más bajas"),
         tx("Doble de puntos por servicio"),
         tx("Soporte prioritario"),
     ];

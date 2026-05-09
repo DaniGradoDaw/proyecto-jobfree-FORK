@@ -31,6 +31,9 @@ public class StripeService {
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
+    @Value("${stripe.simulacion.activa:false}")
+    private boolean simulacionActiva;
+
     private final PagoService pagoService;
 
     public StripeService(PagoService pagoService) {
@@ -39,6 +42,10 @@ public class StripeService {
 
     @PostConstruct
     public void init() {
+        if (simulacionActiva) {
+            log.warn("Stripe en MODO SIMULACIÓN — los pagos se confirman sin llamar a Stripe");
+            return;
+        }
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("STRIPE_SECRET_KEY no está definida — la aplicación no puede arrancar sin ella");
         }

@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jobfree.model.enums.Plan;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -62,16 +64,17 @@ public class ProfesionalInfo {
 	private String codigoPostal;
 
 	// Coordenadas geográficas — se rellenan automáticamente al guardar ciudad/CP
-	// o explícitamente desde el botón GPS del frontend
 	@Column
 	private Double latitud;
 
 	@Column
 	private Double longitud;
 
-	// true si la ubicación la fijó manualmente el profesional desde GPS
-	@Column(nullable = false)
-	private Boolean ubicacionManual = false;
+	// Ciudades donde el profesional ofrece sus servicios
+	@ElementCollection(fetch = FetchType.LAZY)
+	@CollectionTable(name = "profesional_ciudad_servicio", joinColumns = @JoinColumn(name = "profesional_id"))
+	@Column(name = "ciudad", length = 100)
+	private List<String> ciudadesServicio = new ArrayList<>();
 
 	// Se actualiza cuando reciba valoraciones
 	@Column(nullable = false)
@@ -205,12 +208,12 @@ public class ProfesionalInfo {
 		this.longitud = longitud;
 	}
 
-	public Boolean getUbicacionManual() {
-		return ubicacionManual;
+	public List<String> getCiudadesServicio() {
+		return ciudadesServicio;
 	}
 
-	public void setUbicacionManual(Boolean ubicacionManual) {
-		this.ubicacionManual = ubicacionManual;
+	public void setCiudadesServicio(List<String> ciudadesServicio) {
+		this.ciudadesServicio = ciudadesServicio;
 	}
 
 	public List<ServicioOfrecido> getServicios() {

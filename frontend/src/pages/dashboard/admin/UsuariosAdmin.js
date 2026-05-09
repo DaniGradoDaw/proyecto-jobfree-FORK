@@ -44,7 +44,7 @@ function ModalConfirmarEliminar({ usuario, onConfirmar, onCancelar, cargando }) 
           <h3 className="text-base font-semibold text-slate-900">{tx("Eliminar usuario")}</h3>
         </div>
         <p className="text-sm text-slate-500">
-          {tx("Vas a eliminar a {nombre}. Esta accion es irreversible y borrara todos sus datos asociados.", { nombre: usuario.nombreCompleto ?? usuario.email })}
+          {tx("Vas a eliminar a {nombre}. Esta acción es irreversible y borrará todos sus datos asociados.", { nombre: usuario.nombreCompleto ?? usuario.email })}
         </p>
         <div className="mt-5 flex gap-3">
           <button onClick={onCancelar} className="flex-1 rounded-full border border-slate-300 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition">

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { obtenerMisReservas } from "api/reservas";
 import { obtenerMisValoraciones } from "api/valoraciones";
+import API_URL from "api/config";
 import { useLanguage } from "context/LanguageContext";
 
 function Estrellas({ n, total = 5, size = "h-4 w-4" }) {
@@ -12,6 +13,20 @@ function Estrellas({ n, total = 5, size = "h-4 w-4" }) {
       {Array.from({ length: total }).map((_, i) => (
         <StarSolidIcon key={i} className={`${size} ${i < n ? "text-amber-400" : "text-slate-200"}`} />
       ))}
+    </div>
+  );
+}
+
+function Avatar({ fotoUrl, nombre, size = "h-10 w-10" }) {
+  const inicial = (nombre || "?").slice(0, 1).toUpperCase();
+  const src = fotoUrl
+    ? fotoUrl.startsWith("http") ? fotoUrl : API_URL + fotoUrl
+    : null;
+  return src ? (
+    <img src={src} alt="" className={`${size} shrink-0 rounded-full object-cover ring-2 ring-white`} />
+  ) : (
+    <div className={`${size} shrink-0 flex items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white ring-2 ring-white`}>
+      {inicial}
     </div>
   );
 }
@@ -47,14 +62,18 @@ function MisResenas() {
     return <p className="py-10 text-center text-sm text-red-500">{error}</p>;
   }
 
+  const valoracionesIds = new Set(valoraciones.map((v) => v.reservaId));
   const reservasPorId = new Map(reservas.map((r) => [r.id, r]));
+  const pendientes = reservas.filter(
+    (r) => r.estado === "COMPLETADA" && !valoracionesIds.has(r.id)
+  );
   const locale = idioma === "en" ? "en-GB" : "es-ES";
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl space-y-8">
 
-      {/* Cabecera con identidad visual */}
-      <div className="mb-8 flex items-center gap-4">
+      {/* Cabecera */}
+      <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100">
           <StarSolidIcon className="h-6 w-6 text-amber-500" />
         </div>
@@ -69,6 +88,44 @@ function MisResenas() {
         )}
       </div>
 
+
+      {/* Reservas pendientes de valorar */}
+      {pendientes.length > 0 && (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">{tx("Pendientes de valorar")}</h2>
+          <div className="space-y-2">
+            {pendientes.map((r) => {
+              const fotoSrc = r.profesionalFotoUrl
+                ? r.profesionalFotoUrl.startsWith("http") ? r.profesionalFotoUrl : API_URL + r.profesionalFotoUrl
+                : null;
+              const inicial = (r.profesionalNombre || "?").slice(0, 1).toUpperCase();
+              return (
+                <div key={r.id} className="flex items-center gap-3 rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 p-4">
+                  {fotoSrc ? (
+                    <img src={fotoSrc} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
+                      {inicial}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-800">{r.servicioTitulo}</p>
+                    <p className="truncate text-xs text-slate-500">{r.profesionalNombre}</p>
+                  </div>
+                  <Link
+                    to={`/dashboard/cliente/valorar/${r.id}`}
+                    className="shrink-0 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-500"
+                  >
+                    {tx("Valorar")}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Lista de reseñas */}
       {valoraciones.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 py-20 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
@@ -86,26 +143,33 @@ function MisResenas() {
         <div className="space-y-3">
           {valoraciones.map((valoracion) => {
             const reserva = reservasPorId.get(valoracion.reservaId);
+            const fotoSrc = reserva?.profesionalFotoUrl
+              ? reserva.profesionalFotoUrl.startsWith("http") ? reserva.profesionalFotoUrl : API_URL + reserva.profesionalFotoUrl
+              : null;
+            const nombreProf = reserva?.profesionalNombre || tx("Profesional");
+
             return (
               <article key={valoracion.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                {/* Cabecera: servicio + estrellas */}
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-slate-900 leading-tight">
+                {/* Cabecera: avatar + info + estrellas */}
+                <div className="flex items-center gap-3">
+                  <Avatar fotoUrl={reserva?.profesionalFotoUrl} nombre={nombreProf} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-slate-900 leading-tight">
                       {reserva?.servicioTitulo || tx("Servicio completado")}
                     </p>
-                    <p className="mt-0.5 text-sm text-slate-500">
-                      {reserva?.profesionalNombre || tx("Profesional")}
-                    </p>
+                    <p className="truncate text-xs text-slate-500">{nombreProf}</p>
                   </div>
                   <Estrellas n={valoracion.estrellas} />
                 </div>
 
                 {/* Comentario */}
                 {valoracion.comentario && (
-                  <p className="mt-3 border-l-2 border-amber-200 pl-3 text-sm leading-relaxed text-slate-600 italic">
-                    "{valoracion.comentario}"
-                  </p>
+                  <div className="mt-4 flex gap-2">
+                    <ChatBubbleLeftEllipsisIcon className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
+                    <p className="text-sm leading-relaxed text-slate-600 italic">
+                      "{valoracion.comentario}"
+                    </p>
+                  </div>
                 )}
 
                 {/* Fecha */}

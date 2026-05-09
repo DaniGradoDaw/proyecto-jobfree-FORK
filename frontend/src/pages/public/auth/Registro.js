@@ -10,6 +10,7 @@ import {
   EyeSlashIcon,
   CheckCircleIcon,
   XCircleIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { useLanguage } from "context/LanguageContext";
@@ -19,14 +20,73 @@ import API_URL from "api/config";
 import { iniciarOAuth } from "api/auth";
 
 const PREFIJOS = [
-  { codigo: "+34",  bandera: "🇪🇸" },
-  { codigo: "+351", bandera: "🇵🇹" },
-  { codigo: "+33",  bandera: "🇫🇷" },
-  { codigo: "+49",  bandera: "🇩🇪" },
-  { codigo: "+44",  bandera: "🇬🇧" },
-  { codigo: "+39",  bandera: "🇮🇹" },
-  { codigo: "+1",   bandera: "🇺🇸" },
+  { codigo: "+34",  iso: "es", pais: "España" },
+  { codigo: "+351", iso: "pt", pais: "Portugal" },
+  { codigo: "+33",  iso: "fr", pais: "Francia" },
+  { codigo: "+49",  iso: "de", pais: "Alemania" },
+  { codigo: "+44",  iso: "gb", pais: "Reino Unido" },
+  { codigo: "+39",  iso: "it", pais: "Italia" },
+  { codigo: "+1",   iso: "us", pais: "EE.UU." },
 ];
+
+function Bandera({ iso, className = "h-2.5 w-4 rounded-sm object-cover" }) {
+  return (
+    <img
+      src={`https://flagcdn.com/w20/${iso}.png`}
+      alt={iso}
+      className={className}
+    />
+  );
+}
+
+function SelectorPrefijo({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = PREFIJOS.find(p => p.codigo === value) || PREFIJOS[0];
+
+  useEffect(() => {
+    function handleOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <Bandera iso={selected.iso} />
+        <span className="font-medium">{selected.codigo}</span>
+        <ChevronDownIcon className={`h-3 w-3 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1.5 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+          {PREFIJOS.map(p => {
+            const activo = p.codigo === value;
+            return (
+              <button
+                key={p.codigo}
+                type="button"
+                onClick={() => { onChange(p.codigo); setOpen(false); }}
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                  activo ? "bg-blue-50 text-blue-600 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <Bandera iso={p.iso} />
+                <span className="tabular-nums text-xs">{p.codigo}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function validarPassword(pw) {
   return {
@@ -139,7 +199,7 @@ function Registro() {
         navigate(`/login?email=${encodeURIComponent(err.email)}&registrado=true`, { replace: true });
         return;
       }
-      setError(err.message || tx("Error al crear la cuenta. Intentalo de nuevo."));
+      setError(err.message || tx("Error al crear la cuenta. Inténtalo de nuevo."));
       enviandoRef.current = false;
       setCargando(false);
     }
@@ -160,7 +220,7 @@ function Registro() {
       <div className="w-full px-4 pt-6">
         <Link to="/" className="flex items-center gap-2 text-white/90 hover:text-white transition text-sm">
           <ArrowLeftIcon className="h-4 w-4" />
-          {tx("Volver atras")}
+          {tx("Volver atrás")}
         </Link>
       </div>
 
@@ -257,17 +317,10 @@ function Registro() {
                 {tx("Teléfono")}<span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
-                <select
-                  name="prefijo"
+                <SelectorPrefijo
                   value={form.prefijo}
-                  onChange={handleChange}
-                  className="bg-white border border-gray-300 rounded-full py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0 cursor-pointer">
-                  {PREFIJOS.map(p => (
-                    <option key={p.codigo} value={p.codigo}>
-                      {p.bandera} {p.codigo}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(codigo) => setForm(f => ({ ...f, prefijo: codigo }))}
+                />
                 <input
                   id="telefono"
                   name="telefono"

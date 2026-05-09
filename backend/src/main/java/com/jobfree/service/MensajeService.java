@@ -2,9 +2,11 @@ package com.jobfree.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -18,14 +20,17 @@ import com.jobfree.dto.mensaje.MensajeBatchUpdateDTO;
 import com.jobfree.dto.mensaje.MensajeCreateDTO;
 import com.jobfree.dto.mensaje.MensajeDTO;
 import com.jobfree.dto.mensaje.MensajePageDTO;
+import com.jobfree.dto.reaccion.ReaccionDTO;
 import com.jobfree.exception.mensaje.MensajeBloqueadoException;
 import com.jobfree.exception.mensaje.MensajeNotFoundException;
 import com.jobfree.mapper.ConversacionMapper;
 import com.jobfree.mapper.MensajeMapper;
 import com.jobfree.model.entity.Conversacion;
 import com.jobfree.model.entity.Mensaje;
+import com.jobfree.model.entity.MensajeReaccion;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.repository.BloqueoUsuarioRepository;
+import com.jobfree.repository.MensajeReaccionRepository;
 import com.jobfree.repository.MensajeRepository;
 
 import jakarta.transaction.Transactional;
@@ -35,19 +40,23 @@ import jakarta.transaction.Transactional;
 public class MensajeService {
 
 	private static final Logger log = LoggerFactory.getLogger(MensajeService.class);
-	private static final long INTERVALO_MINIMO_MS = 300; // máx ~3 mensajes/segundo por usuario
+	private static final long INTERVALO_MINIMO_MS = 1500; // máx ~1 mensaje/1.5s por usuario
+
+	private static final List<String> EMOJIS_PERMITIDOS = List.of("👍", "❤️", "😂", "😮", "😢", "✅");
 
 	private final ConcurrentHashMap<Long, Long> ultimoEnvioPorUsuario = new ConcurrentHashMap<>();
 	private final MensajeRepository mensajeRepository;
+	private final MensajeReaccionRepository mensajeReaccionRepository;
 	private final UsuarioService usuarioService;
 	private final ConversacionService conversacionService;
 	private final ChatRealtimePublisher chatRealtimePublisher;
 	private final BloqueoUsuarioRepository bloqueoRepository;
 
-	public MensajeService(MensajeRepository mensajeRepository, UsuarioService usuarioService,
-			ConversacionService conversacionService, ChatRealtimePublisher chatRealtimePublisher,
-			BloqueoUsuarioRepository bloqueoRepository) {
+	public MensajeService(MensajeRepository mensajeRepository, MensajeReaccionRepository mensajeReaccionRepository,
+			UsuarioService usuarioService, ConversacionService conversacionService,
+			ChatRealtimePublisher chatRealtimePublisher, BloqueoUsuarioRepository bloqueoRepository) {
 		this.mensajeRepository = mensajeRepository;
+		this.mensajeReaccionRepository = mensajeReaccionRepository;
 		this.usuarioService = usuarioService;
 		this.conversacionService = conversacionService;
 		this.chatRealtimePublisher = chatRealtimePublisher;
@@ -116,15 +125,25 @@ public class MensajeService {
 			return MensajeMapper.toDTOFull(existente);
 		}
 
-		// Rate limit: solo actualiza el timestamp si el envío no está limitado.
-		// Usar get+put condicional evita la "ventana deslizante" que bloqueaba al
-		// usuario indefinidamente cuando cualquier error anterior actualizaba el reloj.
+		// Rate limit: atomic check-and-set para evitar race conditions entre hilos.
 		long ahora = System.currentTimeMillis();
-		Long ultimoEnvio = ultimoEnvioPorUsuario.get(remitente.getId());
-		if (ultimoEnvio != null && ahora - ultimoEnvio < INTERVALO_MINIMO_MS) {
-			throw new IllegalArgumentException("Estás enviando mensajes muy rápido. Espera un momento.");
+		long[] resultadoAnterior = {-1L};
+		ultimoEnvioPorUsuario.compute(remitente.getId(), (uid, ultimoEnvio) -> {
+			resultadoAnterior[0] = ultimoEnvio != null ? ultimoEnvio : -1L;
+			if (ultimoEnvio != null && ahora - ultimoEnvio < INTERVALO_MINIMO_MS) {
+				return ultimoEnvio; // no actualizar cuando está limitado
+			}
+			return ahora;
+		});
+		if (resultadoAnterior[0] >= 0 && ahora - resultadoAnterior[0] < INTERVALO_MINIMO_MS) {
+			// Segunda comprobación de deduplicación: la solicitud concurrente puede haber
+			// confirmado entre nuestra primera comprobación y ahora.
+			return mensajeRepository.findByConversacionIdAndRemitenteIdAndClientMessageId(
+					dto.getConversacionId(), remitente.getId(), dto.getClientMessageId()
+			).map(MensajeMapper::toDTOFull).orElseThrow(
+					() -> new IllegalArgumentException("Estás enviando mensajes muy rápido. Espera un momento.")
+			);
 		}
-		ultimoEnvioPorUsuario.put(remitente.getId(), ahora);
 
 		Usuario destinatario = usuarioService.obtenerPorId(dto.getDestinatarioId());
 		Conversacion conversacion = conversacionService.obtenerPorIdSeguro(dto.getConversacionId(), remitente);
@@ -375,6 +394,40 @@ public class MensajeService {
 
 			publicarActualizacionConversacion(conversacion);
 		}
+	}
+
+	public List<ReaccionDTO> toggleReaccion(Long mensajeId, String emoji, Usuario usuario) {
+		if (!EMOJIS_PERMITIDOS.contains(emoji)) {
+			throw new IllegalArgumentException("Emoji no permitido");
+		}
+		Mensaje mensaje = obtenerPorId(mensajeId);
+		Conversacion conversacion = mensaje.getConversacion();
+		if (!conversacion.getCliente().getId().equals(usuario.getId())
+				&& !conversacion.getProfesional().getId().equals(usuario.getId())) {
+			throw new IllegalArgumentException("No tienes acceso a este mensaje");
+		}
+		// Un usuario solo puede tener un emoji por mensaje; si ya tenía uno lo borramos
+		Optional<MensajeReaccion> existente = mensajeReaccionRepository.findByMensajeIdAndUsuarioId(mensajeId, usuario.getId());
+		boolean mismoEmoji = existente.isPresent() && existente.get().getEmoji().equals(emoji);
+		existente.ifPresent(mensajeReaccionRepository::delete);
+		if (!mismoEmoji) {
+			mensajeReaccionRepository.save(new MensajeReaccion(mensaje, usuario, emoji));
+		}
+		List<ReaccionDTO> reacciones = agruparReacciones(
+				mensajeReaccionRepository.findByMensajeIdOrderByFechaCreacionAsc(mensajeId));
+		chatRealtimePublisher.publicarReaccion(conversacion.getId(), mensajeId, reacciones,
+				conversacion.getCliente().getEmail(), conversacion.getProfesional().getEmail());
+		return reacciones;
+	}
+
+	private List<ReaccionDTO> agruparReacciones(List<MensajeReaccion> reacciones) {
+		Map<String, List<Long>> porEmoji = new LinkedHashMap<>();
+		for (MensajeReaccion r : reacciones) {
+			porEmoji.computeIfAbsent(r.getEmoji(), k -> new ArrayList<>()).add(r.getUsuario().getId());
+		}
+		return porEmoji.entrySet().stream()
+				.map(e -> new ReaccionDTO(e.getKey(), e.getValue()))
+				.toList();
 	}
 
 	private void publicarActualizacionConversacion(Conversacion conversacion) {

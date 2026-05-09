@@ -17,6 +17,7 @@ public class ServicioDTO {
 	private boolean activa;
 	private Long subcategoriaId;
 	private String subcategoriaNombre;
+	private String subcategoriaImagenUrl;
 
 	// Datos del profesional que ofrece este servicio
 	private Long profesionalId;
@@ -31,7 +32,7 @@ public class ServicioDTO {
 	}
 
 	public ServicioDTO(Long id, String titulo, String descripcion, Integer duracionMin, BigDecimal precioHora,
-			boolean activa, Long subcategoriaId, String subcategoriaNombre,
+			boolean activa, Long subcategoriaId, String subcategoriaNombre, String subcategoriaImagenUrl,
 			Long profesionalId, Long profesionalUsuarioId, String nombreProfesional, String ciudadProfesional,
 			String fotoUrlProfesional, Double valoracionMedia, Integer numeroValoraciones) {
 		this.id = id;
@@ -42,6 +43,7 @@ public class ServicioDTO {
 		this.activa = activa;
 		this.subcategoriaId = subcategoriaId;
 		this.subcategoriaNombre = subcategoriaNombre;
+		this.subcategoriaImagenUrl = subcategoriaImagenUrl;
 		this.profesionalId = profesionalId;
 		this.profesionalUsuarioId = profesionalUsuarioId;
 		this.nombreProfesional = nombreProfesional;
@@ -82,6 +84,10 @@ public class ServicioDTO {
 
 	public String getSubcategoriaNombre() {
 		return subcategoriaNombre;
+	}
+
+	public String getSubcategoriaImagenUrl() {
+		return subcategoriaImagenUrl;
 	}
 
 	public Long getProfesionalId() {

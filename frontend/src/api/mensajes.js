@@ -75,3 +75,12 @@ export async function marcarMensajesLeidos(ids) {
   if (!res.ok) throw new Error("Error al marcar los mensajes como leídos");
   return res.json();
 }
+
+export async function toggleReaccion(mensajeId, emoji) {
+  const res = await apiFetch(`/mensajes/${mensajeId}/reacciones`, {
+    method: "POST",
+    body: JSON.stringify({ emoji }),
+  });
+  if (!res.ok) throw new Error("Error al actualizar la reacción");
+  return res.json();
+}

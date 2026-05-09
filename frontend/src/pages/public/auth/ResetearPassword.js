@@ -69,7 +69,7 @@ function ResetearPassword() {
       <div className="w-full px-4 pt-6">
         <Link to="/login" className="flex items-center gap-2 text-white/90 hover:text-white transition text-sm">
           <ArrowLeftIcon className="h-4 w-4" />
-          {tx("Volver atras")}
+          {tx("Volver atrás")}
         </Link>
       </div>
 

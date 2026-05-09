@@ -247,7 +247,7 @@ function ModalConfirmarCancelar({ reserva, onConfirmar, onCancelar, cargando }) 
       <div className="w-full max-w-sm rounded-[20px] bg-white p-6 shadow-2xl">
         <h3 className="text-base font-semibold text-slate-900">{tx("Cancelar esta reserva?")}</h3>
         <p className="mt-1 text-sm text-slate-500">
-          {tx("Vas a cancelar la reserva de {servicio} con {profesional}. Esta accion no se puede deshacer.", {
+          {tx("Vas a cancelar la reserva de {servicio} con {profesional}. Esta acción no se puede deshacer.", {
             servicio: reserva.servicioTitulo,
             profesional: reserva.profesionalNombre,
           })}
@@ -423,7 +423,7 @@ function MisReservas() {
                 ? tx("No tienes reservas {estado}", { estado: estadoTexto(filtro, tx).toLowerCase() })
                 : tx("No tienes reservas todavía")}
             </p>
-            <p className="mt-1 text-xs text-slate-400">{tx("Cuando contrates un profesional, aparecera aquí.")}</p>
+            <p className="mt-1 text-xs text-slate-400">{tx("Cuando contrates un profesional, aparecerá aquí.")}</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

@@ -33,6 +33,7 @@ public class ServicioMapper {
 				s.isActiva(),
 				s.getSubcategoria().getId(),
 				s.getSubcategoria().getNombre(),
+				s.getSubcategoria().getImagen(),
 				p.getId(),
 				u.getId(),
 				u.getNombreCompleto(),

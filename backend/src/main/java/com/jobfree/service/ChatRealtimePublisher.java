@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 
 import com.jobfree.dto.conversacion.ConversacionDTO;
 import com.jobfree.dto.mensaje.MensajeDTO;
+import com.jobfree.dto.reaccion.ReaccionDTO;
 import com.jobfree.dto.realtime.MensajeEstadoDTO;
 import com.jobfree.dto.realtime.ConversacionActualizadaEventDTO;
 import com.jobfree.dto.realtime.MensajeEstadoLoteEventDTO;
 import com.jobfree.dto.realtime.MensajeNuevoEventDTO;
+import com.jobfree.dto.realtime.MensajeReaccionEventDTO;
 import com.jobfree.dto.realtime.UsuarioMensajesActualizadosEventDTO;
 import com.jobfree.model.entity.Mensaje;
 
@@ -143,6 +145,15 @@ public class ChatRealtimePublisher {
 
 	public void publicarMensajeRecibidoLoteDesdeMensajes(Long conversacionId, List<Mensaje> mensajes, Long receptorId, String... usuariosDestino) {
 		publicarEventoEstadoLote("mensaje.recibido.lote", conversacionId, mensajes, receptorId, usuariosDestino);
+	}
+
+	public void publicarReaccion(Long conversacionId, Long mensajeId, List<ReaccionDTO> reacciones, String... usuariosDestino) {
+		MensajeReaccionEventDTO evento = new MensajeReaccionEventDTO(conversacionId, mensajeId, reacciones);
+		messagingTemplate.convertAndSend("/topic/conversaciones/" + conversacionId, evento);
+		for (String usuarioDestino : usuariosDestino) {
+			if (usuarioDestino == null || usuarioDestino.isBlank()) continue;
+			messagingTemplate.convertAndSendToUser(usuarioDestino, "/queue/conversaciones", evento);
+		}
 	}
 
 	private void publicarEventoEstadoLote(String tipo, Long conversacionId, List<Mensaje> mensajes, Long usuarioId, String... usuariosDestino) {

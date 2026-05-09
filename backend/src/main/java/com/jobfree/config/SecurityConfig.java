@@ -73,6 +73,15 @@ public class SecurityConfig {
 			// CSRF no es necesario porque el navegador no envía cookies Lax en peticiones POST cross-site.
 			.csrf(csrf -> csrf.disable())
 			.headers(headers -> headers
+				.frameOptions(frame -> frame.deny())
+				.contentSecurityPolicy(csp -> csp.policyDirectives(
+					"default-src 'none'; " +
+					"connect-src 'self'; " +
+					"img-src 'self'; " +
+					"object-src 'none'; " +
+					"base-uri 'none'; " +
+					"frame-ancestors 'none'"
+				))
 				.referrerPolicy(referrer -> referrer.policy(
 					ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
 				.permissionsPolicy(perms -> perms.policy(

@@ -1,6 +1,7 @@
 package com.jobfree.dto.profesional;
 
 import com.jobfree.model.enums.Plan;
+import java.util.List;
 
 /**
  * DTO para mostrar un perfil profesional.
@@ -20,6 +21,8 @@ public class ProfesionalDTO {
     private String nombreCompleto;
     private String ciudad;
     private String fotoUrl;
+
+    private List<String> ciudadesServicio;
 
     // Solo se rellena en respuestas del endpoint /cercanos — null en el resto
     private Double distanciaKm;
@@ -60,8 +63,9 @@ public class ProfesionalDTO {
     public String getNombreCompleto() { return nombreCompleto; }
     public String getCiudad() { return ciudad; }
     public String getFotoUrl() { return fotoUrl; }
+    public List<String> getCiudadesServicio() { return ciudadesServicio; }
     public Double getDistanciaKm() { return distanciaKm; }
 
-    // Setters (solo para los campos que se rellenan dinámicamente)
+    public void setCiudadesServicio(List<String> ciudadesServicio) { this.ciudadesServicio = ciudadesServicio; }
     public void setDistanciaKm(Double distanciaKm) { this.distanciaKm = distanciaKm; }
 }

@@ -7,16 +7,10 @@ import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.Plan;
 
-/**
- * Mapper para convertir entre la entidad ProfesionalInfo y sus DTOs.
- */
 public class ProfesionalMapper {
 
-    /**
-     * Convierte una entidad ProfesionalInfo a su DTO de salida.
-     */
     public static ProfesionalDTO toDTO(ProfesionalInfo p) {
-        return new ProfesionalDTO(
+        ProfesionalDTO dto = new ProfesionalDTO(
                 p.getId(),
                 p.getDescripcion(),
                 p.getExperiencia(),
@@ -31,21 +25,16 @@ public class ProfesionalMapper {
                 p.getUsuario().getCiudad(),
                 p.getUsuario().getFotoUrl()
         );
+        dto.setCiudadesServicio(p.getCiudadesServicio());
+        return dto;
     }
 
-    /**
-     * Convierte una entidad ProfesionalInfo a DTO de salida incluyendo distancia calculada.
-     * Se usa exclusivamente en el endpoint /cercanos.
-     */
     public static ProfesionalDTO toDTOCercano(ProfesionalInfo p, double distanciaKm) {
         ProfesionalDTO dto = toDTO(p);
         dto.setDistanciaKm(distanciaKm);
         return dto;
     }
 
-    /**
-     * Convierte una entidad ProfesionalInfo a DTO privado con coordenadas.
-     */
     public static ProfesionalPrivadoDTO toPrivateDTO(ProfesionalInfo p) {
         return new ProfesionalPrivadoDTO(
                 p.getId(),
@@ -58,15 +47,10 @@ public class ProfesionalMapper {
                 p.getValoracionMedia(),
                 p.getNumeroValoraciones(),
                 p.getUsuario().getId(),
-                p.getLatitud(),
-                p.getLongitud(),
-                p.getUbicacionManual()
+                p.getCiudadesServicio()
         );
     }
 
-    /**
-     * Convierte un DTO de creación a entidad ProfesionalInfo.
-     */
     public static ProfesionalInfo toEntity(ProfesionalCreateDTO dto, Usuario usuario) {
         ProfesionalInfo p = new ProfesionalInfo();
         p.setDescripcion(dto.getDescripcion());

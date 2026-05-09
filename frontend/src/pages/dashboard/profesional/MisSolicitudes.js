@@ -382,7 +382,7 @@ function MisSolicitudes() {
               ? tx("No tienes solicitudes con estado \"{estado}\"", { estado: estadoTexto(filtro, tx) })
               : tx("No tienes solicitudes todavía")}
           </p>
-          <p className="mt-1 text-xs text-slate-400">{tx("Aquí apareceran las peticiones de tus clientes.")}</p>
+          <p className="mt-1 text-xs text-slate-400">{tx("Aquí aparecerán las peticiones de tus clientes.")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

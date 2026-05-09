@@ -62,7 +62,7 @@ function Menu() {
         </div>
 
         <Link to="/conocenos" className="text-white font-medium px-4 py-1 rounded-full border-2 border-transparent hover:border-white hover:bg-white/10 transition">
-          {tx("Conocenos")}
+          {tx("Conócenos")}
         </Link>
 
         <Link to="/para-profesionales" className="text-white font-medium px-4 py-1 rounded-full border-2 border-transparent hover:border-white hover:bg-white/10 transition">
@@ -111,7 +111,7 @@ function Menu() {
             </Link>
 
             <Link to="/conocenos" onClick={() => setOpen(false)} className="py-2 px-2 rounded hover:bg-white/10 text-white">
-              {tx("Conocenos")}
+              {tx("Conócenos")}
             </Link>
 
             <Link to="/para-profesionales" onClick={() => setOpen(false)} className="py-2 px-2 rounded hover:bg-white/10 text-white">

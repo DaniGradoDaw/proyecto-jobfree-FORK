@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jobfree.dto.profesional.ProfesionalCreateDTO;
 import com.jobfree.dto.profesional.ProfesionalDTO;
 import com.jobfree.dto.profesional.ProfesionalPrivadoDTO;
-import com.jobfree.dto.profesional.UbicacionDTO;
 import com.jobfree.mapper.ProfesionalMapper;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
@@ -88,29 +88,13 @@ public class ProfesionalInfoController {
         return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(p));
     }
 
-    /**
-     * Actualiza las coordenadas GPS del profesional autenticado.
-     * Llamado desde el botón "Detectar ubicación" del frontend.
-     */
+    /** Actualiza las ciudades donde el profesional ofrece sus servicios. */
     @PreAuthorize("hasRole('PROFESIONAL')")
-    @PatchMapping("/mio/ubicacion")
-    public ResponseEntity<ProfesionalPrivadoDTO> actualizarUbicacion(@Valid @RequestBody UbicacionDTO dto) {
+    @PutMapping("/mio/ciudades")
+    public ResponseEntity<ProfesionalPrivadoDTO> actualizarCiudades(@RequestBody List<String> ciudades) {
         Usuario usuario = usuarioActual();
         ProfesionalInfo perfil = profesionalInfoService.obtenerOCrearPorUsuario(usuario);
-        ProfesionalInfo actualizado = profesionalInfoService.actualizarUbicacion(
-                perfil.getId(), dto.getLatitud(), dto.getLongitud(), usuario);
-        return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(actualizado));
-    }
-
-    /**
-     * Elimina las coordenadas GPS del profesional autenticado.
-     */
-    @PreAuthorize("hasRole('PROFESIONAL')")
-    @PatchMapping("/mio/ubicacion/limpiar")
-    public ResponseEntity<ProfesionalPrivadoDTO> limpiarUbicacion() {
-        Usuario usuario = usuarioActual();
-        ProfesionalInfo perfil = profesionalInfoService.obtenerOCrearPorUsuario(usuario);
-        ProfesionalInfo actualizado = profesionalInfoService.limpiarUbicacion(perfil.getId(), usuario);
+        ProfesionalInfo actualizado = profesionalInfoService.actualizarCiudadesServicio(perfil.getId(), ciudades, usuario);
         return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(actualizado));
     }
 

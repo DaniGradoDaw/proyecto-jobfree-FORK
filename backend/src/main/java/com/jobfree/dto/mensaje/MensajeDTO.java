@@ -1,6 +1,9 @@
 package com.jobfree.dto.mensaje;
 
+import com.jobfree.dto.reaccion.ReaccionDTO;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO para mostrar un mensaje.
@@ -23,6 +26,7 @@ public class MensajeDTO {
 	private Long mensajeRespondidoRemitenteId;
 
 	private String imagenUrl;
+	private List<ReaccionDTO> reacciones = new ArrayList<>();
 
 	public MensajeDTO() {
 	}
@@ -108,6 +112,14 @@ public class MensajeDTO {
 
 	public void setImagenUrl(String imagenUrl) {
 		this.imagenUrl = imagenUrl;
+	}
+
+	public List<ReaccionDTO> getReacciones() {
+		return reacciones;
+	}
+
+	public void setReacciones(List<ReaccionDTO> reacciones) {
+		this.reacciones = reacciones;
 	}
 
 }

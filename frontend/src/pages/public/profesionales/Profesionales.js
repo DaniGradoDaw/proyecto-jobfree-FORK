@@ -425,7 +425,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              {tx("Cuentale que necesitas")}
+              {tx("Cuéntale qué necesitas")}
             </label>
             <textarea
               value={descripcion}
@@ -444,7 +444,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
               <span className="text-slate-500">{tx("Precio estimado")}</span>
               <span className="font-semibold text-slate-900">{Number(servicio.precioHora).toFixed(0)}€/{tx("hora")}</span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">{tx("El precio final se acordara con el profesional.")}</p>
+            <p className="mt-1 text-xs text-slate-400">{tx("El precio final se acordará con el profesional.")}</p>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}

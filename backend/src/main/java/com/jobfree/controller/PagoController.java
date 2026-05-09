@@ -3,6 +3,7 @@ package com.jobfree.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +33,9 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/pagos")
 public class PagoController {
+
+	@Value("${stripe.simulacion.activa:false}")
+	private boolean simulacionActiva;
 
 	private final PagoService pagoService;
 	private final ReservaService reservaService;
@@ -131,6 +135,20 @@ public class PagoController {
 		Pago pago = pagoService.obtenerParaPaymentIntent(id, usuario);
 		String clientSecret = stripeService.crearPaymentIntent(pago);
 		return ResponseEntity.ok(Map.of("clientSecret", clientSecret));
+	}
+
+	/**
+	 * Confirma un pago directamente sin pasar por Stripe. Solo disponible cuando
+	 * stripe.simulacion.activa=true (entornos de desarrollo/demo).
+	 */
+	@PreAuthorize("isAuthenticated()")
+	@PostMapping("/{id}/simular")
+	public ResponseEntity<PagoDTO> simularPago(@PathVariable Long id) {
+		if (!simulacionActiva) {
+			return ResponseEntity.notFound().build();
+		}
+		Usuario usuario = getUsuarioAutenticado();
+		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.simularPago(id, usuario)));
 	}
 
 	/**

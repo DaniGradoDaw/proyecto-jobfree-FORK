@@ -94,7 +94,7 @@ function ResenasRecibidas() {
           </div>
           <p className="text-sm font-semibold text-slate-600">{tx("Aún no has recibido reseñas.")}</p>
           <p className="mt-1 text-xs text-slate-400">
-            {tx("Cuando un cliente valore un servicio completado, aparecera aquí.")}
+            {tx("Cuando un cliente valore un servicio completado, aparecerá aquí.")}
           </p>
         </div>
       ) : (

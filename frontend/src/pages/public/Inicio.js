@@ -1,44 +1,47 @@
 import { useLanguage } from "context/LanguageContext";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import heroImage from "assets/images/hero-profesionales.png";
+
+const RADIUS = 55;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const HOVER_DURATION = 2000; // ms para completar el círculo
 
 function Inicio() {
   const { tx } = useLanguage();
-  const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const [circumference, setCircumference] = useState(0);
-  const [strokeDashoffset, setStrokeDashoffset] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const animFrameRef = useRef(null);
+  const startTimeRef = useRef(null);
 
-  const handlePlayClick = () => {
-    setIsVideoLoading(true);
-    setStrokeDashoffset(circumference);
-    
-    const animationDuration = 3000; // 3 segundos
-    const startTime = Date.now();
-    
-    const animateProgress = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / animationDuration, 1);
-      setStrokeDashoffset(circumference * (1 - progress));
-      
-      if (progress < 1) {
-        requestAnimationFrame(animateProgress);
+  const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+
+  function startAnimation() {
+    if (animFrameRef.current) return;
+    startTimeRef.current = Date.now();
+    function animate() {
+      const p = Math.min((Date.now() - startTimeRef.current) / HOVER_DURATION, 1);
+      setProgress(p);
+      if (p < 1) {
+        animFrameRef.current = requestAnimationFrame(animate);
       } else {
+        animFrameRef.current = null;
+        setProgress(0);
         setShowVideoModal(true);
-        setIsVideoLoading(false);
       }
-    };
-    
-    requestAnimationFrame(animateProgress);
-  };
+    }
+    animFrameRef.current = requestAnimationFrame(animate);
+  }
 
-  useEffect(() => {
-    const radius = 45;
-    const circ = 2 * Math.PI * radius;
-    setCircumference(circ);
-    setStrokeDashoffset(circ);
-  }, []);
+  function stopAnimation() {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    setProgress(0);
+  }
+
+  useEffect(() => () => { if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); }, []);
 
   return (
     <>
@@ -64,9 +67,10 @@ function Inicio() {
                 </Link>
 
                 <button
-                  onClick={handlePlayClick}
-                  disabled={isVideoLoading}
-                  className="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform duration-200 disabled:cursor-not-allowed"
+                  onMouseEnter={startAnimation}
+                  onMouseLeave={stopAnimation}
+                  onClick={() => { stopAnimation(); setShowVideoModal(true); }}
+                  className="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform duration-200"
                 >
                   <svg className="w-16 h-16 absolute" viewBox="0 0 120 120">
                     <circle cx="60" cy="60" r="55" fill="none" stroke="#f3a461" strokeWidth="3" opacity="0.3" />
@@ -77,10 +81,9 @@ function Inicio() {
                       fill="none"
                       stroke="#f3a461"
                       strokeWidth="3"
-                      strokeDasharray={circumference}
+                      strokeDasharray={CIRCUMFERENCE}
                       strokeDashoffset={strokeDashoffset}
                       strokeLinecap="round"
-                      className="transition-all duration-100"
                       style={{ transform: "rotate(-90deg)", transformOrigin: "60px 60px" }}
                     />
                   </svg>
@@ -112,10 +115,7 @@ function Inicio() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="relative w-full max-w-2xl bg-black rounded-xl overflow-hidden">
             <button
-              onClick={() => {
-                setShowVideoModal(false);
-                setIsVideoLoading(false);
-              }}
+              onClick={() => setShowVideoModal(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

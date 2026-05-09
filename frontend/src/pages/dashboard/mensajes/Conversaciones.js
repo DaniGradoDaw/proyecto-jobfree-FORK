@@ -147,7 +147,7 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
   const noLeidos = (estaActiva || conversacion.silenciada) ? 0 : (conversacion.noLeidos || 0);
 
   return (
-    <div className={`group relative flex items-center transition ${estaActiva ? "bg-emerald-50 border-l-2 border-emerald-400" : "hover:bg-slate-50 active:bg-slate-100 border-l-2 border-transparent"}`}>
+    <div className={`group relative flex items-center transition-colors ${estaActiva ? "bg-emerald-50/80 border-l-[3px] border-emerald-400" : "hover:bg-slate-50 active:bg-slate-100 border-l-[3px] border-transparent"}`}>
       <button
         type="button"
         onClick={() => navigate(
@@ -182,7 +182,7 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
               {(conversacion.bloqueado || conversacion.meBloqueo) && (
                 <NoSymbolIcon className="h-3.5 w-3.5 text-red-400" title={tx("Bloqueado")} />
               )}
-              <span className={`text-[11px] ${noLeidos > 0 ? "font-semibold text-emerald-600" : "text-slate-400"}`}>
+              <span className={`text-[11px] ${noLeidos > 0 ? "font-bold text-emerald-500" : "text-slate-400"}`}>
                 {formatearFechaRelativa(conversacion.fechaUltimoMensaje, idioma, tx)}
               </span>
             </div>
@@ -208,7 +208,7 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
           e.preventDefault();
           onMenuAbrir(conversacion, e.clientX, e.clientY);
         }}
-        className="mr-2 shrink-0 rounded-full p-1.5 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-slate-200 hover:text-slate-600"
+        className="mr-2 shrink-0 rounded-full p-1.5 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-slate-100 hover:text-slate-600"
         title={tx("Opciones")}
       >
         <EllipsisVerticalIcon className="h-4 w-4" />
@@ -288,6 +288,38 @@ function Conversaciones({ panelMode = false }) {
     });
   }, [subscribeToUserQueue, usuario?.id]);
 
+  // Bug fix: cuando el usuario entra a una conversación, poner noLeidos=0 inmediatamente
+  // en lugar de depender solo del evento WebSocket (que puede llegar tarde o no llegar).
+  useEffect(() => {
+    setConversaciones((prev) => {
+      let changed = false;
+      const updated = prev.map((c) => {
+        if (c.noLeidos === 0) return c;
+        const byId = `${dashboardBase}/mensajes/${c.id}`;
+        const byReserva = c.reservaId ? `${dashboardBase}/mensajes/reserva/${c.reservaId}` : null;
+        const activa = location.pathname === byId || (byReserva && location.pathname === byReserva);
+        if (!activa) return c;
+        changed = true;
+        return { ...c, noLeidos: 0 };
+      });
+      return changed ? updated : prev;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Sincronizar estado silenciada cuando ChatReserva lo cambia desde la cabecera del chat
+  useEffect(() => {
+    function handleSilenciadaDesdeChat(e) {
+      setConversaciones((prev) => prev.map((c) =>
+        Number(c.id) === Number(e.detail.id)
+          ? { ...c, silenciada: e.detail.silenciada }
+          : c
+      ));
+    }
+    window.addEventListener("chat:header:silenciada", handleSilenciadaDesdeChat);
+    return () => window.removeEventListener("chat:header:silenciada", handleSilenciadaDesdeChat);
+  }, []);
+
   // Cerrar menú al hacer click fuera
   useEffect(() => {
     if (!menu) return;
@@ -301,6 +333,9 @@ function Conversaciones({ panelMode = false }) {
     try {
       const actualizada = await silenciarConversacion(convId, duracion);
       setConversaciones((prev) => upsertConversacion(prev, actualizada));
+      window.dispatchEvent(new CustomEvent("chat:conversacion:silenciada", {
+        detail: { id: convId, silenciada: actualizada.silenciada ?? false },
+      }));
     } catch (e) {
       console.warn("[Conversaciones] Error al silenciar:", e);
     }
@@ -360,12 +395,14 @@ function Conversaciones({ panelMode = false }) {
       ? "flex h-full flex-col overflow-hidden bg-white"
       : "flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
     }>
-      <div className="border-b border-slate-100 px-5 pb-4 pt-5">
+      <div className="border-b border-slate-200 bg-white px-5 pb-4 pt-5 shadow-sm">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-900">{tx("Mensajes")}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-800">{tx("Mensajes")}</h1>
+          </div>
           <span
             title={tooltipConexion}
-            className={`h-2.5 w-2.5 rounded-full ${
+            className={`h-2.5 w-2.5 rounded-full ring-2 ring-white ${
               connectionState === "connected"
                 ? "bg-emerald-400"
                 : connectionState === "reconnecting"
@@ -382,15 +419,15 @@ function Conversaciones({ panelMode = false }) {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder={tx("Buscar conversación...")}
-            className="w-full rounded-xl bg-slate-100 py-2 pl-9 pr-4 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:bg-slate-50 focus:ring-2 focus:ring-emerald-200"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-2 focus:ring-emerald-100"
           />
         </div>
       </div>
 
-      <div className="flex-1 divide-y divide-slate-100 overflow-y-auto">
+      <div className="flex-1 divide-y divide-slate-100/80 overflow-y-auto">
         {conversacionesFiltradas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <ChatBubbleLeftRightIcon className="mb-3 h-10 w-10 text-slate-200" />
+            <ChatBubbleLeftRightIcon className="mb-3 h-10 w-10 text-slate-300" />
             <p className="text-sm font-medium text-slate-500">
               {busqueda
                 ? tx("Sin resultados para tu búsqueda.")

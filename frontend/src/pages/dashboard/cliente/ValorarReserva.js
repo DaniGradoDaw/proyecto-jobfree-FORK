@@ -83,82 +83,83 @@ function ValorarReserva() {
   const puedeValorar = reserva.estado === "COMPLETADA" && !reserva.valorada;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Link to="/dashboard/cliente/reservas" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900">
+    <div className="max-w-lg space-y-4">
+      <Link to="/dashboard/cliente/resenas" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800">
         <ArrowLeftIcon className="h-4 w-4" />
-        {tx("Volver a mis reservas")}
+        {tx("Volver a mis reseñas")}
       </Link>
 
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          {foto ? (
-            <img src={foto} alt="" className="h-14 w-14 rounded-full object-cover ring-2 ring-white shadow" />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-800 text-lg font-bold text-white">
-              {(reserva.profesionalNombre || "?").slice(0, 1).toUpperCase()}
-            </div>
-          )}
-          <div>
-            <p className="text-sm text-slate-500">{tx("Valorar profesional")}</p>
-            <h1 className="text-2xl font-semibold text-slate-900">{reserva.profesionalNombre}</h1>
-            <p className="mt-1 text-sm text-slate-500">{reserva.servicioTitulo}</p>
+      {/* Info profesional */}
+      <section className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        {foto ? (
+          <img src={foto} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white">
+            {(reserva.profesionalNombre || "?").slice(0, 1).toUpperCase()}
           </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-[11px] text-slate-400">{tx("Valorar profesional")}</p>
+          <p className="truncate font-semibold text-slate-900">{reserva.profesionalNombre}</p>
+          <p className="truncate text-xs text-slate-500">{reserva.servicioTitulo}</p>
         </div>
       </section>
 
       {!puedeValorar ? (
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">{tx("Esta reserva ya no admite valoración")}</h2>
-          <p className="mt-2 text-sm text-slate-500">
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">{tx("Esta reserva ya no admite valoración")}</h2>
+          <p className="mt-1 text-sm text-slate-500">
             {reserva.valorada
               ? tx("Ya has enviado tu valoración para este servicio.")
-              : tx("Solo puedes valorar servicios que ya esten completados.")}
+              : tx("Solo puedes valorar servicios que ya estén completados.")}
           </p>
           <Link
             to={reserva.valorada ? "/dashboard/cliente/resenas" : "/dashboard/cliente/reservas"}
-            className="mt-4 inline-flex text-sm font-medium text-emerald-600 hover:text-emerald-700"
+            className="mt-3 inline-flex text-sm font-medium text-emerald-600 hover:text-emerald-700"
           >
-            {reserva.valorada
-              ? tx("Ver mis reseñas")
-              : tx("Ir a mis reservas")}
+            {reserva.valorada ? tx("Ver mis reseñas") : tx("Ir a mis reservas")}
           </Link>
         </section>
       ) : (
-        <form onSubmit={handleSubmit} className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-          <label className="block text-sm font-medium text-slate-700">{tx("Tu puntuación")}</label>
-          <div className="mt-3 flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((valor) => (
-              <BotonEstrella
-                key={valor}
-                activa={valor <= estrellas}
-                onClick={() => setEstrellas(valor)}
-                label={tx("{n} estrellas", { n: valor })}
-              />
-            ))}
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">{tx("Tu puntuación")}</label>
+            <div className="mt-2 flex items-center gap-1.5">
+              {[1, 2, 3, 4, 5].map((valor) => (
+                <BotonEstrella
+                  key={valor}
+                  activa={valor <= estrellas}
+                  onClick={() => setEstrellas(valor)}
+                  label={tx("{n} estrellas", { n: valor })}
+                />
+              ))}
+            </div>
           </div>
 
-          <label className="mt-6 block text-sm font-medium text-slate-700">{tx("Comentario")}</label>
-          <textarea
-            value={comentario}
-            onChange={(e) => setComentario(e.target.value)}
-            rows={5}
-            maxLength={1000}
-            placeholder={tx("Cuentale a otros clientes como fue el servicio.")}
-            className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-          <p className="mt-1 text-right text-xs text-slate-400">{comentario.length}/1000</p>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">{tx("Comentario")}</label>
+            <textarea
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              rows={3}
+              maxLength={1000}
+              placeholder={tx("Cuéntale a otros clientes cómo fue el servicio.")}
+              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 resize-none"
+            />
+            <p className="mt-0.5 text-right text-xs text-slate-400">{comentario.length}/1000</p>
+          </div>
 
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="flex gap-2 pt-1">
             <button
               type="submit"
               disabled={guardando}
-              className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
             >
               {guardando ? tx("Enviando...") : tx("Enviar valoración")}
             </button>
-            <Link to="/dashboard/cliente/reservas" className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+            <Link to="/dashboard/cliente/resenas" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
               {tx("Cancelar")}
             </Link>
           </div>

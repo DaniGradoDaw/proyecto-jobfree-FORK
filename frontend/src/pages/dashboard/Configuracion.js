@@ -12,14 +12,16 @@ import {
   EyeSlashIcon,
   CheckCircleIcon,
   XCircleIcon,
-  SignalIcon,
   TrashIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  MinusIcon,
+  BriefcaseIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "context/AuthContext";
 import { actualizarMiUsuario, subirFotoPerfil } from "api/usuario";
-import { obtenerMiPerfil, actualizarMiPerfil, actualizarUbicacion, limpiarUbicacion } from "api/profesional";
-import { useGeolocalizacion } from "hooks/useGeolocalizacion";
-import UbicacionMap from "components/maps/UbicacionMap";
+import { obtenerMiPerfil, actualizarMiPerfil, actualizarCiudadesServicio } from "api/profesional";
 import API_URL from "api/config";
 import { useLanguage } from "context/LanguageContext";
 
@@ -82,6 +84,7 @@ function Configuracion() {
   const { cargarUsuarioActual } = useAuth();
   const { tx } = useLanguage();
   const fileInputRef = useRef();
+  const dropdownRef = useRef();
 
   const [tabActiva, setTabActiva] = useState("perfil");
   const [esProfesional, setEsProfesional] = useState(false);
@@ -111,12 +114,13 @@ function Configuracion() {
   const [exitoPro, setExitoPro] = useState(false);
   const [errorPro, setErrorPro] = useState("");
 
-  const { posicion: posicionGps, cargando: gpsDetectando, error: gpsError, obtenerPosicion } = useGeolocalizacion();
-  const [coordsGuardadas, setCoordsGuardadas] = useState(null);
-  const [ubicacionManual, setUbicacionManual] = useState(false);
-  const [guardandoUbicacion, setGuardandoUbicacion] = useState(false);
-  const [exitoUbicacion, setExitoUbicacion] = useState("");
-  const [errorUbicacion, setErrorUbicacion] = useState("");
+  const [ciudadesServicio, setCiudadesServicio] = useState([]);
+  const [busquedaZona, setBusquedaZona] = useState("");
+  const [sugerenciasZona, setSugerenciasZona] = useState([]);
+  const [buscandoZona, setBuscandoZona] = useState(false);
+  const [guardandoCiudades, setGuardandoCiudades] = useState(false);
+  const [exitoCiudades, setExitoCiudades] = useState(false);
+  const [errorCiudades, setErrorCiudades] = useState("");
 
   useEffect(() => {
     cargarUsuarioActual()
@@ -145,12 +149,7 @@ function Configuracion() {
                 nombreEmpresa: p.nombreEmpresa || "",
                 cif: p.cif || "",
               });
-              if (p.latitud != null && p.longitud != null) {
-                setCoordsGuardadas({ latitud: p.latitud, longitud: p.longitud });
-              } else {
-                setCoordsGuardadas(null);
-              }
-              setUbicacionManual(Boolean(p.ubicacionManual));
+              setCiudadesServicio(p.ciudadesServicio || []);
             })
             .catch(() => {});
         }
@@ -158,6 +157,41 @@ function Configuracion() {
       .catch(() => setErrorCarga(tx("No se pudieron cargar tus datos. Recarga la página.")))
       .finally(() => setCargandoDatos(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const q = busquedaZona.trim();
+    if (q.length < 2) { setSugerenciasZona([]); return; }
+    setBuscandoZona(true);
+    const timer = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=es&format=json&limit=7&addressdetails=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const nombres = [...new Set(
+          data.map(r => {
+            const a = r.address;
+            return a?.municipality || a?.city || a?.town || a?.village || a?.hamlet || r.display_name.split(",")[0].trim();
+          }).filter(Boolean)
+        )].slice(0, 6);
+        setSugerenciasZona(nombres);
+      } catch {
+        setSugerenciasZona([]);
+      } finally {
+        setBuscandoZona(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [busquedaZona]);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setSugerenciasZona([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const erroresForm = {
@@ -246,12 +280,6 @@ function Configuracion() {
         plan: perfilPro.plan,
       });
       setPerfilPro(perfil);
-      if (perfil.latitud != null && perfil.longitud != null) {
-        setCoordsGuardadas({ latitud: perfil.latitud, longitud: perfil.longitud });
-      } else {
-        setCoordsGuardadas(null);
-      }
-      setUbicacionManual(Boolean(perfil.ubicacionManual));
       setExitoPro(true);
       setTimeout(() => setExitoPro(false), 4000);
     } catch (err) {
@@ -261,38 +289,30 @@ function Configuracion() {
     }
   }
 
-  async function handleDetectarUbicacion() {
-    setErrorUbicacion("");
-    setExitoUbicacion("");
-    try {
-      const coords = await obtenerPosicion();
-      setGuardandoUbicacion(true);
-      const perfil = await actualizarUbicacion(coords.latitud, coords.longitud);
-      setCoordsGuardadas({ latitud: perfil.latitud, longitud: perfil.longitud });
-      setUbicacionManual(Boolean(perfil.ubicacionManual));
-      setExitoUbicacion(tx("Ubicacion guardada (precision ±{precision} m).", { precision: coords.precision }));
-      setTimeout(() => setExitoUbicacion(""), 5000);
-    } catch (err) {
-      setErrorUbicacion(err.message || tx("No se pudo guardar la ubicación."));
-    } finally {
-      setGuardandoUbicacion(false);
-    }
+  function handleSeleccionarZona(zona) {
+    if (!zona || ciudadesServicio.includes(zona)) return;
+    setCiudadesServicio(prev => [...prev, zona]);
+    setBusquedaZona("");
+    setSugerenciasZona([]);
   }
 
-  async function handleLimpiarUbicacion() {
-    setErrorUbicacion("");
-    setExitoUbicacion("");
-    setGuardandoUbicacion(true);
+  function handleEliminarCiudad(ciudad) {
+    setCiudadesServicio(prev => prev.filter(c => c !== ciudad));
+  }
+
+  async function handleGuardarCiudades() {
+    setErrorCiudades("");
+    setExitoCiudades(false);
+    setGuardandoCiudades(true);
     try {
-      const perfil = await limpiarUbicacion();
-      setCoordsGuardadas(null);
-      setUbicacionManual(Boolean(perfil.ubicacionManual));
-      setExitoUbicacion(tx("Ubicación eliminada."));
-      setTimeout(() => setExitoUbicacion(""), 4000);
+      const perfil = await actualizarCiudadesServicio(ciudadesServicio);
+      setCiudadesServicio(perfil.ciudadesServicio || []);
+      setExitoCiudades(true);
+      setTimeout(() => setExitoCiudades(false), 4000);
     } catch (err) {
-      setErrorUbicacion(err.message || tx("Error al eliminar la ubicación."));
+      setErrorCiudades(err.message || tx("Error al guardar las ciudades."));
     } finally {
-      setGuardandoUbicacion(false);
+      setGuardandoCiudades(false);
     }
   }
 
@@ -317,10 +337,7 @@ function Configuracion() {
   const tabs = [
     { id: "perfil",      label: tx("Perfil") },
     { id: "seguridad",   label: tx("Seguridad") },
-    ...(esProfesional ? [
-      { id: "profesional", label: tx("Profesional") },
-      { id: "ubicacion",   label: tx("Ubicación") },
-    ] : []),
+    ...(esProfesional ? [{ id: "profesional", label: tx("Profesional") }] : []),
   ];
 
   return (
@@ -338,9 +355,9 @@ function Configuracion() {
           <button
             key={t.id}
             onClick={() => setTabActiva(t.id)}
-            className={`flex-1 rounded-lg py-2 px-3 text-sm font-medium transition-all ${
+            className={`flex-1 rounded-lg py-2 px-3 text-sm font-semibold transition-all ${
               tabActiva === t.id
-                ? "bg-white text-slate-900 shadow-sm"
+                ? "bg-white text-emerald-600 shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -420,7 +437,7 @@ function Configuracion() {
 
             <div className="flex justify-end pt-1">
               <button type="submit" disabled={guardandoPersonal || !formularioPersonalValido}
-                className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40">
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40">
                 {guardandoPersonal ? tx("Guardando...") : tx("Guardar cambios")}
               </button>
             </div>
@@ -431,9 +448,14 @@ function Configuracion() {
       {/* ── Pestaña: Seguridad ── */}
       {tabActiva === "seguridad" && (
         <form onSubmit={handleGuardarPassword} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
-            <h2 className="text-sm font-semibold text-slate-800">{tx("Cambiar contraseña")}</h2>
-            <p className="text-xs text-slate-500 mt-0.5">{tx("Deja los campos vacios si no quieres cambiarla.")}</p>
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+              <ShieldCheckIcon className="h-5 w-5 text-slate-500" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800">{tx("Cambiar contraseña")}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{tx("Deja los campos vacíos si no quieres cambiarla.")}</p>
+            </div>
           </div>
 
           <div className="p-6 space-y-5">
@@ -501,7 +523,7 @@ function Configuracion() {
 
             <div className="flex justify-end">
               <button type="submit" disabled={guardandoPw || !pw.nueva || !pwValida || !pwCoincide}
-                className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40">
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40">
                 {guardandoPw ? tx("Guardando...") : tx("Cambiar contraseña")}
               </button>
             </div>
@@ -512,9 +534,14 @@ function Configuracion() {
       {/* ── Pestaña: Profesional ── */}
       {tabActiva === "profesional" && esProfesional && (
         <form onSubmit={handleGuardarProfesional} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
-            <h2 className="text-sm font-semibold text-slate-800">{tx("Perfil profesional")}</h2>
-            <p className="text-xs text-slate-500 mt-0.5">{tx("Información visible en tus anuncios de servicio.")}</p>
+          <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+              <BriefcaseIcon className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800">{tx("Perfil profesional")}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{tx("Información visible en tus anuncios de servicio.")}</p>
+            </div>
           </div>
 
           <div className="p-6 space-y-5">
@@ -526,23 +553,32 @@ function Configuracion() {
                 onChange={e => setFormPro(prev => ({ ...prev, descripcion: e.target.value }))}
                 rows={4}
                 placeholder={tx("Describe tu experiencia y especialidades...")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none transition"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition"
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-medium text-slate-700">{tx("Años de experiencia")}</label>
-                <span className="text-lg font-bold text-slate-900 tabular-nums">{formPro.experiencia}</span>
-              </div>
-              <input
-                type="range" name="experiencia" value={formPro.experiencia}
-                onChange={e => setFormPro(prev => ({ ...prev, experiencia: e.target.value }))}
-                min="0" max="40" step="1"
-                className="w-full accent-green-600"
-              />
-              <div className="flex justify-between text-xs text-slate-400 mt-1.5">
-                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-700">{tx("Años de experiencia")}</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormPro(p => ({ ...p, experiencia: Math.max(0, Number(p.experiencia) - 1) }))}
+                  disabled={Number(formPro.experiencia) === 0}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30"
+                >
+                  <MinusIcon className="h-3.5 w-3.5" />
+                </button>
+                <span className="w-14 text-center text-sm font-semibold text-slate-900 tabular-nums">
+                  {formPro.experiencia} {tx("años")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFormPro(p => ({ ...p, experiencia: Math.min(40, Number(p.experiencia) + 1) }))}
+                  disabled={Number(formPro.experiencia) === 40}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30"
+                >
+                  <PlusIcon className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
@@ -572,7 +608,7 @@ function Configuracion() {
 
             <div className="flex justify-end">
               <button type="submit" disabled={guardandoPro}
-                className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40">
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40">
                 {guardandoPro ? tx("Guardando...") : tx("Guardar perfil")}
               </button>
             </div>
@@ -580,81 +616,92 @@ function Configuracion() {
         </form>
       )}
 
-      {/* ── Pestaña: Ubicación ── */}
-      {tabActiva === "ubicacion" && esProfesional && (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
-            <h2 className="text-sm font-semibold text-slate-800">{tx("Ubicación de trabajo")}</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {tx("Fija tu ubicación para aparecer en búsquedas por proximidad. La posición se obtiene del GPS de tu dispositivo.")}
-            </p>
+      {/* ── Ciudades de servicio (solo profesional, misma pestaña) ── */}
+      {tabActiva === "profesional" && esProfesional && (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+              <MapPinIcon className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800">{tx("Ciudades donde trabajo")}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {tx("Añade todas las ciudades en las que ofreces tus servicios. Aparecerás en búsquedas de esas zonas.")}
+              </p>
+            </div>
           </div>
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-4">
 
-          <UbicacionMap coordsGuardadas={coordsGuardadas} posicionGps={posicionGps} />
+            {/* Buscador de zona */}
+            <div className="relative" ref={dropdownRef}>
+              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={busquedaZona}
+                onChange={e => setBusquedaZona(e.target.value)}
+                placeholder={tx("Busca una ciudad, pueblo o zona...")}
+                className="w-full border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+              />
+              {buscandoZona && (
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 animate-pulse">···</span>
+              )}
+              {sugerenciasZona.length > 0 && (
+                <div className="absolute z-20 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                  {sugerenciasZona
+                    .filter(z => !ciudadesServicio.includes(z))
+                    .map(z => (
+                      <button
+                        key={z}
+                        type="button"
+                        onMouseDown={e => { e.preventDefault(); handleSeleccionarZona(z); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition text-left"
+                      >
+                        <MapPinIcon className="h-4 w-4 text-emerald-500 shrink-0" />
+                        {z}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
 
-          <div className={`flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 text-sm ${
-            coordsGuardadas
-              ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-              : "bg-slate-50 border border-slate-200 text-slate-500"
-          }`}>
-            <MapPinIcon className="h-4 w-4 shrink-0" />
-            {coordsGuardadas ? (
-              <span>
-                {tx("Ubicación fijada")} —{" "}
-                <strong>{coordsGuardadas.latitud.toFixed(5)}</strong>,{" "}
-                <strong>{coordsGuardadas.longitud.toFixed(5)}</strong>
-              </span>
+            {/* Lista de ciudades */}
+            {ciudadesServicio.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {ciudadesServicio.map(ciudad => (
+                  <span
+                    key={ciudad}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-800"
+                  >
+                    <MapPinIcon className="h-3.5 w-3.5 text-emerald-500" />
+                    {ciudad}
+                    <button
+                      type="button"
+                      onClick={() => handleEliminarCiudad(ciudad)}
+                      className="ml-0.5 text-emerald-400 hover:text-red-500 transition"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
             ) : (
-              <span>{tx("Sin ubicación guardada. Los clientes no podran filtrarte por distancia.")}</span>
+              <p className="text-sm text-slate-400 italic">{tx("Aún no has añadido ninguna ciudad.")}</p>
             )}
-            {coordsGuardadas && (
-              <span className={`ml-auto inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-                ubicacionManual ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-              }`}>
-                {ubicacionManual ? tx("GPS manual") : tx("Aproximada por ciudad/CP")}
-              </span>
+
+            {(errorCiudades || exitoCiudades) && (
+              <Banner tipo={errorCiudades ? "error" : "exito"} texto={errorCiudades || `✓ ${tx("Ciudades guardadas correctamente.")}`} />
             )}
-          </div>
 
-          {(errorUbicacion || gpsError || exitoUbicacion) && (
-            <Banner
-              tipo={errorUbicacion || gpsError ? "error" : "exito"}
-              texto={errorUbicacion || gpsError || exitoUbicacion}
-            />
-          )}
-
-          <div className="flex gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleDetectarUbicacion}
-              disabled={gpsDetectando || guardandoUbicacion}
-              className="flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40"
-            >
-              <SignalIcon className="h-4 w-4" />
-              {gpsDetectando
-                ? tx("Detectando...")
-                : guardandoUbicacion
-                  ? tx("Guardando...")
-                  : tx("Detectar mi ubicación")}
-            </button>
-
-            {coordsGuardadas && (
+            <div className="flex justify-end">
               <button
                 type="button"
-                onClick={handleLimpiarUbicacion}
-                disabled={guardandoUbicacion}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50 disabled:opacity-40"
+                onClick={handleGuardarCiudades}
+                disabled={guardandoCiudades}
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
               >
-                <TrashIcon className="h-4 w-4" />
-                {tx("Eliminar ubicación")}
+                {guardandoCiudades ? tx("Guardando...") : tx("Guardar ciudades")}
               </button>
-            )}
-          </div>
-
-          <p className="text-xs text-slate-400">
-            {tx("Las coordenadas solo quedan visibles para ti en tu panel. En la parte pública solo se usa la distancia calculada.")}
-          </p>
+            </div>
           </div>
         </div>
       )}

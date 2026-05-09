@@ -50,7 +50,7 @@ function MisFavoritos() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900">{tx("Mis favoritos")}</h1>
-          <p className="text-sm text-slate-500">{tx("Servicios guardados para volver a ellos mas tarde.")}</p>
+          <p className="text-sm text-slate-500">{tx("Servicios guardados para volver a ellos más tarde.")}</p>
         </div>
         {favoritos.length > 0 && (
           <span className="ml-auto rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
@@ -65,7 +65,7 @@ function MisFavoritos() {
             <HeartIcon className="h-7 w-7 text-slate-300" />
           </div>
           <p className="text-sm font-semibold text-slate-600">{tx("Aún no has guardado ningun servicio.")}</p>
-          <p className="mt-1 text-xs text-slate-400">{tx("Cuando pulses el corazón en un servicio, aparecera aquí.")}</p>
+          <p className="mt-1 text-xs text-slate-400">{tx("Cuando pulses el corazón en un servicio, aparecerá aquí.")}</p>
         </div>
       ) : (
         <div className="grid gap-3 xl:grid-cols-2">
@@ -78,60 +78,81 @@ function MisFavoritos() {
               : null;
             const inicial = (servicio.nombreProfesional || "?").slice(0, 1).toUpperCase();
 
+            const rawImagen = servicio.subcategoriaImagenUrl;
+            const imgSubcat = rawImagen
+                ? rawImagen.startsWith("http") || rawImagen.startsWith("/images/")
+                  ? rawImagen
+                  : API_URL + rawImagen
+                : null;
+
             return (
               <article
                 key={item.id}
-                className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-md"
+                className="relative flex rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md min-h-[9.5rem]"
               >
-                {/* Botón eliminar — aparece en hover */}
-                <button
-                  onClick={() => quitar(servicio.id)}
-                  className="absolute right-3.5 top-3.5 rounded-lg p-1.5 text-slate-300 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-400"
-                  aria-label={tx("Eliminar")}
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </button>
+                {/* Imagen cuadrada a la izquierda */}
+                <div className="w-28 shrink-0 sm:w-36 rounded-l-2xl overflow-hidden">
+                  {imgSubcat ? (
+                    <img src={imgSubcat} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200" />
+                  )}
+                </div>
 
-                {/* Título y descripción — protagonistas */}
-                <h2 className="pr-8 text-base font-bold text-slate-900 leading-snug">{servicio.titulo}</h2>
-                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-500">{servicio.descripcion}</p>
-
-                {/* Footer: profesional + precio + CTA */}
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                  {/* Profesional */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    {foto ? (
-                      <img src={foto} alt="" className="h-7 w-7 shrink-0 rounded-lg object-cover" />
-                    ) : (
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-100 text-[11px] font-bold text-green-700">
-                        {inicial}
-                      </div>
-                    )}
+                {/* Contenido */}
+                <div className="flex flex-1 flex-col justify-between p-4 min-w-0">
+                  {/* Cabecera: título + papelera */}
+                  <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-slate-600">{servicio.nombreProfesional}</p>
-                      <p className="truncate text-[11px] text-slate-400">{servicio.ciudadProfesional || tx("Zona no indicada")}</p>
+                      <h2 className="text-sm font-bold text-slate-900 leading-snug">{tx(servicio.titulo)}</h2>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">{tx(servicio.descripcion)}</p>
                     </div>
+                    <button
+                      onClick={() => quitar(servicio.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-400"
+                      aria-label={tx("Eliminar de favoritos")}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
                   </div>
 
-                  {/* Precio + botón */}
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-base font-bold text-slate-900 leading-none">
-                        {Number(servicio.precioHora).toFixed(0)}€<span className="text-xs font-normal text-slate-400">/h</span>
-                      </p>
-                      <div className="mt-1 flex items-center justify-end gap-0.5">
-                        <StarSolidIcon className="h-3 w-3 text-amber-400" />
-                        <span className="text-[11px] text-slate-500">
-                          {servicio.valoracionMedia ? Number(servicio.valoracionMedia).toFixed(1) : "—"}
-                        </span>
+                  {/* Footer: profesional + precio + botón */}
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    {/* Profesional */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      {foto ? (
+                        <img src={foto} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+                      ) : (
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700">
+                          {inicial}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-[11px] font-semibold text-slate-700">{servicio.nombreProfesional}</p>
+                        <p className="truncate text-[10px] text-slate-400">{tx(servicio.ciudadProfesional) || tx("Zona no indicada")}</p>
                       </div>
                     </div>
-                    <Link
-                      to={`/dashboard/cliente/buscar/profesionales/${servicio.subcategoriaId}`}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
-                    >
-                      {tx("Ver")}
-                    </Link>
+
+                    {/* Precio + rating + botón */}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-900 leading-none">
+                          {Number(servicio.precioHora).toFixed(0)}€<span className="text-[10px] font-normal text-slate-400">/h</span>
+                        </p>
+                        <div className="mt-0.5 flex items-center justify-end gap-0.5">
+                          <StarSolidIcon className="h-3 w-3 text-amber-400" />
+                          <span className="text-[10px] text-slate-500">
+                            {servicio.valoracionMedia ? Number(servicio.valoracionMedia).toFixed(1) : "—"}
+                          </span>
+                        </div>
+                      </div>
+                      <Link
+                        to={`/dashboard/cliente/buscar/profesionales/${servicio.subcategoriaId}`}
+                        className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                      >
+                        {tx("Ver")}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </article>

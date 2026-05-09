@@ -93,9 +93,7 @@ public class ProfesionalInfoService {
             existente.setCodigoPostal(dto.getCodigoPostal());
         }
 
-        // Re-geocodificar si cambió el código postal, salvo que el profesional
-        // haya fijado manualmente una ubicación GPS más precisa.
-        if (codigoPostalCambio && !Boolean.TRUE.equals(existente.getUbicacionManual())) {
+        if (codigoPostalCambio) {
             String ciudad = existente.getUsuario().getCiudad();
             intentarGeocodificar(existente, ciudad, dto.getCodigoPostal(), false);
         }
@@ -104,30 +102,21 @@ public class ProfesionalInfoService {
     }
 
     /**
-     * Actualiza las coordenadas de un profesional directamente (desde GPS del navegador).
+     * Actualiza las ciudades donde el profesional ofrece sus servicios.
      */
-    public ProfesionalInfo actualizarUbicacion(Long id, Double latitud, Double longitud, Usuario usuario) {
+    public ProfesionalInfo actualizarCiudadesServicio(Long id, List<String> ciudades, Usuario usuario) {
         ProfesionalInfo existente = obtenerPorId(id);
         if (!existente.getUsuario().getId().equals(usuario.getId())) {
             throw new ProfesionalInvalidoException("No puedes modificar este perfil");
         }
-        existente.setLatitud(latitud);
-        existente.setLongitud(longitud);
-        existente.setUbicacionManual(true);
-        return profesionalInfoRepository.save(existente);
-    }
-
-    /**
-     * Elimina las coordenadas de un profesional.
-     */
-    public ProfesionalInfo limpiarUbicacion(Long id, Usuario usuario) {
-        ProfesionalInfo existente = obtenerPorId(id);
-        if (!existente.getUsuario().getId().equals(usuario.getId())) {
-            throw new ProfesionalInvalidoException("No puedes modificar este perfil");
+        existente.getCiudadesServicio().clear();
+        if (ciudades != null) {
+            ciudades.stream()
+                    .filter(c -> c != null && !c.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .forEach(existente.getCiudadesServicio()::add);
         }
-        existente.setLatitud(null);
-        existente.setLongitud(null);
-        existente.setUbicacionManual(false);
         return profesionalInfoRepository.save(existente);
     }
 
@@ -182,16 +171,12 @@ public class ProfesionalInfoService {
     }
 
     /**
-     * Recalcula la ubicación automática del profesional cuando cambia la ciudad del usuario.
-     * Si la ubicación fue fijada manualmente por GPS, no la toca.
+     * Recalcula la ubicación del profesional cuando cambia la ciudad del usuario.
      */
     public void sincronizarUbicacionPorCambioDeCiudad(Long usuarioId, String ciudad) {
-        profesionalInfoRepository.findByUsuarioId(usuarioId).ifPresent(perfil -> {
-            if (Boolean.TRUE.equals(perfil.getUbicacionManual())) {
-                return;
-            }
-            intentarGeocodificar(perfil, ciudad, perfil.getCodigoPostal(), true);
-        });
+        profesionalInfoRepository.findByUsuarioId(usuarioId).ifPresent(perfil ->
+            intentarGeocodificar(perfil, ciudad, perfil.getCodigoPostal(), true)
+        );
     }
 
     // ── privado ───────────────────────────────────────────────────────────────
@@ -201,7 +186,6 @@ public class ProfesionalInfoService {
             if (limpiarSiFalla) {
                 perfil.setLatitud(null);
                 perfil.setLongitud(null);
-                perfil.setUbicacionManual(false);
             }
             return;
         }
@@ -209,11 +193,9 @@ public class ProfesionalInfoService {
         if (coords != null) {
             perfil.setLatitud(coords[0]);
             perfil.setLongitud(coords[1]);
-            perfil.setUbicacionManual(false);
         } else if (limpiarSiFalla) {
             perfil.setLatitud(null);
             perfil.setLongitud(null);
-            perfil.setUbicacionManual(false);
         }
     }
 }

@@ -4,7 +4,7 @@ import { ArrowLeftIcon, ArrowPathIcon, ArrowUturnLeftIcon, BellIcon, BellSlashIc
 import EmojiPickerES from "./EmojiPickerES";
 import { obtenerConversacion, obtenerConversacionPorReserva, silenciarConversacion } from "api/conversaciones";
 import { bloquearUsuario, desbloquearUsuario } from "api/bloqueos";
-import { enviarMensaje, marcarMensajesLeidos, marcarMensajesRecibidos, obtenerMensajesDeConversacion, subirImagenMensaje } from "api/mensajes";
+import { enviarMensaje, marcarMensajesLeidos, marcarMensajesRecibidos, obtenerMensajesDeConversacion, subirImagenMensaje, toggleReaccion } from "api/mensajes";
 import { crearReserva } from "api/reservas";
 import { obtenerServiciosActivosPorProfesionalUsuario } from "api/servicios";
 import { useAuth } from "context/AuthContext";
@@ -238,6 +238,8 @@ function ModalProponerServicio({ abierta, servicios, cargando, errorCarga, onCer
   );
 }
 
+const EMOJIS_PICKER = ["👍", "❤️", "😂", "😮", "😢", "✅"];
+
 function ChatReserva() {
   const { reservaId, conversacionId } = useParams();
   const navigate = useNavigate();
@@ -266,6 +268,8 @@ function ChatReserva() {
   const [imagenPrevia, setImagenPrevia] = useState(null);
   const [imagenUrl, setImagenUrl] = useState(null);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [imagenModal, setImagenModal] = useState(null);
+  const [openReactionPickerId, setOpenReactionPickerId] = useState(null);
   const [silenciada, setSilenciada] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
   const [meBloqueo, setMeBloqueo] = useState(false);
@@ -321,6 +325,23 @@ function ChatReserva() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showEmojiPicker]);
+
+  useEffect(() => {
+    if (!imagenModal) return;
+    function handleEsc(e) { if (e.key === "Escape") setImagenModal(null); }
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [imagenModal]);
+
+  useEffect(() => {
+    if (!openReactionPickerId) return;
+    function handleClickOutside(e) {
+      const el = document.querySelector(`[data-reaction-anchor="${openReactionPickerId}"]`);
+      if (el && !el.contains(e.target)) setOpenReactionPickerId(null);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openReactionPickerId]);
 
   useLayoutEffect(() => {
     if (needsScrollCorrectionRef.current && scrollRef.current) {
@@ -512,6 +533,11 @@ function ChatReserva() {
       if (evento?.tipo === "conversacion.actualizada" && evento.conversacion) {
         setConversacion((prev) => ({ ...prev, ...evento.conversacion }));
       }
+      if (evento?.tipo === "mensaje.reaccion") {
+        setMensajes((prev) => prev.map((m) =>
+          Number(m.id) === Number(evento.mensajeId) ? { ...m, reacciones: evento.reacciones ?? [] } : m
+        ));
+      }
       if (evento?.tipo === "usuario.escribiendo" && Number(evento.usuarioId) !== Number(usuario?.id)) {
         setEscribiendo(true);
         clearTimeout(escribiendoTimeoutRef.current);
@@ -543,6 +569,17 @@ function ChatReserva() {
     setMeBloqueo(conversacion.meBloqueo ?? false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversacion?.id, conversacion?.silenciada, conversacion?.bloqueado, conversacion?.meBloqueo]);
+
+  // Sincronizar estado silenciada cuando la lista de conversaciones cambia el mute
+  useEffect(() => {
+    function handleSilenciadaDesdeLista(e) {
+      if (Number(e.detail.id) === Number(conversacion?.id)) {
+        setSilenciada(e.detail.silenciada);
+      }
+    }
+    window.addEventListener("chat:conversacion:silenciada", handleSilenciadaDesdeLista);
+    return () => window.removeEventListener("chat:conversacion:silenciada", handleSilenciadaDesdeLista);
+  }, [conversacion?.id]);
 
   const dashboardBase = usuario?.rol?.toUpperCase() === "PROFESIONAL"
     ? "/dashboard/profesional"
@@ -702,7 +739,11 @@ function ChatReserva() {
     setErrorModeracion("");
     try {
       const actualizada = await silenciarConversacion(conversacion.id, silenciada ? null : "siempre");
-      setSilenciada(actualizada.silenciada ?? false);
+      const nuevoEstado = actualizada.silenciada ?? false;
+      setSilenciada(nuevoEstado);
+      window.dispatchEvent(new CustomEvent("chat:header:silenciada", {
+        detail: { id: conversacion.id, silenciada: nuevoEstado },
+      }));
     } catch (err) {
       setErrorModeracion(err.message || tx("Error al silenciar la conversación."));
     } finally {
@@ -737,6 +778,18 @@ function ChatReserva() {
       setErrorModeracion(err.message || tx("Error al actualizar el bloqueo."));
     } finally {
       setAccionModeracion(false);
+    }
+  }
+
+  async function handleToggleReaccion(mensajeId, emoji) {
+    if (!mensajeId) return;
+    try {
+      const reacciones = await toggleReaccion(mensajeId, emoji);
+      setMensajes((prev) => prev.map((m) =>
+        Number(m.id) === Number(mensajeId) ? { ...m, reacciones } : m
+      ));
+    } catch (err) {
+      console.warn("[Chat] Error al actualizar reacción:", err);
     }
   }
 
@@ -813,6 +866,31 @@ function ChatReserva() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
       {modalConfirmarBloqueo}
+
+      {/* Lightbox para ver imágenes a pantalla completa */}
+      {imagenModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setImagenModal(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={() => setImagenModal(null)}
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white/70 transition hover:bg-white/20 hover:text-white"
+            aria-label="Cerrar"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+          <img
+            src={imagenModal}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-5 py-4">
@@ -953,55 +1031,132 @@ function ChatReserva() {
                     </button>
                   )}
 
-                  <div
-                    className={`max-w-[75%] overflow-hidden rounded-2xl shadow-sm ${
-                      esMio
-                        ? "rounded-br-sm bg-blue-500 text-white"
-                        : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
-                    }`}
-                  >
-                    {item.mensajeRespondidoId && item.mensajeRespondidoContenido && (
-                      <div className="px-4 pt-2.5 pb-0">
+                  <div className={`flex flex-col gap-0.5 ${esMio ? "items-end" : "items-start"} ${
+                    item.imagenUrl ? "w-[300px]" : "max-w-[75%]"
+                  }`}>
+                    {/* Botón smiley → picker flotante */}
+                    {item.id && (
+                      <div
+                        data-reaction-anchor={item.id}
+                        className={`relative ${esMio ? "self-end" : "self-start"}`}
+                      >
                         <button
                           type="button"
-                          onClick={() => scrollToMessage(item.mensajeRespondidoId)}
-                          className={`mb-1.5 w-full cursor-pointer rounded-xl border-l-2 px-2.5 py-1.5 text-left text-xs transition ${
-                            esMio
-                              ? "border-white/50 bg-white/15 hover:bg-white/25 text-white/80"
-                              : "border-emerald-400 bg-slate-50 hover:bg-slate-100 text-slate-600"
-                          }`}
+                          title="Reaccionar"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            setOpenReactionPickerId((prev) => (prev === item.id ? null : item.id));
+                          }}
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm ring-1 ring-slate-200 transition opacity-0 group-hover:opacity-100 hover:text-slate-600"
                         >
-                          <p className={`mb-0.5 text-[10px] font-semibold ${esMio ? "text-white/90" : "text-emerald-600"}`}>
-                            {Number(item.mensajeRespondidoRemitenteId) === Number(usuario?.id) ? tx("Tú") : otraPersona?.nombre}
-                          </p>
-                          <p className="truncate">{item.mensajeRespondidoContenido}</p>
+                          <FaceSmileIcon className="h-4 w-4" />
                         </button>
+
+                        {openReactionPickerId === item.id && (
+                          <div className={`absolute bottom-full mb-1.5 z-20 flex gap-0.5 rounded-full bg-white px-1.5 py-1 shadow-xl ring-1 ring-slate-200 ${
+                            esMio ? "right-0" : "left-0"
+                          }`}>
+                            {EMOJIS_PICKER.map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                title={emoji}
+                                onClick={() => {
+                                  handleToggleReaccion(item.id, emoji);
+                                  setOpenReactionPickerId(null);
+                                }}
+                                className="flex h-7 w-7 items-center justify-center rounded-full text-base leading-none transition hover:scale-125 hover:bg-slate-50"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {item.imagenUrl && (
-                      <a href={API_URL + item.imagenUrl} target="_blank" rel="noopener noreferrer" className="block">
-                        <img
-                          src={API_URL + item.imagenUrl}
-                          alt="imagen"
-                          className="block"
-                          style={{ maxWidth: 260, maxHeight: 280, width: "100%", objectFit: "cover" }}
-                        />
-                      </a>
-                    )}
-
-                    <div className={`px-4 ${item.imagenUrl ? "pt-2 pb-2.5" : "py-2.5"}`}>
-                      {item.contenido?.trim() && (
-                        <p className="whitespace-pre-wrap break-words text-[13.5px] leading-snug">{item.contenido}</p>
-                      )}
-                      <p className={`${item.contenido?.trim() ? "mt-1" : ""} text-right text-[10px] ${esMio ? "text-white/60" : "text-slate-400"}`}>
-                        {formatearHora(item.fechaEnvio, idioma)}
-                        {esMio && (
-                          <span className="ml-1 inline-flex items-center align-middle">
-                            <EstadoMensaje mensaje={item} />
-                          </span>
+                    {/* Bubble + reaction badge overlapping the bottom corner */}
+                    <div className={`relative ${item.reacciones?.length > 0 ? "mb-3" : ""}`}>
+                      <div
+                        className={`overflow-hidden rounded-2xl shadow-sm max-w-full ${
+                          esMio
+                            ? "rounded-br-sm bg-blue-500 text-white"
+                            : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
+                        }`}
+                      >
+                        {item.mensajeRespondidoId && item.mensajeRespondidoContenido && (
+                          <div className="px-4 pt-2.5 pb-0">
+                            <button
+                              type="button"
+                              onClick={() => scrollToMessage(item.mensajeRespondidoId)}
+                              className={`mb-1.5 w-full cursor-pointer rounded-xl border-l-2 px-2.5 py-1.5 text-left text-xs transition ${
+                                esMio
+                                  ? "border-white/50 bg-white/15 hover:bg-white/25 text-white/80"
+                                  : "border-emerald-400 bg-slate-50 hover:bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              <p className={`mb-0.5 text-[10px] font-semibold ${esMio ? "text-white/90" : "text-emerald-600"}`}>
+                                {Number(item.mensajeRespondidoRemitenteId) === Number(usuario?.id) ? tx("Tú") : otraPersona?.nombre}
+                              </p>
+                              <p className="truncate">{item.mensajeRespondidoContenido}</p>
+                            </button>
+                          </div>
                         )}
-                      </p>
+
+                        {item.imagenUrl && (
+                          <button
+                            type="button"
+                            className="block w-full text-left"
+                            onClick={() => setImagenModal(API_URL + item.imagenUrl)}
+                          >
+                            <img
+                              src={API_URL + item.imagenUrl}
+                              alt="imagen"
+                              className="block h-auto w-full"
+                            />
+                          </button>
+                        )}
+
+                        <div className={`px-4 ${item.imagenUrl ? "pt-2 pb-2.5" : "py-2.5"}`}>
+                          {item.contenido?.trim() && (
+                            <p className="whitespace-pre-wrap break-words text-[13.5px] leading-snug">{item.contenido}</p>
+                          )}
+                          <p className={`${item.contenido?.trim() ? "mt-1" : ""} text-right text-[10px] ${esMio ? "text-white/60" : "text-slate-400"}`}>
+                            {formatearHora(item.fechaEnvio, idioma)}
+                            {esMio && (
+                              <span className="ml-1 inline-flex items-center align-middle">
+                                <EstadoMensaje mensaje={item} />
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Reaction badge — overlaps the bottom corner like WhatsApp */}
+                      {item.reacciones?.length > 0 && (
+                        <div className={`absolute bottom-0 z-10 flex gap-0.5 translate-y-1/2 ${esMio ? "right-2" : "left-2"}`}>
+                          {item.reacciones.map((r) => {
+                            const yoReaccione = r.usuarioIds?.includes(Number(usuario?.id));
+                            return (
+                              <button
+                                key={r.emoji}
+                                type="button"
+                                onClick={() => item.id && handleToggleReaccion(item.id, r.emoji)}
+                                className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-sm shadow-md ring-1 transition hover:scale-110 ${
+                                  yoReaccione
+                                    ? "bg-blue-50 ring-blue-200"
+                                    : "bg-white ring-slate-200"
+                                }`}
+                              >
+                                {r.emoji}
+                                {r.count > 1 && (
+                                  <span className="text-[11px] font-medium text-slate-600">{r.count}</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
 

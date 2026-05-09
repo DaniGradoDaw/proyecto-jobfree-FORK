@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jobfree.dto.bloqueo.BloqueoUsuarioDTO;
 import com.jobfree.model.entity.BloqueoUsuario;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.repository.UsuarioRepository;
 import com.jobfree.service.BloqueoUsuarioService;
 
 @RestController
@@ -27,10 +28,13 @@ public class BloqueoUsuarioController {
 
     private final BloqueoUsuarioService bloqueoService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UsuarioRepository usuarioRepository;
 
-    public BloqueoUsuarioController(BloqueoUsuarioService bloqueoService, SimpMessagingTemplate messagingTemplate) {
+    public BloqueoUsuarioController(BloqueoUsuarioService bloqueoService, SimpMessagingTemplate messagingTemplate,
+            UsuarioRepository usuarioRepository) {
         this.bloqueoService = bloqueoService;
         this.messagingTemplate = messagingTemplate;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -55,10 +59,12 @@ public class BloqueoUsuarioController {
     }
 
     private void notificarBloqueo(String tipo, Long destinatarioId, Long bloqueadorId) {
-        Map<String, Object> evento = new HashMap<>();
-        evento.put("tipo", tipo);
-        evento.put("bloqueadorId", bloqueadorId);
-        messagingTemplate.convertAndSendToUser(String.valueOf(destinatarioId), "/queue/conversaciones", evento);
+        usuarioRepository.findById(destinatarioId).ifPresent(destinatario -> {
+            Map<String, Object> evento = new HashMap<>();
+            evento.put("tipo", tipo);
+            evento.put("bloqueadorId", bloqueadorId);
+            messagingTemplate.convertAndSendToUser(destinatario.getEmail(), "/queue/conversaciones", evento);
+        });
     }
 
     @PreAuthorize("isAuthenticated()")

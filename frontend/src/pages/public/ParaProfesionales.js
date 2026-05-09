@@ -14,13 +14,13 @@ function ParaProfesionales() {
       {/* título */}
       <div className="mx-auto max-w-4xl text-center">
         <p className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight text-gray-900">
-          {tx("Unete a JobFree como profesional")}
+          {tx("Únete a JobFree como profesional")}
         </p>
       </div>
 
       {/* descripción */}
       <p className="mx-auto mt-6 max-w-2xl text-center text-base sm:text-lg font-medium text-gray-600 leading-relaxed">
-        {tx("Si ofreces servicios, JobFree te ayuda a conseguir mas clientes, mejorar tu visibilidad e incrementar tus ingresos")}
+        {tx("Si ofreces servicios, JobFree te ayuda a conseguir más clientes, mejorar tu visibilidad e incrementar tus ingresos")}
       </p>
 
       {/* switch mensual/anual */}

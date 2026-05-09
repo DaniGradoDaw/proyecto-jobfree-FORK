@@ -27,6 +27,7 @@ import com.jobfree.dto.mensaje.MensajeBatchUpdateDTO;
 import com.jobfree.dto.mensaje.MensajeCreateDTO;
 import com.jobfree.dto.mensaje.MensajeDTO;
 import com.jobfree.dto.mensaje.MensajePageDTO;
+import com.jobfree.dto.reaccion.ReaccionDTO;
 import com.jobfree.mapper.MensajeMapper;
 import com.jobfree.model.entity.Mensaje;
 import com.jobfree.model.entity.Usuario;
@@ -167,5 +168,18 @@ public class MensajeController {
 	public ResponseEntity<Map<String, Long>> contarNoLeidos() {
 		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return ResponseEntity.ok(Map.of("total", mensajeService.contarNoLeidos(usuario)));
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@PostMapping("/{id}/reacciones")
+	public ResponseEntity<List<ReaccionDTO>> toggleReaccion(
+			@PathVariable Long id,
+			@RequestBody Map<String, String> body) {
+		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String emoji = body.get("emoji");
+		if (emoji == null || emoji.isBlank()) {
+			return ResponseEntity.badRequest().build();
+		}
+		return ResponseEntity.ok(mensajeService.toggleReaccion(id, emoji, usuario));
 	}
 }

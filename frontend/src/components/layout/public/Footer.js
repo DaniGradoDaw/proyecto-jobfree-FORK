@@ -45,7 +45,7 @@ function Footer() {
           {/* columna conocenos */}
           <div className="lg:w-1/4 md:w-1/2 w-full px-4">
             <h2 className="font-semibold text-sm mb-3 tracking-widest">
-              {tx("Conocenos")}
+              {tx("Conócenos")}
             </h2>
 
             <nav className="list-none mb-8 space-y-1">

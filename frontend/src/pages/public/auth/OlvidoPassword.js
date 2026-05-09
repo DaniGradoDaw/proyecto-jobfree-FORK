@@ -40,7 +40,7 @@ function OlvidoPassword() {
       <div className="w-full px-4 pt-6">
         <Link to="/login" className="flex items-center gap-2 text-white/90 hover:text-white transition text-sm">
           <ArrowLeftIcon className="h-4 w-4" />
-          {tx("Volver atras")}
+          {tx("Volver atrás")}
         </Link>
       </div>
 
@@ -60,7 +60,7 @@ function OlvidoPassword() {
 
           {enviado ? (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-4 text-sm text-center">
-              <p>{tx("Si ese correo esta registrado, recibiras un enlace en breve. Revisa también tu carpeta de spam.")}</p>
+              <p>{tx("Si ese correo está registrado, recibirás un enlace en breve. Revisa también tu carpeta de spam.")}</p>
               <Link
                 to="/login"
                 className="mt-4 inline-block text-blue-600 hover:underline text-sm">
