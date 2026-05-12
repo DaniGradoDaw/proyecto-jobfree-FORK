@@ -24,6 +24,7 @@ public class MensajeCreateDTO {
 
 	private Long mensajeRespondidoId;
 
+	@Size(max = 2048, message = "La URL de imagen no puede superar 2048 caracteres")
 	private String imagenUrl;
 
 	public String getContenido() {

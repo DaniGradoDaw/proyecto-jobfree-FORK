@@ -29,6 +29,7 @@ import { useLanguage } from "context/LanguageContext";
 import { useAuth } from "context/AuthContext";
 import logoJobFree from "assets/images/logo.png";
 import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import { obtenerConteoMensajesNoLeidos } from "api/mensajes";
 import { useChatSocket } from "context/ChatSocketContext";
 
@@ -229,15 +230,12 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
 
                 {collapsed ? (
                     <>
-                        {usuario?.fotoUrl ? (
-                            <img
-                                src={usuario.fotoUrl.startsWith("http") ? usuario.fotoUrl : API_URL + usuario.fotoUrl}
-                                alt=""
-                                className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white/40"
-                            />
-                        ) : (
-                            <UserCircleIcon className="w-8 h-8 shrink-0" />
-                        )}
+                        <Avatar
+                            src={usuario?.fotoUrl}
+                            nombre={usuario?.nombre}
+                            className="w-8 h-8 rounded-full shrink-0 ring-2 ring-white/40"
+                            iconFallback
+                        />
                         <button
                             onClick={handleCerrarSesion}
                             className="cursor-pointer hover:text-red-200"
@@ -250,15 +248,12 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 ) : (
                     <>
                         <div className="flex items-center gap-2 overflow-hidden">
-                            {usuario?.fotoUrl ? (
-                                <img
-                                    src={usuario.fotoUrl.startsWith("http") ? usuario.fotoUrl : API_URL + usuario.fotoUrl}
-                                    alt=""
-                                    className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white/40"
-                                />
-                            ) : (
-                                <UserCircleIcon className="w-8 h-8 shrink-0" />
-                            )}
+                            <Avatar
+                                src={usuario?.fotoUrl}
+                                nombre={usuario?.nombre}
+                                className="w-8 h-8 rounded-full shrink-0 ring-2 ring-white/40"
+                                iconFallback
+                            />
                             <span className="text-sm font-medium truncate">
                                 {usuario?.nombreCompleto ?? "..."}
                             </span>

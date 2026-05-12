@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import { useLanguage } from "context/LanguageContext";
 
 const ESTADO_COLORES = {
@@ -32,12 +33,18 @@ function estadoTexto(estado, tx) {
   }
 }
 
-function BadgeEstado({ estado }) {
+function BadgeEstado({ reserva }) {
   const { tx } = useLanguage();
+  const estado = reserva.estado;
   const color = ESTADO_COLORES[estado] ?? "bg-slate-100 text-slate-600 ring-slate-200";
+  const label = estado === "CONFIRMADA" && reserva.estadoPago === "PAGADO"
+    ? tx("Pagada")
+    : estado === "CONFIRMADA"
+      ? tx("Pendiente de pago")
+      : estadoTexto(estado, tx);
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${color}`}>
-      {estadoTexto(estado, tx)}
+      {label}
     </span>
   );
 }
@@ -160,16 +167,9 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
   const { idioma, tx } = useLanguage();
   const [accionando, setAccionando] = useState(false);
 
-  const foto = reserva.clienteFotoUrl
-    ? reserva.clienteFotoUrl.startsWith("http")
-      ? reserva.clienteFotoUrl
-      : API_URL + reserva.clienteFotoUrl
-    : null;
-
-  const iniciales = (reserva.clienteNombre ?? "?")
-    .split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
 
   const locale = idioma === "en" ? "en-GB" : "es-ES";
+  const pagada = reserva.estadoPago === "PAGADO";
 
   async function ejecutar(fn) {
     setAccionando(true);
@@ -201,19 +201,19 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
       <div className="flex flex-col gap-4 px-5 pb-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {foto ? (
-              <img src={foto} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-white shadow" />
-            ) : (
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white">
-                {iniciales}
-              </span>
-            )}
+            <Avatar
+              src={reserva.clienteFotoUrl}
+              nombre={reserva.clienteNombre}
+              className="h-10 w-10 rounded-full ring-2 ring-white shadow"
+              bgClass="bg-slate-800"
+              textClass="text-sm font-bold text-white"
+            />
             <div>
               <p className="text-sm font-semibold text-slate-900">{reserva.clienteNombre}</p>
               <p className="text-xs text-slate-500">{reserva.servicioTitulo}</p>
             </div>
           </div>
-          <BadgeEstado estado={reserva.estado} />
+          <BadgeEstado reserva={reserva} />
         </div>
 
         {reserva.descripcion ? (
@@ -237,9 +237,15 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
           </span>
         </div>
 
-        {/* Panel de progreso — solo para CONFIRMADA */}
-        {reserva.estado === "CONFIRMADA" && (
+        {/* Panel de progreso — solo para reservas aceptadas y pagadas */}
+        {reserva.estado === "CONFIRMADA" && pagada && (
           <PanelProgreso reserva={reserva} onActualizar={onActualizar} />
+        )}
+
+        {reserva.estado === "CONFIRMADA" && !pagada && (
+          <div className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-xs text-sky-700">
+            {tx("Esperando el pago del cliente para iniciar el servicio.")}
+          </div>
         )}
 
         {/* Barra de progreso compacta para COMPLETADA */}
@@ -275,7 +281,7 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
             </>
           )}
 
-          {reserva.estado === "CONFIRMADA" && (
+          {reserva.estado === "CONFIRMADA" && pagada && (
             <button
               onClick={() => ejecutar(completarReserva)}
               disabled={accionando}
@@ -321,7 +327,8 @@ function MisSolicitudes() {
   const estados = ["todas", "PENDIENTE", "CONFIRMADA", "COMPLETADA", "CANCELADA"];
   const reservasFiltradas = filtro === "todas" ? reservas : reservas.filter((r) => r.estado === filtro);
   const pendientesCount = reservas.filter((r) => r.estado === "PENDIENTE").length;
-  const confirmadas = reservas.filter((r) => r.estado === "CONFIRMADA").length;
+  const pagadasEnCurso = reservas.filter((r) => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length;
+  const pendientesPago = reservas.filter((r) => r.estado === "CONFIRMADA" && r.estadoPago !== "PAGADO").length;
 
   if (loading) {
     return (
@@ -348,9 +355,14 @@ function MisSolicitudes() {
             {pendientesCount} {pendientesCount > 1 ? tx("pendientes") : tx("pendiente")}
           </span>
         )}
-        {confirmadas > 0 && (
+        {pendientesPago > 0 && (
+          <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+            {pendientesPago} {tx("pendientes de pago")}
+          </span>
+        )}
+        {pagadasEnCurso > 0 && (
           <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-            {confirmadas} {tx("en curso")}
+            {pagadasEnCurso} {tx("en curso")}
           </span>
         )}
       </div>

@@ -107,6 +107,7 @@ public class PasswordResetService {
     }
 
     private String construirHtml(String nombre, String enlace) {
+        int anio = java.time.Year.now().getValue();
         return """
                 <!DOCTYPE html>
                 <html lang="es">
@@ -117,7 +118,7 @@ public class PasswordResetService {
                       <h1 style="color:#fff;margin:0;font-size:24px">JobFree</h1>
                     </div>
                     <div style="padding:32px">
-                      <h2 style="color:#1f2937;margin-top:0">Hola, %s 👋</h2>
+                      <h2 style="color:#1f2937;margin-top:0">Hola, %s</h2>
                       <p style="color:#6b7280">Recibimos una solicitud para restablecer tu contraseña.</p>
                       <p style="color:#6b7280">Haz clic en el botón para crear una nueva. El enlace es válido durante <strong>%d minutos</strong>.</p>
                       <div style="text-align:center;margin:32px 0">
@@ -129,11 +130,11 @@ public class PasswordResetService {
                       <p style="color:#9ca3af;font-size:13px">Si no solicitaste este cambio, ignora este correo. Tu contraseña no cambiará.</p>
                     </div>
                     <div style="background:#f9fafb;padding:16px;text-align:center">
-                      <p style="color:#d1d5db;font-size:12px;margin:0">© 2024 JobFree · Todos los derechos reservados</p>
+                      <p style="color:#d1d5db;font-size:12px;margin:0">© %d JobFree · Todos los derechos reservados</p>
                     </div>
                   </div>
                 </body>
                 </html>
-                """.formatted(nombre, expiracionMinutos, enlace);
+                """.formatted(nombre, expiracionMinutos, enlace, anio);
     }
 }

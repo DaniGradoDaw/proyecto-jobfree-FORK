@@ -4,7 +4,7 @@ import { ArrowPathIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/o
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { obtenerMisReservas } from "api/reservas";
 import { obtenerMisValoraciones } from "api/valoraciones";
-import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import { useLanguage } from "context/LanguageContext";
 
 function Estrellas({ n, total = 5, size = "h-4 w-4" }) {
@@ -17,19 +17,6 @@ function Estrellas({ n, total = 5, size = "h-4 w-4" }) {
   );
 }
 
-function Avatar({ fotoUrl, nombre, size = "h-10 w-10" }) {
-  const inicial = (nombre || "?").slice(0, 1).toUpperCase();
-  const src = fotoUrl
-    ? fotoUrl.startsWith("http") ? fotoUrl : API_URL + fotoUrl
-    : null;
-  return src ? (
-    <img src={src} alt="" className={`${size} shrink-0 rounded-full object-cover ring-2 ring-white`} />
-  ) : (
-    <div className={`${size} shrink-0 flex items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white ring-2 ring-white`}>
-      {inicial}
-    </div>
-  );
-}
 
 function MisResenas() {
   const { idioma, tx } = useLanguage();
@@ -95,19 +82,15 @@ function MisResenas() {
           <h2 className="mb-3 text-sm font-semibold text-slate-700">{tx("Pendientes de valorar")}</h2>
           <div className="space-y-2">
             {pendientes.map((r) => {
-              const fotoSrc = r.profesionalFotoUrl
-                ? r.profesionalFotoUrl.startsWith("http") ? r.profesionalFotoUrl : API_URL + r.profesionalFotoUrl
-                : null;
-              const inicial = (r.profesionalNombre || "?").slice(0, 1).toUpperCase();
               return (
                 <div key={r.id} className="flex items-center gap-3 rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 p-4">
-                  {fotoSrc ? (
-                    <img src={fotoSrc} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-                  ) : (
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
-                      {inicial}
-                    </div>
-                  )}
+                  <Avatar
+                    src={r.profesionalFotoUrl}
+                    nombre={r.profesionalNombre}
+                    className="h-9 w-9 shrink-0 rounded-full"
+                    bgClass="bg-slate-700"
+                    textClass="text-xs font-bold text-white"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-800">{r.servicioTitulo}</p>
                     <p className="truncate text-xs text-slate-500">{r.profesionalNombre}</p>
@@ -143,16 +126,19 @@ function MisResenas() {
         <div className="space-y-3">
           {valoraciones.map((valoracion) => {
             const reserva = reservasPorId.get(valoracion.reservaId);
-            const fotoSrc = reserva?.profesionalFotoUrl
-              ? reserva.profesionalFotoUrl.startsWith("http") ? reserva.profesionalFotoUrl : API_URL + reserva.profesionalFotoUrl
-              : null;
             const nombreProf = reserva?.profesionalNombre || tx("Profesional");
 
             return (
               <article key={valoracion.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 {/* Cabecera: avatar + info + estrellas */}
                 <div className="flex items-center gap-3">
-                  <Avatar fotoUrl={reserva?.profesionalFotoUrl} nombre={nombreProf} />
+                  <Avatar
+                    src={reserva?.profesionalFotoUrl}
+                    nombre={nombreProf}
+                    className="h-10 w-10 shrink-0 rounded-full ring-2 ring-white"
+                    bgClass="bg-slate-700"
+                    textClass="text-xs font-bold text-white"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-slate-900 leading-tight">
                       {reserva?.servicioTitulo || tx("Servicio completado")}

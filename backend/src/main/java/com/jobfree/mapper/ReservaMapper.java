@@ -17,6 +17,7 @@ public class ReservaMapper {
 		dto.setFechaCreacion(r.getFechaCreacion());
 		dto.setPrecioTotal(r.getPrecioTotal());
 		dto.setEstado(r.getEstado());
+		dto.setEstadoPago(r.getPago() != null ? r.getPago().getEstado() : null);
 		dto.setDescripcion(r.getDescripcion());
 
 		Usuario cliente = r.getCliente();

@@ -3,6 +3,7 @@ package com.jobfree.dto.reserva;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.jobfree.model.enums.EstadoPago;
 import com.jobfree.model.enums.EstadoReserva;
 
 public class ReservaDTO {
@@ -12,6 +13,7 @@ public class ReservaDTO {
 	private LocalDateTime fechaCreacion;
 	private BigDecimal precioTotal;
 	private EstadoReserva estado;
+	private EstadoPago estadoPago;
 	private String descripcion;
 
 	private Long clienteId;
@@ -50,6 +52,9 @@ public class ReservaDTO {
 
 	public EstadoReserva getEstado() { return estado; }
 	public void setEstado(EstadoReserva estado) { this.estado = estado; }
+
+	public EstadoPago getEstadoPago() { return estadoPago; }
+	public void setEstadoPago(EstadoPago estadoPago) { this.estadoPago = estadoPago; }
 
 	public String getDescripcion() { return descripcion; }
 	public void setDescripcion(String descripcion) { this.descripcion = descripcion; }

@@ -13,6 +13,7 @@ import { useAuth } from "context/AuthContext";
 import { useTheme } from "context/ThemeContext";
 import { obtenerTodasSubcategorias } from "api/subcategorias";
 import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import { obtenerMisNotificaciones, marcarNotificacionComoLeida } from "api/notificaciones";
 import { useChatSocket } from "context/ChatSocketContext";
 
@@ -352,15 +353,12 @@ function Topbar({ setOpen, collapsed = false }) {
           <button
             onClick={() => { setUserMenuOpen(v => !v); setBellOpen(false); }}
             className={`transition ${clsIcono}`}>
-            {usuario?.fotoUrl ? (
-              <img
-                src={usuario.fotoUrl.startsWith("http") ? usuario.fotoUrl : API_URL + usuario.fotoUrl}
-                alt=""
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-white/30"
-              />
-            ) : (
-              <UserCircleIcon className="w-9 h-9" />
-            )}
+            <Avatar
+              src={usuario?.fotoUrl}
+              nombre={usuario?.nombre}
+              className="w-9 h-9 rounded-full ring-2 ring-white/30"
+              iconFallback
+            />
           </button>
 
           {userMenuOpen && (

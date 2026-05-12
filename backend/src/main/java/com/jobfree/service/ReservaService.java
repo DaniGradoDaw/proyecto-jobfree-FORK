@@ -15,6 +15,7 @@ import com.jobfree.exception.reserva.ReservaNotFoundException;
 import com.jobfree.model.entity.Reserva;
 import com.jobfree.model.entity.ServicioOfrecido;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.enums.EstadoPago;
 import com.jobfree.model.enums.EstadoReserva;
 import com.jobfree.repository.ReservaRepository;
 
@@ -39,7 +40,7 @@ public class ReservaService {
 	}
 
 	public List<Reserva> listarReservas() {
-		return reservaRepository.findAll();
+		return reservaRepository.findAllWithDetails();
 	}
 
 	public Reserva obtenerPorId(Long id) {
@@ -198,6 +199,10 @@ public class ReservaService {
 			throw new ReservaInvalidaException("Solo se pueden completar reservas confirmadas");
 		}
 
+		if (reserva.getPago() == null || reserva.getPago().getEstado() != EstadoPago.PAGADO) {
+			throw new ReservaInvalidaException("Solo se pueden completar reservas pagadas");
+		}
+
 		reserva.setProgreso(100);
 		reserva.setEstado(EstadoReserva.COMPLETADA);
 		Reserva guardada = reservaRepository.save(reserva);
@@ -214,6 +219,9 @@ public class ReservaService {
 	public Reserva completarReservaAdmin(Reserva reserva) {
 		if (reserva.getEstado() != EstadoReserva.CONFIRMADA) {
 			throw new ReservaInvalidaException("Solo se pueden completar reservas confirmadas");
+		}
+		if (reserva.getPago() == null || reserva.getPago().getEstado() != EstadoPago.PAGADO) {
+			throw new ReservaInvalidaException("Solo se pueden completar reservas pagadas");
 		}
 		reserva.setEstado(EstadoReserva.COMPLETADA);
 		Reserva guardada = reservaRepository.save(reserva);

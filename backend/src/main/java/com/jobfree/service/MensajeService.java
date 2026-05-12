@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 
 import com.jobfree.dto.conversacion.ConversacionDTO;
@@ -51,16 +53,19 @@ public class MensajeService {
 	private final ConversacionService conversacionService;
 	private final ChatRealtimePublisher chatRealtimePublisher;
 	private final BloqueoUsuarioRepository bloqueoRepository;
+	private final SimpUserRegistry simpUserRegistry;
 
 	public MensajeService(MensajeRepository mensajeRepository, MensajeReaccionRepository mensajeReaccionRepository,
 			UsuarioService usuarioService, ConversacionService conversacionService,
-			ChatRealtimePublisher chatRealtimePublisher, BloqueoUsuarioRepository bloqueoRepository) {
+			ChatRealtimePublisher chatRealtimePublisher, BloqueoUsuarioRepository bloqueoRepository,
+			@Lazy SimpUserRegistry simpUserRegistry) {
 		this.mensajeRepository = mensajeRepository;
 		this.mensajeReaccionRepository = mensajeReaccionRepository;
 		this.usuarioService = usuarioService;
 		this.conversacionService = conversacionService;
 		this.chatRealtimePublisher = chatRealtimePublisher;
 		this.bloqueoRepository = bloqueoRepository;
+		this.simpUserRegistry = simpUserRegistry;
 	}
 
 	/**
@@ -176,6 +181,13 @@ public class MensajeService {
 		if (dto.getMensajeRespondidoId() != null) {
 			mensajeRepository.findByIdAndConversacionId(dto.getMensajeRespondidoId(), conversacion.getId())
 					.ifPresent(mensaje::setMensajeRespondido);
+		}
+
+		// Si el destinatario tiene sesión WebSocket activa, marcar recibido de inmediato
+		// para que el remitente vea ✓✓ sin esperar a que el destinatario abra la página
+		boolean destinatarioConectado = simpUserRegistry.getUser(destinatario.getEmail()) != null;
+		if (destinatarioConectado) {
+			mensaje.setRecibido(true);
 		}
 
 		Mensaje guardado = mensajeRepository.save(mensaje);

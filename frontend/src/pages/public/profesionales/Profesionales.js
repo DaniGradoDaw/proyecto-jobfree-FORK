@@ -15,6 +15,9 @@ import {
   MagnifyingGlassIcon,
   ArrowPathIcon,
   HeartIcon,
+  TagIcon,
+  BoltIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid, StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { useLanguage } from "context/LanguageContext";
@@ -22,10 +25,11 @@ import { useAuth } from "context/AuthContext";
 import { useGeolocalizacion } from "hooks/useGeolocalizacion";
 import { anadirFavorito, eliminarFavorito, obtenerMisFavoritos } from "api/favoritos";
 import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import "leaflet/dist/leaflet.css";
 import { Circle, CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
 
-const ITEMS_POR_PAGINA = 8;
+const ITEMS_POR_PAGINA = 4;
 const MAPA_ESPANA_CENTRO = [40.4168, -3.7038];
 const MAPA_ESPANA_ZOOM = 6;
 // Pasos discretos del slider: null = Toda España (sin filtro de distancia)
@@ -73,10 +77,15 @@ async function buscarUbicacionEnEspana(texto) {
   }
 
   const primerResultado = resultados[0];
+  const address = primerResultado.address || {};
+  const municipio =
+    address.city || address.town || address.village ||
+    address.municipality || address.county ||
+    primerResultado.display_name;
   return {
     latitud: Number(primerResultado.lat),
     longitud: Number(primerResultado.lon),
-    etiqueta: primerResultado.display_name,
+    etiqueta: municipio,
   };
 }
 
@@ -160,7 +169,12 @@ async function obtenerDireccionDesdeCoordenadas(latitud, longitud) {
   }
 
   const data = await res.json();
-  return data.display_name || "Ubicación actual detectada";
+  const address = data.address || {};
+  return (
+    address.city || address.town || address.village ||
+    address.municipality || address.county ||
+    data.display_name || "Ubicación actual detectada"
+  );
 }
 
 function RecentrarMapa({ center, zoom }) {
@@ -198,21 +212,6 @@ function AjustarVistaMapa({ center, distanciaKm }) {
   return null;
 }
 
-// ── Estrellas ─────────────────────────────────────────────────
-function Estrellas({ valor, max = 5 }) {
-  const redondeado = Math.round((valor ?? 0) * 2) / 2;
-  return (
-    <span className="flex items-center gap-0.5">
-      {Array.from({ length: max }).map((_, i) => (
-        <StarSolid
-          key={i}
-          className={`h-3.5 w-3.5 ${i < redondeado ? "text-amber-400" : "text-slate-200"}`}
-        />
-      ))}
-    </span>
-  );
-}
-
 // ── Skeleton ──────────────────────────────────────────────────
 function SkeletonCard() {
   return (
@@ -245,12 +244,6 @@ function SkeletonCard() {
 function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorito, puedeFavorito, onVerPerfil }) {
   const { tx } = useLanguage();
 
-  const foto = servicio.fotoUrlProfesional
-    ? servicio.fotoUrlProfesional.startsWith("http")
-      ? servicio.fotoUrlProfesional
-      : API_URL + servicio.fotoUrlProfesional
-    : null;
-
   const iniciales = (servicio.nombreProfesional ?? "?")
     .split(" ")
     .slice(0, 2)
@@ -262,98 +255,100 @@ function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorit
     servicio.duracionMin >= 60
       ? `${Math.floor(servicio.duracionMin / 60)}h${servicio.duracionMin % 60 > 0 ? ` ${servicio.duracionMin % 60}min` : ""}`
       : `${servicio.duracionMin} min`;
+  const precioHora = Number(servicio.precioHora);
+  const precioTexto = Number.isFinite(precioHora) ? precioHora.toFixed(0) : "-";
+  const tieneValoracion = Number(servicio.valoracionMedia) > 0;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      {/* Cabecera: avatar + profesional + favorito */}
-      <div className="flex items-start gap-3 px-5 pt-5 pb-4">
-        {foto ? (
-          <img src={foto} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
-        ) : (
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white">
-            {iniciales}
-          </span>
-        )}
+    <article className="group flex flex-col overflow-hidden rounded-lg border border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-md">
 
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-900">{servicio.nombreProfesional}</p>
-          <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
-            <MapPinIcon className="h-3 w-3 shrink-0" />
+      {/* Cabecera: avatar + nombre + favorito */}
+      <div className="flex items-start gap-4 px-5 pb-3 pt-5">
+        <div className="relative shrink-0">
+          <Avatar
+            src={servicio.fotoUrlProfesional}
+            nombre={servicio.nombreProfesional}
+            className="h-14 w-14 rounded-full ring-4 ring-slate-100"
+            bgClass="bg-teal-600 shadow-sm ring-4 ring-teal-50"
+            textClass="text-base font-extrabold text-white"
+          />
+        </div>
+
+        <div className="min-w-0 flex-1 pt-1">
+          <p className="truncate text-base font-bold leading-tight text-slate-950">
+            {servicio.nombreProfesional}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
+            <MapPinIcon className="h-4 w-4 shrink-0 text-slate-400" />
             {servicio.ciudadProfesional || tx("Zona no indicada")}
-          </span>
-          {servicio.valoracionMedia ? (
-            <span className="mt-1 flex items-center gap-1">
-              <StarSolid className="h-3 w-3 text-amber-400" />
-              <span className="text-xs font-semibold text-slate-700">{Number(servicio.valoracionMedia).toFixed(1)}</span>
-              {servicio.numeroValoraciones > 0 && (
-                <span className="text-xs text-slate-400">· {servicio.numeroValoraciones} {tx("opiniones")}</span>
-              )}
-            </span>
-          ) : (
-            <span className="mt-1 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-              {tx("Nuevo")}
-            </span>
-          )}
+          </p>
         </div>
 
         {puedeFavorito && (
           <button
             type="button"
             onClick={() => onToggleFavorito(servicio)}
-            className={`shrink-0 rounded-lg p-1.5 transition ${
+            aria-label={esFavorito ? tx("Quitar de favoritos") : tx("Guardar en favoritos")}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition duration-150 active:scale-95 ${
               esFavorito
-                ? "text-rose-500 hover:bg-rose-50"
-                : "text-slate-300 hover:text-rose-400 hover:bg-rose-50"
+                ? "border-rose-200 bg-rose-50 text-rose-500 shadow-sm"
+                : "border-slate-200 bg-white text-slate-300 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-400"
             }`}
-            aria-label={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
           >
             {esFavorito ? <HeartSolid className="h-4 w-4" /> : <HeartIcon className="h-4 w-4" />}
           </button>
         )}
       </div>
 
-      {/* Separador */}
-      <div className="mx-5 h-px bg-slate-100" />
-
-      {/* Cuerpo: servicio */}
-      <div className="flex flex-1 flex-col px-5 py-4">
-        <h3 className="mb-1 text-[14px] font-semibold text-slate-900 leading-snug">
-          {tx(servicio.titulo)}
-        </h3>
-        <p className="line-clamp-2 flex-1 text-xs leading-relaxed text-slate-500">
-          {tx(servicio.descripcion)}
-        </p>
-
-        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
-          <ClockIcon className="h-3.5 w-3.5 shrink-0" />
-          <span>{duracionFormateada}</span>
-          <span className="mx-1 text-slate-200">·</span>
-          <Estrellas valor={servicio.valoracionMedia} />
+      {/* Info compacta */}
+      <div className="flex-1 space-y-2.5 px-5 pb-4">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <StarSolid className="h-[18px] w-[18px] shrink-0 text-amber-400" />
+          {tieneValoracion ? (
+            <span>
+              <span className="font-bold text-slate-900">{Number(servicio.valoracionMedia).toFixed(1)}</span>
+              {servicio.numeroValoraciones > 0 && (
+                <span className="text-slate-400"> · {servicio.numeroValoraciones} {tx("opiniones")}</span>
+              )}
+            </span>
+          ) : (
+            <span className="text-slate-400">{tx("Sin valoraciones aún")}</span>
+          )}
         </div>
+
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <TagIcon className="h-[18px] w-[18px] shrink-0 text-slate-400" />
+          <span>{tx("Desde")} <span className="font-bold text-slate-950">{precioTexto}€</span>/{tx("hora")}</span>
+        </div>
+
+        <div className="flex items-start gap-2 text-sm text-slate-600">
+          <BoltIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-slate-400" />
+          <span className="line-clamp-2 leading-snug">{servicio.titulo}</span>
+        </div>
+
+        {servicio.duracionMin > 0 && (
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <ClockIcon className="h-[18px] w-[18px] shrink-0 text-slate-400" />
+            <span>{duracionFormateada}</span>
+          </div>
+        )}
       </div>
 
-      {/* Pie: precio + acciones */}
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5">
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-slate-400">{tx("Desde")}</p>
-          <p className="text-lg font-bold leading-tight text-slate-900">
-            {Number(servicio.precioHora).toFixed(0)}€
-            <span className="text-xs font-normal text-slate-400">/{tx("hora")}</span>
-          </p>
-        </div>
+      <div className="border-t border-teal-100/70 bg-white/55 px-5 py-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => onVerPerfil(servicio)}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:border-slate-300"
+            className="h-8 flex-1 rounded-md border border-sky-200 bg-sky-100 px-2.5 text-xs font-semibold text-sky-900 transition hover:border-sky-300 hover:bg-sky-200"
           >
             {tx("Ver perfil")}
           </button>
           <button
             type="button"
             onClick={() => onContratar(servicio)}
-            className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600 active:scale-95"
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-sky-200 bg-sky-100 px-2.5 text-xs font-bold text-sky-900 transition hover:border-sky-300 hover:bg-sky-200"
           >
+            <ChatBubbleLeftRightIcon className="h-3.5 w-3.5 shrink-0" />
             {tx("Contactar")}
           </button>
         </div>
@@ -894,56 +889,33 @@ function Paginacion({ pagina, totalPaginas, onChange }) {
   const { tx } = useLanguage();
   if (totalPaginas <= 1) return null;
 
-  const rango = Array.from({ length: totalPaginas }, (_, i) => i).filter(
-    (i) => Math.abs(i - pagina) <= 2
-  );
-
   return (
-    <nav className="mt-8 flex items-center justify-center gap-1.5" aria-label="Paginación">
+    <div className="flex items-center justify-center gap-8 mt-10">
+
       <button
         onClick={() => onChange(pagina - 1)}
         disabled={pagina === 0}
-        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition"
       >
-        ← {tx("Anterior")}
+        ←
       </button>
 
-      {rango[0] > 0 && (
-        <>
-          <button onClick={() => onChange(0)} className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50">1</button>
-          {rango[0] > 1 && <span className="px-1 text-slate-300">…</span>}
-        </>
-      )}
-
-      {rango.map((i) => (
-        <button
-          key={i}
-          onClick={() => onChange(i)}
-          className={`h-9 w-9 rounded-xl text-sm font-medium transition ${
-            i === pagina
-              ? "bg-slate-900 text-white shadow-sm"
-              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          {i + 1}
-        </button>
-      ))}
-
-      {rango[rango.length - 1] < totalPaginas - 1 && (
-        <>
-          {rango[rango.length - 1] < totalPaginas - 2 && <span className="px-1 text-slate-300">…</span>}
-          <button onClick={() => onChange(totalPaginas - 1)} className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50">{totalPaginas}</button>
-        </>
-      )}
+      <p className="text-slate-600 text-sm">
+        {tx("Página")}{" "}
+        <strong className="text-slate-800">{pagina + 1}</strong>{" "}
+        {tx("de")}{" "}
+        <strong className="text-slate-800">{totalPaginas}</strong>
+      </p>
 
       <button
         onClick={() => onChange(pagina + 1)}
         disabled={pagina >= totalPaginas - 1}
-        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition"
       >
-        {tx("Siguiente")} →
+        →
       </button>
-    </nav>
+
+    </div>
   );
 }
 
@@ -1341,7 +1313,7 @@ function Profesionales() {
     precioMin !== "" && { key: "pmin",  label: `${tx("Desde")} ${precioMin}€`,       remove: () => setPrecioMin("") },
     precioMax !== "" && { key: "pmax",  label: `${tx("Hasta")} ${precioMax}€`,       remove: () => setPrecioMax("") },
     valoracionMin > 0 && { key: "val", label: `${valoracionMin}+ ⭐`,                remove: () => setValoracionMin(0) },
-    distanciaMax > 0 && { key: "dist", label: `${tx("Hasta")} ${distanciaMax} km`,  remove: () => setDistanciaMax(0) },
+    distanciaMax > 0 && { key: "dist", label: `${tx("Hasta")} ${distanciaMax} km${coordenadasBusqueda?.etiqueta ? ` · ${coordenadasBusqueda.etiqueta}` : ""}`, remove: () => setDistanciaMax(0) },
   ].filter(Boolean);
 
   const filtrosProps = {

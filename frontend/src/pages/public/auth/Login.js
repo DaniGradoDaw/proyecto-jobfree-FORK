@@ -34,11 +34,14 @@ function Login() {
 
   const registradoExitoso = searchParams.get("registrado") === "true";
 
-  const [email, setEmail] = useState(searchParams.get("email") || "");
+  const [email, setEmail] = useState(
+    searchParams.get("email") || localStorage.getItem("jf_email_recordado") || ""
+  );
   const [password, setPassword] = useState("");
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [recordar, setRecordar] = useState(!!localStorage.getItem("jf_email_recordado"));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,6 +50,12 @@ function Login() {
     setCargando(true);
 
     try {
+      if (recordar) {
+        localStorage.setItem("jf_email_recordado", email);
+      } else {
+        localStorage.removeItem("jf_email_recordado");
+      }
+
       const usuario = await iniciarSesion(email, password);
 
       const pendingRaw = sessionStorage.getItem("pendingAction");
@@ -112,17 +121,33 @@ function Login() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 {tx("Email")}
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="jobfree@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white border border-gray-300 rounded-full py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="jobfree@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-full py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                {recordar && email && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem("jf_email_recordado");
+                      setRecordar(false);
+                      setEmail("");
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none"
+                    title={tx("Borrar email recordado")}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="mb-4">
@@ -158,7 +183,14 @@ function Login() {
             </div>
 
             <label htmlFor="recordar" className="flex items-center gap-2 py-2">
-              <input id="recordar" name="recordar" type="checkbox" className="accent-blue-600" />
+              <input
+                id="recordar"
+                name="recordar"
+                type="checkbox"
+                className="accent-blue-600"
+                checked={recordar}
+                onChange={(e) => setRecordar(e.target.checked)}
+              />
               {tx("Recordar datos")}
             </label>
 

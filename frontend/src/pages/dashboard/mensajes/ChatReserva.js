@@ -39,12 +39,29 @@ function formatearHora(fecha, idioma) {
 
 function EstadoMensaje({ mensaje }) {
   if (mensaje.leido) {
-    return <span className="font-bold text-white">✓✓</span>;
+    // ✓✓ azul claro = leído (destinatario entró al chat)
+    return (
+      <svg viewBox="0 0 17 9" className="inline-block h-[10px] w-auto text-sky-200" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M1 4.5 L4 8 L11 1"/>
+        <path d="M6 4.5 L9 8 L16 1"/>
+      </svg>
+    );
   }
   if (mensaje.recibido) {
-    return <span className="font-semibold text-white/75">✓✓</span>;
+    // ✓✓ gris = destinatario conectado pero no ha abierto el chat
+    return (
+      <svg viewBox="0 0 17 9" className="inline-block h-[10px] w-auto text-white/60" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M1 4.5 L4 8 L11 1"/>
+        <path d="M6 4.5 L9 8 L16 1"/>
+      </svg>
+    );
   }
-  return <span className="text-white/40">✓</span>;
+  // ✓ tenue = enviado, destinatario offline
+  return (
+    <svg viewBox="0 0 11 9" className="inline-block h-[10px] w-auto text-white/45" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1 4.5 L4 8 L10 1"/>
+    </svg>
+  );
 }
 
 function generarIniciales(nombre) {
@@ -741,6 +758,7 @@ function ChatReserva() {
       const actualizada = await silenciarConversacion(conversacion.id, silenciada ? null : "siempre");
       const nuevoEstado = actualizada.silenciada ?? false;
       setSilenciada(nuevoEstado);
+      setConversacion((prev) => prev ? { ...prev, silenciada: nuevoEstado } : prev);
       window.dispatchEvent(new CustomEvent("chat:header:silenciada", {
         detail: { id: conversacion.id, silenciada: nuevoEstado },
       }));

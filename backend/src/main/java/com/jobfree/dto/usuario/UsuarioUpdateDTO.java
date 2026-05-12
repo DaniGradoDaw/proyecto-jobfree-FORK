@@ -3,21 +3,21 @@ package com.jobfree.dto.usuario;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO para actualizar los datos de un usuario.
- */
 public class UsuarioUpdateDTO {
 
 	private String nombre;
 
 	private String apellidos;
 
-	// Permite cadena vacía (sin cambio) o teléfono con prefijo internacional
 	@Pattern(regexp = "^$|^\\+?[\\d\\s\\-]{6,20}$", message = "Teléfono no válido")
 	private String telefono;
 
-	// Null = no cambiar contraseña; si se envía debe tener 8+ caracteres
+	// Null = no cambiar contraseña
 	@Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
+	@Pattern(
+		regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+		message = "La contraseña debe contener al menos una mayúscula, una minúscula y un número"
+	)
 	private String password;
 
 	private String direccion;

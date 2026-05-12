@@ -14,6 +14,8 @@ import com.jobfree.exception.pago.PagoInvalidoException;
 import com.jobfree.exception.pago.PagoNotFoundException;
 import com.jobfree.exception.profesional.ProfesionalInvalidoException;
 import com.jobfree.exception.profesional.ProfesionalNotFoundException;
+import com.jobfree.exception.resena.ResenaInvalidaException;
+import com.jobfree.exception.resena.ResenaNotFoundException;
 import com.jobfree.exception.reserva.ReservaInvalidaException;
 import com.jobfree.exception.reserva.ReservaNotFoundException;
 import com.jobfree.exception.servicio.ServicioInvalidoException;
@@ -83,7 +85,8 @@ public class GlobalExceptionHandler {
         MensajeNotFoundException.class,
         NotificacionNotFoundException.class,
         ValoracionNotFoundException.class,
-        ConversacionNotFoundException.class
+        ConversacionNotFoundException.class,
+        ResenaNotFoundException.class
     })
     public ResponseEntity<ApiError> handleNotFound(RuntimeException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req);
@@ -93,6 +96,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
         PagoInvalidoException.class,
         ProfesionalInvalidoException.class,
+        ResenaInvalidaException.class,
         ReservaInvalidaException.class,
         ServicioInvalidoException.class,
         ValoracionInvalidaException.class,

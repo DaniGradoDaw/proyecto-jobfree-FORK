@@ -13,6 +13,7 @@ import com.jobfree.exception.pago.PagoNotFoundException;
 import com.jobfree.model.entity.Pago;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.EstadoPago;
+import com.jobfree.model.enums.EstadoReserva;
 import com.jobfree.model.enums.MetodoPago;
 import com.jobfree.model.enums.Rol;
 import com.jobfree.repository.PagoRepository;
@@ -82,6 +83,9 @@ public class PagoService {
 		}
 		if (pago.getImporte() == null || pago.getImporte().compareTo(BigDecimal.ZERO) <= 0) {
 			throw new PagoInvalidoException("El importe debe ser mayor que 0");
+		}
+		if (pago.getReserva().getEstado() != EstadoReserva.CONFIRMADA) {
+			throw new PagoInvalidoException("Solo se pueden pagar reservas aceptadas por el profesional");
 		}
 		if (pagoRepository.findByReservaId(pago.getReserva().getId()).isPresent()) {
 			throw new PagoInvalidoException("La reserva ya tiene un pago asociado");

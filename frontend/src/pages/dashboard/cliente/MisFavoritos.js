@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, TrashIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon, HeartIcon } from "@heroicons/react/24/solid";
 import { eliminarFavorito, obtenerMisFavoritos } from "api/favoritos";
 import API_URL from "api/config";
+import Avatar from "components/Avatar";
 import { useLanguage } from "context/LanguageContext";
+
+const ITEMS_POR_PAGINA = 6;
 
 function MisFavoritos() {
   const { tx } = useLanguage();
   const [favoritos, setFavoritos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [confirmId, setConfirmId] = useState(null);
+  const [pagina, setPagina] = useState(0);
 
   useEffect(() => {
     obtenerMisFavoritos()
@@ -21,13 +27,24 @@ function MisFavoritos() {
   }, []);
 
   async function quitar(servicioId) {
+    setDeleteError("");
     try {
       await eliminarFavorito(servicioId);
-      setFavoritos((prev) => prev.filter((item) => item.servicio.id !== servicioId));
+      setFavoritos((prev) => {
+        const nuevos = prev.filter((item) => item.servicio.id !== servicioId);
+        const totalPaginas = Math.ceil(nuevos.length / ITEMS_POR_PAGINA);
+        setPagina((p) => Math.min(p, Math.max(0, totalPaginas - 1)));
+        return nuevos;
+      });
     } catch (err) {
-      alert(err.message || tx("No se pudo eliminar el favorito."));
+      setDeleteError(err.message || tx("No se pudo eliminar el favorito."));
+    } finally {
+      setConfirmId(null);
     }
   }
+
+  const totalPaginas = Math.ceil(favoritos.length / ITEMS_POR_PAGINA);
+  const favoritosPagina = favoritos.slice(pagina * ITEMS_POR_PAGINA, (pagina + 1) * ITEMS_POR_PAGINA);
 
   if (loading) {
     return (
@@ -59,6 +76,10 @@ function MisFavoritos() {
         )}
       </div>
 
+      {deleteError && (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{deleteError}</p>
+      )}
+
       {favoritos.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 py-20 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
@@ -68,22 +89,17 @@ function MisFavoritos() {
           <p className="mt-1 text-xs text-slate-400">{tx("Cuando pulses el corazón en un servicio, aparecerá aquí.")}</p>
         </div>
       ) : (
+        <>
         <div className="grid gap-3 xl:grid-cols-2">
-          {favoritos.map((item) => {
+          {favoritosPagina.map((item) => {
             const servicio = item.servicio;
-            const foto = servicio.fotoUrlProfesional
-              ? servicio.fotoUrlProfesional.startsWith("http")
-                ? servicio.fotoUrlProfesional
-                : API_URL + servicio.fotoUrlProfesional
-              : null;
-            const inicial = (servicio.nombreProfesional || "?").slice(0, 1).toUpperCase();
-
             const rawImagen = servicio.subcategoriaImagenUrl;
             const imgSubcat = rawImagen
                 ? rawImagen.startsWith("http") || rawImagen.startsWith("/images/")
                   ? rawImagen
                   : API_URL + rawImagen
                 : null;
+            const isPendingDelete = confirmId === servicio.id;
 
             return (
               <article
@@ -93,7 +109,7 @@ function MisFavoritos() {
                 {/* Imagen cuadrada a la izquierda */}
                 <div className="w-28 shrink-0 sm:w-36 rounded-l-2xl overflow-hidden">
                   {imgSubcat ? (
-                    <img src={imgSubcat} alt="" className="h-full w-full object-cover" />
+                    <img src={imgSubcat} alt={servicio.titulo} className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200" />
                   )}
@@ -101,35 +117,61 @@ function MisFavoritos() {
 
                 {/* Contenido */}
                 <div className="flex flex-1 flex-col justify-between p-4 min-w-0">
-                  {/* Cabecera: título + papelera */}
+                  {/* Cabecera: título + papelera / confirmación */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
+                      {servicio.subcategoriaNombre && (
+                        <span className="mb-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                          {tx(servicio.subcategoriaNombre)}
+                        </span>
+                      )}
                       <h2 className="text-sm font-bold text-slate-900 leading-snug">{tx(servicio.titulo)}</h2>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">{tx(servicio.descripcion)}</p>
                     </div>
-                    <button
-                      onClick={() => quitar(servicio.id)}
-                      className="shrink-0 rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-400"
-                      aria-label={tx("Eliminar de favoritos")}
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
+                    <div className="shrink-0 flex items-center gap-1">
+                      {isPendingDelete ? (
+                        <>
+                          <button
+                            onClick={() => quitar(servicio.id)}
+                            className="rounded-lg p-1.5 text-white bg-red-500 transition hover:bg-red-600"
+                            aria-label={tx("Confirmar eliminación")}
+                          >
+                            <CheckIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            className="rounded-lg p-1.5 text-slate-500 bg-slate-100 transition hover:bg-slate-200"
+                            aria-label={tx("Cancelar")}
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmId(servicio.id)}
+                          className="rounded-lg p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-400"
+                          aria-label={tx("Eliminar de favoritos")}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Footer: profesional + precio + botón */}
                   <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                     {/* Profesional */}
                     <div className="flex items-center gap-2 min-w-0">
-                      {foto ? (
-                        <img src={foto} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
-                      ) : (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700">
-                          {inicial}
-                        </div>
-                      )}
+                      <Avatar
+                        src={servicio.fotoUrlProfesional}
+                        nombre={servicio.nombreProfesional}
+                        className="h-7 w-7 shrink-0 rounded-full"
+                        bgClass="bg-emerald-100"
+                        textClass="text-[10px] font-bold text-emerald-700"
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-[11px] font-semibold text-slate-700">{servicio.nombreProfesional}</p>
-                        <p className="truncate text-[10px] text-slate-400">{tx(servicio.ciudadProfesional) || tx("Zona no indicada")}</p>
+                        <p className="truncate text-[10px] text-slate-400">{servicio.ciudadProfesional || tx("Zona no indicada")}</p>
                       </div>
                     </div>
 
@@ -137,17 +179,23 @@ function MisFavoritos() {
                     <div className="flex shrink-0 items-center gap-2">
                       <div className="text-right">
                         <p className="text-sm font-bold text-slate-900 leading-none">
-                          {Number(servicio.precioHora).toFixed(0)}€<span className="text-[10px] font-normal text-slate-400">/h</span>
+                          {servicio.precioHora != null
+                            ? <>{Number(servicio.precioHora).toFixed(0)}€<span className="text-[10px] font-normal text-slate-400">/h</span></>
+                            : <span className="text-slate-400">—</span>
+                          }
                         </p>
                         <div className="mt-0.5 flex items-center justify-end gap-0.5">
                           <StarSolidIcon className="h-3 w-3 text-amber-400" />
                           <span className="text-[10px] text-slate-500">
                             {servicio.valoracionMedia ? Number(servicio.valoracionMedia).toFixed(1) : "—"}
+                            {servicio.numeroValoraciones > 0 && (
+                              <span className="text-slate-400"> ({servicio.numeroValoraciones})</span>
+                            )}
                           </span>
                         </div>
                       </div>
                       <Link
-                        to={`/dashboard/cliente/buscar/profesionales/${servicio.subcategoriaId}`}
+                        to={`/perfil-profesional/${servicio.profesionalId}`}
                         className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
                       >
                         {tx("Ver")}
@@ -159,6 +207,32 @@ function MisFavoritos() {
             );
           })}
         </div>
+
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-center gap-8 mt-8">
+            <button
+              onClick={() => setPagina((p) => p - 1)}
+              disabled={pagina === 0}
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition"
+            >
+              ←
+            </button>
+            <p className="text-slate-600 text-sm">
+              {tx("Página")}{" "}
+              <strong className="text-slate-800">{pagina + 1}</strong>{" "}
+              {tx("de")}{" "}
+              <strong className="text-slate-800">{totalPaginas}</strong>
+            </p>
+            <button
+              onClick={() => setPagina((p) => p + 1)}
+              disabled={pagina >= totalPaginas - 1}
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-white hover:bg-slate-800 disabled:opacity-50 transition"
+            >
+              →
+            </button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

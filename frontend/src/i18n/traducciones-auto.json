@@ -488,6 +488,9 @@
   "Eliminar de favoritos": {
     "en": "Remove from favorites"
   },
+  "Confirmar eliminación": {
+    "en": "Confirm removal"
+  },
   "Opiniones que has dejado tras completar un servicio.": {
     "en": "Reviews you have left after completing a service."
   },
@@ -933,6 +936,9 @@
     "en": "You have not saved any services yet."
   },
   "Cuando pulses el corazón en un servicio, aparecera aquí.": {
+    "en": "When you press the heart in a service, it will appear here."
+  },
+  "Cuando pulses el corazón en un servicio, aparecerá aquí.": {
     "en": "When you press the heart in a service, it will appear here."
   },
   "Sin reseñas": {

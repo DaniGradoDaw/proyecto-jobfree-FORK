@@ -65,13 +65,20 @@ function estadoTexto(estado, tx) {
   return tx(map[estado] ?? estado);
 }
 
-function BadgeEstado({ estado }) {
+function BadgeEstado({ reserva }) {
   const { tx } = useLanguage();
+  const estado = reserva.estado;
+  const pagada = reserva.estadoPago === "PAGADO";
   const meta = ESTADO_META[estado] ?? ESTADO_META.COMPLETADA;
+  const label = estado === "CONFIRMADA" && pagada
+    ? tx("Pagada")
+    : estado === "CONFIRMADA"
+      ? tx("Pendiente de pago")
+      : estadoTexto(estado, tx);
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${meta.color}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-      {estadoTexto(estado, tx)}
+      {label}
     </span>
   );
 }
@@ -92,7 +99,8 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
 
   const puedeChat     = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado);
   const puedeCancelar = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && !modoModal;
-  const puedePagar    = reserva.estado === "CONFIRMADA";
+  const pagada = reserva.estadoPago === "PAGADO";
+  const puedePagar    = reserva.estado === "CONFIRMADA" && !pagada;
 
   const fechaServicio = reserva.fechaInicio
     ? new Date(reserva.fechaInicio).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short", year: "numeric" })
@@ -114,7 +122,7 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
       <div className="flex flex-col gap-3.5 p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-slate-900 leading-snug pr-2">{reserva.servicioTitulo}</h2>
-          <BadgeEstado estado={reserva.estado} />
+          <BadgeEstado reserva={reserva} />
         </div>
 
         <div className="flex items-center gap-2">
@@ -134,7 +142,7 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
           </p>
         )}
 
-        {reserva.estado === "CONFIRMADA" && (
+        {reserva.estado === "CONFIRMADA" && pagada && (
           <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3.5 py-2.5">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold text-emerald-700">{tx("Progreso del servicio")}</span>
@@ -192,6 +200,12 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
               <CreditCardIcon className="h-3.5 w-3.5" />
               {tx("Pagar")}
             </button>
+          )}
+          {reserva.estado === "CONFIRMADA" && pagada && (
+            <span className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-medium text-emerald-700">
+              <CheckBadgeIcon className="h-3.5 w-3.5" />
+              {tx("Pagada")}
+            </span>
           )}
           {puedeCancelar && (
             <button
@@ -268,7 +282,7 @@ function ModalConfirmarCancelar({ reserva, onConfirmar, onCancelar, cargando }) 
 
 function vistaCalendario(reservas) {
   return reservas
-    .filter((r) => r.fechaInicio && r.estado !== "RECHAZADA")
+    .filter((r) => r.fechaInicio && (r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")))
     .map((r) => {
       const start = new Date(r.fechaInicio);
       const end = addHours(start, 1);
@@ -439,7 +453,7 @@ function MisReservas() {
         <div>
           {/* Leyenda */}
           <div className="mb-4 flex flex-wrap gap-3">
-            {[["PENDIENTE", "Pendiente"], ["CONFIRMADA", "Aceptada"], ["COMPLETADA", "Completada"], ["CANCELADA", "Cancelada"]].map(([estado, label]) => (
+            {[["CONFIRMADA", "Pagada"], ["COMPLETADA", "Completada"]].map(([estado, label]) => (
               <span key={estado} className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ESTADO_META[estado].evento }} />
                 {tx(label)}

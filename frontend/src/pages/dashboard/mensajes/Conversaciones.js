@@ -10,7 +10,7 @@ import { marcarMensajesRecibidos } from "api/mensajes";
 import { useAuth } from "context/AuthContext";
 import { useChatSocket } from "context/ChatSocketContext";
 import { useLanguage } from "context/LanguageContext";
-import API_URL from "api/config";
+import Avatar from "components/Avatar";
 
 function ThumbtackIcon({ className }) {
   return (
@@ -141,10 +141,8 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
   const esCliente = Number(conversacion.clienteId) === Number(usuarioId);
   const nombreOtraPersona = esCliente ? conversacion.profesionalNombre : conversacion.clienteNombre;
   const fotoOtraPersona = esCliente ? conversacion.profesionalFotoUrl : conversacion.clienteFotoUrl;
-  const foto = fotoOtraPersona
-    ? (fotoOtraPersona.startsWith("http") ? fotoOtraPersona : API_URL + fotoOtraPersona)
-    : null;
-  const noLeidos = (estaActiva || conversacion.silenciada) ? 0 : (conversacion.noLeidos || 0);
+  const noLeidosReal = estaActiva ? 0 : (conversacion.noLeidos || 0);
+  const noLeidos = conversacion.silenciada ? 0 : noLeidosReal;
 
   return (
     <div className={`group relative flex items-center transition-colors ${estaActiva ? "bg-emerald-50/80 border-l-[3px] border-emerald-400" : "hover:bg-slate-50 active:bg-slate-100 border-l-[3px] border-transparent"}`}>
@@ -157,13 +155,13 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
         )}
         className="flex min-w-0 flex-1 items-center gap-3 pl-4 pr-5 py-3.5 text-left"
       >
-        {foto ? (
-          <img src={foto} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
-        ) : (
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-sm font-bold text-white">
-            {generarIniciales(nombreOtraPersona)}
-          </span>
-        )}
+        <Avatar
+          src={fotoOtraPersona}
+          nombre={nombreOtraPersona}
+          className="h-12 w-12 shrink-0 rounded-full"
+          bgClass="bg-gradient-to-br from-slate-600 to-slate-800"
+          textClass="text-sm font-bold text-white"
+        />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
@@ -171,7 +169,7 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
               {conversacion.fijada && (
                 <ThumbtackIcon className="h-3 w-3 shrink-0 text-emerald-500" />
               )}
-              <p className={`truncate text-[13.5px] ${noLeidos > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
+              <p className={`truncate text-[13.5px] ${noLeidosReal > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
                 {nombreOtraPersona}
               </p>
             </div>
@@ -182,13 +180,13 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
               {(conversacion.bloqueado || conversacion.meBloqueo) && (
                 <NoSymbolIcon className="h-3.5 w-3.5 text-red-400" title={tx("Bloqueado")} />
               )}
-              <span className={`text-[11px] ${noLeidos > 0 ? "font-bold text-emerald-500" : "text-slate-400"}`}>
+              <span className={`text-[11px] ${noLeidosReal > 0 ? "font-bold text-slate-400" : "text-slate-400"}`}>
                 {formatearFechaRelativa(conversacion.fechaUltimoMensaje, idioma, tx)}
               </span>
             </div>
           </div>
           <div className="mt-0.5 flex items-center justify-between gap-2">
-            <p className={`truncate text-xs ${noLeidos > 0 ? "font-medium text-slate-700" : "text-slate-400"}`}>
+            <p className={`truncate text-xs ${noLeidosReal > 0 ? "font-medium text-slate-700" : "text-slate-400"}`}>
               {conversacion.ultimoMensaje || tx("Sin mensajes aun")}
             </p>
             {noLeidos > 0 && (

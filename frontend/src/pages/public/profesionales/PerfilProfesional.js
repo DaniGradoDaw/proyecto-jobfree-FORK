@@ -120,7 +120,7 @@ function ModalContacto({ servicio, onClose, onExito }) {
               {tx("Cancelar")}
             </button>
             <button type="submit" disabled={enviando}
-              className="flex-1 rounded-full bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition disabled:opacity-60">
+              className="flex-1 rounded-full border border-sky-200 bg-sky-100 py-2.5 text-sm font-medium text-sky-900 hover:border-sky-300 hover:bg-sky-200 transition disabled:opacity-60">
               {enviando ? tx("Abriendo chat...") : tx("Ir al chat")}
             </button>
           </div>
@@ -277,9 +277,9 @@ function PerfilProfesional() {
                   : `${s.duracionMin} min`;
                 return (
                   <article key={s.id} className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 hover:border-slate-300 hover:shadow-sm transition">
-                    <h3 className="text-sm font-semibold text-slate-900 leading-snug">{tx(s.titulo)}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 leading-snug">{s.titulo}</h3>
                     {s.descripcion && (
-                      <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2 flex-1">{tx(s.descripcion)}</p>
+                      <p className="mt-2 text-sm text-slate-500 leading-relaxed line-clamp-2 flex-1">{s.descripcion}</p>
                     )}
                     <div className="mt-4 flex items-end justify-between gap-3">
                       <div>
@@ -295,7 +295,7 @@ function PerfilProfesional() {
                       </div>
                       <button
                         onClick={() => handleContactar(s)}
-                        className="flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 transition"
+                        className="flex items-center gap-1.5 rounded-md border border-sky-200 bg-sky-100 px-3 py-1.5 text-xs font-medium text-sky-900 hover:border-sky-300 hover:bg-sky-200 transition"
                       >
                         <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
                         {tx("Contactar")}
