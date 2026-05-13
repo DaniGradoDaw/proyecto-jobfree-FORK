@@ -5,8 +5,10 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.PaymentIntentRetrieveParams;
 
 import jakarta.annotation.PostConstruct;
 
@@ -31,9 +33,6 @@ public class StripeService {
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
-    @Value("${stripe.simulacion.activa:false}")
-    private boolean simulacionActiva;
-
     private final PagoService pagoService;
 
     public StripeService(PagoService pagoService) {
@@ -42,10 +41,6 @@ public class StripeService {
 
     @PostConstruct
     public void init() {
-        if (simulacionActiva) {
-            log.warn("Stripe en MODO SIMULACIÓN — los pagos se confirman sin llamar a Stripe");
-            return;
-        }
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException("STRIPE_SECRET_KEY no está definida — la aplicación no puede arrancar sin ella");
         }
@@ -78,12 +73,32 @@ public class StripeService {
                                     .build())
                     .build();
 
-            PaymentIntent intent = PaymentIntent.create(params);
+            RequestOptions reqOptions = RequestOptions.builder()
+                    .setIdempotencyKey("pago-pi-" + pago.getId())
+                    .build();
+            PaymentIntent intent = PaymentIntent.create(params, reqOptions);
             log.info("PaymentIntent {} creado para pago {}", intent.getId(), pago.getId());
+            pagoService.guardarStripePaymentIntentId(pago.getId(), intent.getId());
             return intent.getClientSecret();
         } catch (StripeException e) {
             log.error("Error creando PaymentIntent para pago {}: {}", pago.getId(), e.getMessage());
             throw new RuntimeException("Error al iniciar el pago con Stripe: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Comprueba con la API de Stripe si el PaymentIntent ha sido completado con éxito.
+     * Usado como fallback cuando el webhook no ha procesado el evento todavía.
+     */
+    public boolean verificarPaymentIntentExitoso(String piId) {
+        try {
+            PaymentIntent intent = PaymentIntent.retrieve(piId, PaymentIntentRetrieveParams.builder().build(), null);
+            boolean exitoso = "succeeded".equals(intent.getStatus());
+            log.info("Verificación directa PaymentIntent {}: status={}", piId, intent.getStatus());
+            return exitoso;
+        } catch (StripeException e) {
+            log.error("Error verificando PaymentIntent {}: {}", piId, e.getMessage());
+            return false;
         }
     }
 

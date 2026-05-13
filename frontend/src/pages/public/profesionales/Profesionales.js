@@ -380,17 +380,12 @@ function ModalContratacion({ servicio, onClose, onExito }) {
         throw new Error(tx("No se pudo identificar al profesional."));
       }
       const conversacion = await crearOObtenerConversacionContacto(profesionalUsuarioId);
-      const contexto = `📌 ${tx("Consulta sobre")}: ${servicio.titulo}`;
-      if (conversacion.ultimoMensaje !== contexto) {
-        await enviarMensaje({
-          contenido: contexto,
-          destinatarioId: profesionalUsuarioId,
-          conversacionId: conversacion.id,
-          clientMessageId: generarClientMessageId(),
-        });
-      }
+      const esNueva = !conversacion.ultimoMensaje;
+      const mensajeEnviar = esNueva
+        ? `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`
+        : contenido;
       await enviarMensaje({
-        contenido,
+        contenido: mensajeEnviar,
         destinatarioId: profesionalUsuarioId,
         conversacionId: conversacion.id,
         clientMessageId: generarClientMessageId(),

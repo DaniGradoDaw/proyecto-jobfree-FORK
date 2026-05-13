@@ -63,6 +63,9 @@ public class Pago {
 	/**
 	 * Un pago pertenece a una reserva.
 	 */
+	@Column(name = "stripe_payment_intent_id")
+	private String stripePaymentIntentId;
+
 	@NotNull(message = "La reserva es obligatoria")
 	@OneToOne(fetch = FetchType.LAZY)
 	@JsonIgnore
@@ -111,6 +114,14 @@ public class Pago {
 
 	public LocalDateTime getFechaPago() {
 		return fechaPago;
+	}
+
+	public String getStripePaymentIntentId() {
+		return stripePaymentIntentId;
+	}
+
+	public void setStripePaymentIntentId(String stripePaymentIntentId) {
+		this.stripePaymentIntentId = stripePaymentIntentId;
 	}
 
 	public Reserva getReserva() {

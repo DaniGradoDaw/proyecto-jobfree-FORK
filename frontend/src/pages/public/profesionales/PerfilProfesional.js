@@ -53,17 +53,12 @@ function ModalContacto({ servicio, onClose, onExito }) {
     setError("");
     try {
       const conv = await crearOObtenerConversacionContacto(servicio.profesionalUsuarioId);
-      const contexto = `📌 ${tx("Consulta sobre")}: ${servicio.titulo}`;
-      if (conv.ultimoMensaje !== contexto) {
-        await enviarMensaje({
-          contenido: contexto,
-          destinatarioId: servicio.profesionalUsuarioId,
-          conversacionId: conv.id,
-          clientMessageId: generarClientMessageId(),
-        });
-      }
+      const esNueva = !conv.ultimoMensaje;
+      const mensajeEnviar = esNueva
+        ? `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`
+        : contenido;
       await enviarMensaje({
-        contenido,
+        contenido: mensajeEnviar,
         destinatarioId: servicio.profesionalUsuarioId,
         conversacionId: conv.id,
         clientMessageId: generarClientMessageId(),
@@ -178,7 +173,8 @@ function PerfilProfesional() {
   }
 
   function handleExitoContacto(conv) {
-    navigate(`/dashboard/mensajes/conversacion/${conv.id}`);
+    const rol = usuario?.rol?.toLowerCase() === "profesional" ? "profesional" : "cliente";
+    navigate(`/dashboard/${rol}/mensajes/${conv.id}`);
   }
 
   if (loading) {

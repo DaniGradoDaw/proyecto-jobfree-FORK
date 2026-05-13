@@ -187,7 +187,15 @@ function TarjetaConversacion({ conversacion, dashboardBase, usuarioId, estaActiv
           </div>
           <div className="mt-0.5 flex items-center justify-between gap-2">
             <p className={`truncate text-xs ${noLeidosReal > 0 ? "font-medium text-slate-700" : "text-slate-400"}`}>
-              {conversacion.ultimoMensaje || tx("Sin mensajes aun")}
+              {(() => {
+                const msg = conversacion.ultimoMensaje;
+                if (!msg) return tx("Sin mensajes aun");
+                if (msg.startsWith("📌")) {
+                  const idx = msg.indexOf("\n\n");
+                  if (idx !== -1) return msg.slice(idx + 2).trim() || msg;
+                }
+                return msg;
+              })()}
             </p>
             {noLeidos > 0 && (
               <span className="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white">

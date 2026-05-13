@@ -114,19 +114,6 @@ public class PagoService {
 		return confirmarPago(id);
 	}
 
-	/**
-	 * Confirmación directa para modo simulación (sin Stripe). Solo el cliente de
-	 * la reserva puede invocar este método.
-	 */
-	public Pago simularPago(Long id, Usuario usuario) {
-		Pago pago = obtenerPorId(id);
-		if (!pago.getReserva().getCliente().getId().equals(usuario.getId())) {
-			log.warn("Usuario {} intentó simular pago {} sin ser cliente", usuario.getId(), id);
-			throw new PagoInvalidoException("Solo el cliente de la reserva puede simular el pago");
-		}
-		return confirmarPago(id);
-	}
-
 	private Pago confirmarPago(Long id) {
 		Pago pago = obtenerPorId(id);
 
@@ -156,6 +143,12 @@ public class PagoService {
 	 * Solo permite: PENDIENTE → PAGADO → REEMBOLSADO.
 	 * Usado principalmente por webhooks de Stripe.
 	 */
+	public void guardarStripePaymentIntentId(Long pagoId, String piId) {
+		Pago pago = obtenerPorId(pagoId);
+		pago.setStripePaymentIntentId(piId);
+		pagoRepository.save(pago);
+	}
+
 	public Pago actualizarEstado(Long id, EstadoPago nuevoEstado) {
 		Pago pago = obtenerPorId(id);
 		EstadoPago estadoActual = pago.getEstado();

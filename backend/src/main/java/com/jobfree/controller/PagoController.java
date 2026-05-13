@@ -3,7 +3,6 @@ package com.jobfree.controller;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +22,7 @@ import com.jobfree.mapper.PagoMapper;
 import com.jobfree.model.entity.Pago;
 import com.jobfree.model.entity.Reserva;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.enums.EstadoPago;
 import com.jobfree.service.PagoService;
 import com.jobfree.service.ReservaService;
 import com.jobfree.service.StripeService;
@@ -33,9 +33,6 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/pagos")
 public class PagoController {
-
-	@Value("${stripe.simulacion.activa:false}")
-	private boolean simulacionActiva;
 
 	private final PagoService pagoService;
 	private final ReservaService reservaService;
@@ -134,21 +131,43 @@ public class PagoController {
 		Usuario usuario = getUsuarioAutenticado();
 		Pago pago = pagoService.obtenerParaPaymentIntent(id, usuario);
 		String clientSecret = stripeService.crearPaymentIntent(pago);
-		return ResponseEntity.ok(Map.of("clientSecret", clientSecret));
+		// Detectar si el PI ya fue completado (reload tras pago, webhook no procesado aún)
+		String piId = pagoService.obtenerPorId(id).getStripePaymentIntentId();
+		if (piId != null && stripeService.verificarPaymentIntentExitoso(piId)) {
+			pagoService.actualizarEstado(id, EstadoPago.PAGADO);
+			return ResponseEntity.ok(Map.of("clientSecret", clientSecret, "yaPagado", "true"));
+		}
+		return ResponseEntity.ok(Map.of("clientSecret", clientSecret, "yaPagado", "false"));
 	}
 
 	/**
-	 * Confirma un pago directamente sin pasar por Stripe. Solo disponible cuando
-	 * stripe.simulacion.activa=true (entornos de desarrollo/demo).
+	 * Confirmación directa del pago tras el éxito en Stripe.js.
+	 * Verifica con la API de Stripe que el PaymentIntent está en estado "succeeded"
+	 * antes de marcar el pago como PAGADO en la BD. Actúa como fallback al webhook.
 	 */
 	@PreAuthorize("isAuthenticated()")
-	@PostMapping("/{id}/simular")
-	public ResponseEntity<PagoDTO> simularPago(@PathVariable Long id) {
-		if (!simulacionActiva) {
-			return ResponseEntity.notFound().build();
-		}
+	@PostMapping("/{id}/confirmar-stripe")
+	public ResponseEntity<PagoDTO> confirmarStripe(@PathVariable Long id) {
 		Usuario usuario = getUsuarioAutenticado();
-		return ResponseEntity.ok(PagoMapper.toDTO(pagoService.simularPago(id, usuario)));
+		Pago pago = pagoService.obtenerPorIdSeguro(id, usuario);
+
+		if (!pago.getReserva().getCliente().getId().equals(usuario.getId())) {
+			throw new IllegalArgumentException("Solo el cliente puede confirmar este pago");
+		}
+		if (pago.getEstado() == EstadoPago.PAGADO) {
+			return ResponseEntity.ok(PagoMapper.toDTO(pago));
+		}
+
+		String piId = pago.getStripePaymentIntentId();
+		if (piId == null || piId.isBlank()) {
+			throw new IllegalArgumentException("No se ha iniciado el proceso de pago con Stripe");
+		}
+		if (!stripeService.verificarPaymentIntentExitoso(piId)) {
+			throw new IllegalArgumentException("El pago no está completado en Stripe");
+		}
+
+		Pago pagado = pagoService.actualizarEstado(id, EstadoPago.PAGADO);
+		return ResponseEntity.ok(PagoMapper.toDTO(pagado));
 	}
 
 	/**
