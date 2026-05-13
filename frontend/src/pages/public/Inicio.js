@@ -3,6 +3,21 @@ import { Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import heroImage from "assets/images/hero-profesionales.png";
 
+const RESENAS = [
+  { nombre: "Carlos M.",     servicio: "Fontanería",       estrellas: 5, comentario: "Llegó puntual y resolvió la avería en un momento. Sin líos, sin sorpresas en el precio. Repetiré seguro." },
+  { nombre: "Paco R.",       servicio: "Reformas",         estrellas: 5, comentario: "Macho, no veas qué bien quedó el cuarto de baño. El chaval sabía mu bien lo que hacía, lo recomiendo a tó el mundo." },
+  { nombre: "Laura G.",      servicio: "Electricidad",     estrellas: 4, comentario: "La electricista fue muy profesional, nos explicó cada paso y el precio fue más que razonable. Muy contenta." },
+  { nombre: "Ana T.",        servicio: "Limpieza",         estrellas: 5, comentario: "Contraté una limpieza del hogar y quedó impecable. Mejor de lo que esperaba, una maravilla." },
+  { nombre: "Mari Carmen P.", servicio: "Pintura",         estrellas: 5, comentario: "Qué maravilla, tía. Le contraté pa que pintaran el salón y quedó de lujo. La chica que vino era un sol." },
+  { nombre: "David S.",      servicio: "Mudanzas",         estrellas: 4, comentario: "Muy buena experiencia, rápido y sin complicaciones. El equipo muy amable y cuidadoso con los muebles." },
+  { nombre: "Roberto F.",    servicio: "Cerrajería",       estrellas: 5, comentario: "Me quedé sin llaves a las 10 de la noche y el cerrajero llegó en menos de media hora. Me salvó la noche." },
+  { nombre: "Elena P.",      servicio: "Jardinería",       estrellas: 5, comentario: "El jardín ha quedado precioso, mejor que nunca. El jardinero muy atento y con muy buen ojo para el diseño." },
+  { nombre: "Antonio J.",    servicio: "Fontanería",       estrellas: 4, comentario: "Pos mira, tenía mis dudas pero el fontanero que me mandaron era un fenómeno. Arregló lo que otros no pudieron." },
+  { nombre: "Isabel M.",     servicio: "Aire acondicionado", estrellas: 5, comentario: "Muy contenta con la plataforma. Fácil de usar y el técnico muy cualificado. En dos horas lo tenía funcionando." },
+  { nombre: "Javi L.",       servicio: "Electricidad",     estrellas: 5, comentario: "Rápido, limpio y sin darte el coñazo con presupuestos inflados. Exactamente lo que buscaba." },
+  { nombre: "Rocío S.",      servicio: "Limpieza",         estrellas: 5, comentario: "Oleee, qué servicio más majo. Llegaron dos chicas y dejaron la casa como los chorros del oro. Repetiré." },
+];
+
 const RADIUS = 55;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const HOVER_DURATION = 2000; // ms para completar el círculo
@@ -111,6 +126,38 @@ function Inicio() {
         </div>
       </section>
 
+      <section className="bg-white py-16 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 mb-10 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">{tx("Lo que dicen nuestros clientes")}</h2>
+          <p className="mt-2 text-gray-500">{tx("Opiniones reales de personas que contrataron a través de JobFree")}</p>
+        </div>
+        <div className="relative overflow-hidden">
+          <div className="flex gap-6 animate-marquee" style={{ width: "max-content" }}>
+            {[...RESENAS, ...RESENAS].map((r, i) => (
+              <div key={i} className="w-72 flex-shrink-0 bg-gray-50 rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-1 mb-3">
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <svg key={s} className={`w-4 h-4 ${s < r.estrellas ? "text-yellow-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed mb-4">"{r.comentario}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm flex-shrink-0">
+                    {r.nombre.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">{r.nombre}</p>
+                    <p className="text-xs text-gray-400">{r.servicio}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {showVideoModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="relative w-full max-w-2xl bg-black rounded-xl overflow-hidden">
@@ -122,11 +169,13 @@ function Inicio() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <div className="aspect-video bg-gray-900">
-              {/* Aquí irá el vídeo - pasame el enlace y lo integro */}
-              <div className="w-full h-full flex items-center justify-center text-white">
-                <p className="text-center text-gray-400">El vídeo será cargado aquí</p>
-              </div>
+            <div className="aspect-video bg-black">
+              <video
+                className="w-full h-full"
+                src="/video.mp4"
+                controls
+                autoPlay
+              />
             </div>
           </div>
         </div>

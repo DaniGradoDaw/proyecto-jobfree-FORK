@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-05-2026 a las 21:01:02
+-- Tiempo de generación: 13-05-2026 a las 14:17:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -187,14 +187,19 @@ INSERT INTO `conversacion` (`id`, `reserva_id`, `cliente_id`, `profesional_id`, 
 (19, 19, 15, 18, '2026-03-20 14:00:00.000000', NULL, NULL, NULL, 0, 0, NULL, NULL, 0, 0),
 (20, 20, 17, 18, '2026-03-21 16:00:00.000000', NULL, NULL, NULL, 0, 0, NULL, NULL, 0, 0),
 (32, 21, 22, 44, '2026-04-24 08:30:38.000000', NULL, '2026-05-02 23:05:10', 'Hola Luis!', 0, 0, NULL, NULL, 0, 0),
-(33, 23, 22, 2, '2026-04-24 09:31:43.000000', NULL, '2026-05-04 08:36:42', 'Hola, necesito una limpieza profunda en mi casa, sobre todo cocina y baño. Me gustaría hacerlo esta semana si es posible. ¿Tienes disponibilidad y cuánto sería aproximadamente el precio total?', 0, 0, NULL, NULL, 0, 0),
+(33, 23, 22, 2, '2026-04-24 09:31:43.000000', NULL, '2026-05-13 08:32:20', '📌 Consulta sobre: Limpieza profunda', 0, 0, NULL, NULL, 0, 0),
 (34, 22, 22, 45, '2026-04-24 10:28:41.000000', NULL, '2026-04-24 10:30:16', 'IIIIE', 0, 0, NULL, NULL, 0, 0),
 (35, NULL, 22, 46, '2026-04-29 21:45:33.000000', '22:46', '2026-04-29 21:53:28', 'Nos vemos el jueves?', 0, 0, '9998-12-31 23:00:00', NULL, 0, 0),
 (36, NULL, 22, 47, '2026-04-30 07:53:32.000000', '22:47', '2026-05-02 19:33:03', 'así me gustaría', 0, 0, NULL, NULL, 0, 0),
 (37, 25, 22, 48, '2026-05-03 00:02:41.000000', NULL, '2026-05-04 09:24:54', 'Hola', 1, 0, NULL, NULL, 0, 1),
 (38, NULL, 22, 16, '2026-05-04 08:41:23.000000', '22:16', '2026-05-04 08:41:53', 'Hola, necesito mantenimiento para mi jardín. Habría que cortar el césped, podar algunas plantas y dejarlo un poco arreglado en general. Me gustaría hacerlo esta semana. ¿Tienes disponibilidad y cuá...', 0, 0, NULL, NULL, 0, 0),
 (40, 24, 22, 48, '2026-05-04 09:22:51.000000', NULL, NULL, NULL, 0, 0, NULL, NULL, 0, 0),
-(41, 27, 22, 4, '2026-05-04 18:21:31.000000', NULL, '2026-05-04 18:22:14', 'Hola David, necesito instalar varias lámparas en casa (techo y pared). Me gustaría saber disponibilidad en los próximos días . Gracias.', 0, 0, NULL, NULL, 0, 0);
+(41, 27, 22, 4, '2026-05-04 18:21:31.000000', NULL, '2026-05-04 18:22:14', 'Hola David, necesito instalar varias lámparas en casa (techo y pared). Me gustaría saber disponibilidad en los próximos días . Gracias.', 0, 0, NULL, NULL, 0, 0),
+(42, 28, 22, 49, '2026-05-07 08:32:14.000000', NULL, '2026-05-13 09:52:49', 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', 0, 0, '9998-12-31 23:00:00', '9998-12-31 23:00:00', 0, 1),
+(43, NULL, 22, 73, '2026-05-13 08:37:12.000000', '22:73', '2026-05-13 08:37:12', '📌 Consulta sobre: Manitas Zaragoza', 0, 0, NULL, NULL, 0, 0),
+(44, NULL, 22, 79, '2026-05-13 08:40:27.000000', '22:79', '2026-05-13 08:40:27', '📌 Consulta sobre: Lámparas Málaga\n\nHola Víctor, necesito ayuda con unas lámparas en Málaga. Quiero instalar/revisar varias lámparas en casa y me gustaría saber disponibilidad y presupuesto aproxim...', 0, 0, NULL, NULL, 0, 0),
+(45, 29, 22, 49, '2026-05-13 11:03:53.000000', NULL, NULL, NULL, 0, 0, NULL, NULL, 0, 0),
+(46, 30, 103, 102, '2026-05-13 11:27:31.000000', NULL, '2026-05-13 11:44:25', '!!', 0, 0, '9998-12-31 23:00:00', NULL, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -217,7 +222,14 @@ CREATE TABLE `favorito_servicio` (
 INSERT INTO `favorito_servicio` (`id`, `fecha_creacion`, `cliente_id`, `servicio_id`) VALUES
 (9, '2026-04-29 08:34:17.000000', 22, 2),
 (11, '2026-04-29 09:00:30.000000', 22, 1),
-(15, '2026-05-03 21:46:48.000000', 22, 3);
+(24, '2026-05-11 10:35:41.000000', 22, 90),
+(25, '2026-05-12 08:58:49.000000', 22, 47),
+(26, '2026-05-12 08:58:50.000000', 22, 83),
+(27, '2026-05-12 09:00:01.000000', 22, 27),
+(28, '2026-05-12 09:00:03.000000', 22, 62),
+(29, '2026-05-12 09:00:04.000000', 22, 105),
+(30, '2026-05-12 09:00:05.000000', 22, 112),
+(31, '2026-05-13 09:43:23.000000', 22, 284);
 
 -- --------------------------------------------------------
 
@@ -265,7 +277,10 @@ INSERT INTO `flyway_schema_history` (`installed_rank`, `version`, `description`,
 (19, '18', 'agregar silenciada conversacion', 'SQL', 'V18__agregar_silenciada_conversacion.sql', 1772315099, 'root', '2026-05-02 23:41:17', 27, 1),
 (20, '19', 'crear tabla bloqueo usuario', 'SQL', 'V19__crear_tabla_bloqueo_usuario.sql', 1382837671, 'root', '2026-05-02 23:41:18', 17, 1),
 (21, '20', 'agregar motivo bloqueo', 'SQL', 'V20__agregar_motivo_bloqueo.sql', -470320110, 'root', '2026-05-03 00:27:53', 21, 1),
-(22, '21', 'agregar fijada y silenciada hasta conversacion', 'SQL', 'V21__agregar_fijada_y_silenciada_hasta_conversacion.sql', -40203803, 'root', '2026-05-03 12:59:44', 20, 1);
+(22, '21', 'agregar fijada y silenciada hasta conversacion', 'SQL', 'V21__agregar_fijada_y_silenciada_hasta_conversacion.sql', -40203803, 'root', '2026-05-03 12:59:44', 20, 1),
+(23, '22', 'crear tabla mensaje reaccion', 'SQL', 'V22__crear_tabla_mensaje_reaccion.sql', -2102424138, 'root', '2026-05-07 09:58:40', 45, 1),
+(24, '23', 'crear tabla profesional ciudad servicio', 'SQL', 'V23__crear_tabla_profesional_ciudad_servicio.sql', -1655665971, 'root', '2026-05-07 12:42:31', 30, 1),
+(25, '24', 'agregar stripe payment intent id pago', 'SQL', 'V24__agregar_stripe_payment_intent_id_pago.sql', 1188637412, 'root', '2026-05-13 09:25:14', 25, 1);
 
 -- --------------------------------------------------------
 
@@ -393,7 +408,65 @@ INSERT INTO `mensaje` (`id`, `contenido`, `fecha_envio`, `leido`, `destinatario_
 (125, 'Hola!', '2026-05-04 08:56:55.000000', b'1', 22, 48, 37, b'1', '86c3350c-b387-4df5-8e83-dcfcf19689f1', NULL, NULL),
 (126, 'Hola', '2026-05-04 09:24:54.000000', b'1', 22, 48, 37, b'1', '0c23405f-380f-4f27-9439-3d16366c7b3b', NULL, NULL),
 (127, '📌 Consulta sobre: Instalación lámparas', '2026-05-04 18:21:31.000000', b'0', 4, 22, 41, b'0', '8b26e182-33a4-496e-bb35-5538e9a9037c', NULL, NULL),
-(128, 'Hola David, necesito instalar varias lámparas en casa (techo y pared). Me gustaría saber disponibilidad en los próximos días . Gracias.', '2026-05-04 18:22:14.000000', b'0', 4, 22, 41, b'0', '7fdfb999-4169-4af6-be5a-e93c6bedc497', NULL, NULL);
+(128, 'Hola David, necesito instalar varias lámparas en casa (techo y pared). Me gustaría saber disponibilidad en los próximos días . Gracias.', '2026-05-04 18:22:14.000000', b'0', 4, 22, 41, b'0', '7fdfb999-4169-4af6-be5a-e93c6bedc497', NULL, NULL),
+(129, '📌 Consulta sobre: Eliminación de cucarachas, hormigas y plagas comunes', '2026-05-07 08:32:14.000000', b'1', 49, 22, 42, b'1', 'a35ce4c4-3326-4140-95db-338cda64c682', NULL, NULL),
+(130, 'Hola Elena, buenas. He visto tu anuncio de control de plagas porque tengo un problema de cucarachas en casa y me gustaría saber si podrías venir esta semana. El piso es pequeño y el problema está sobre todo en la cocina. Gracias.', '2026-05-07 08:33:09.000000', b'1', 49, 22, 42, b'1', 'e86e2c82-dda5-4ed0-ae18-579e29a7b58f', NULL, NULL),
+(131, 'Hola, buenas 😊 Sí, claro, podría pasarme esta semana sin problema. Normalmente ese tipo de plaga en cocina tiene solución rápida. Si quieres, dime qué día y hora te viene mejor y hablamos para organizarlo.', '2026-05-07 08:50:40.000000', b'1', 22, 49, 42, b'1', '2129a361-a109-4293-b065-f34119e2da46', NULL, NULL),
+(132, 'También te recomiendo evitar dejar comida fuera y revisar si hay zonas húmedas cerca de la cocina hasta que pueda pasar a verlo 😊', '2026-05-07 08:53:27.000000', b'1', 22, 49, 42, b'1', '713464dd-4621-40ec-961a-4b95b0c5544e', NULL, NULL),
+(133, 'Perfecto, muchas gracias Elena. Te mando una foto para que veas más o menos cómo está la zona de la cocina y dónde suelen aparecer.🤮', '2026-05-07 08:57:51.000000', b'1', 49, 22, 42, b'1', '3faa2461-f0f8-42bc-b36b-17179b7f5e5b', NULL, '/uploads/mensajes/73001217-e18a-4873-adbb-aad33f3415df.png'),
+(134, 'Uf, sí, viendo la foto parece que vienen de esa zona de la cocina 😅 No te preocupes, este tipo de casos suelen tener solución. Cuando vaya revisaré bien los rincones y aplicaré el tratamiento para eliminar la plaga y evitar que vuelva a salir.', '2026-05-07 09:15:50.000000', b'1', 22, 49, 42, b'1', '1242f1e4-2730-4c09-a43c-2436e0254bb0', NULL, NULL),
+(135, 'Hola!', '2026-05-12 10:50:59.000000', b'1', 49, 22, 42, b'1', 'b336727b-539f-4642-b028-46395a8cffee', NULL, NULL),
+(136, 'Buenas, q tal?', '2026-05-12 11:03:00.000000', b'1', 22, 49, 42, b'1', '4dc024f7-6686-47ec-aa66-c75fa35be800', NULL, NULL),
+(137, 'Hola 😊 Todo bien. ¿Cuándo podrías venir a echarle un vistazo?', '2026-05-12 11:03:51.000000', b'1', 49, 22, 42, b'1', '70913dda-7e3a-44c6-b254-89fb4eb6c017', NULL, NULL),
+(138, 'Hoy?', '2026-05-12 11:04:35.000000', b'1', 49, 22, 42, b'1', 'dd6803a9-9887-4228-8d05-a01cd257bd4e', NULL, NULL),
+(139, 'Puff', '2026-05-12 11:05:11.000000', b'1', 22, 49, 42, b'1', '6fe81113-42ad-470a-b659-23cb27d31d74', NULL, NULL),
+(140, 'Pues mira, sobre las 17 tengo un hueco', '2026-05-12 11:17:09.000000', b'1', 22, 49, 42, b'1', 'd79f60f9-0bd6-4a63-853e-1cde721b7521', NULL, NULL),
+(141, 'Puedes?', '2026-05-12 11:17:28.000000', b'1', 22, 49, 42, b'1', 'b7a79612-f595-4614-83be-447f327e3395', NULL, NULL),
+(142, 'Pues mira, me viene perfecto', '2026-05-12 11:22:57.000000', b'1', 49, 22, 42, b'1', 'e27718a9-7c39-4b81-bc3b-900ddef6cd47', NULL, NULL),
+(143, 'Tu doy mi dirección', '2026-05-12 11:23:17.000000', b'1', 49, 22, 42, b'1', 'c0ac1a1f-ec16-459e-9b1c-d6e1e01ba364', NULL, NULL),
+(144, 'Calle Gran Capitán, 5, 14008 Córdoba, España', '2026-05-12 11:37:02.000000', b'1', 49, 22, 42, b'1', 'fffef709-56f4-495f-8519-7cce7c478b81', NULL, NULL),
+(145, 'Perfe!', '2026-05-12 11:37:53.000000', b'1', 22, 49, 42, b'1', '6608336f-2414-40c4-89ce-04230ece777f', 144, NULL),
+(146, 'Genial', '2026-05-12 13:14:29.000000', b'1', 49, 22, 42, b'1', '55c50ffa-2bdb-4302-9387-a8504b5569ec', NULL, NULL),
+(147, 'Buenos días, estupendo trabajo 😃', '2026-05-13 07:50:32.000000', b'1', 49, 22, 42, b'1', 'd3ab15eb-e9c3-4a58-a362-43f7d94ddb7e', NULL, NULL),
+(148, 'mira!!', '2026-05-13 07:51:21.000000', b'1', 49, 22, 42, b'1', '5368378b-673d-4b87-a541-761c864edfd0', NULL, '/uploads/mensajes/e0a5805a-3378-46d7-a79f-f2b8d4347b26.png'),
+(149, '📌 Consulta sobre: Cuidado de gatos', '2026-05-13 08:29:18.000000', b'1', 49, 22, 42, b'1', 'a4323619-8c2a-4e0a-8620-a2606df93d00', NULL, NULL),
+(150, 'Hola Elena, estoy buscando a alguien de confianza para el cuidado de mi gato. Necesitaría ayuda durante algunas horas y me gustaría saber tu disponibilidad y cómo trabajas normalmente. Mi gato es tranquilo y está acostumbrado a convivir con personas. Quedo atento/a a tu respuesta. ¡Gracias!', '2026-05-13 08:29:28.000000', b'1', 49, 22, 42, b'1', 'e3878807-e60e-4269-be24-348a6ccc55d1', NULL, NULL),
+(151, '📌 Consulta sobre: Limpieza profunda', '2026-05-13 08:32:20.000000', b'0', 2, 22, 33, b'0', '48c7c468-ac7a-45e8-9aa2-66a3ccca8452', NULL, NULL),
+(152, '📌 Consulta sobre: Manitas Zaragoza', '2026-05-13 08:37:12.000000', b'0', 73, 22, 43, b'0', 'e575969c-8db4-438e-9587-59c48fa899a9', NULL, NULL),
+(153, '📌 Consulta sobre: Lámparas Málaga\n\nHola Víctor, necesito ayuda con unas lámparas en Málaga. Quiero instalar/revisar varias lámparas en casa y me gustaría saber disponibilidad y presupuesto aproximado. Sería ideal hacerlo esta semana. Gracias.', '2026-05-13 08:40:27.000000', b'0', 79, 22, 44, b'0', 'c3b1143e-848a-4952-9359-aeae9cfd4e3d', NULL, NULL),
+(154, 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', '2026-05-13 09:44:57.000000', b'1', 49, 22, 42, b'1', '1778665497258-olaolr4', NULL, NULL),
+(155, 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', '2026-05-13 09:45:30.000000', b'1', 49, 22, 42, b'1', '1778665530430-jn0a5f1', NULL, NULL),
+(156, 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', '2026-05-13 09:45:38.000000', b'1', 49, 22, 42, b'1', '1778665538096-9pwelgr', NULL, NULL),
+(157, 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', '2026-05-13 09:47:04.000000', b'1', 49, 22, 42, b'1', '1778665624323-jrauwj0', NULL, NULL),
+(158, 'Hola, estoy interesado/a en tu servicio de organización de eventos personalizados. Me gustaría recibir más información sobre cómo trabajas, disponibilidad y qué incluye el servicio. Gracias.', '2026-05-13 09:52:49.000000', b'1', 49, 22, 42, b'1', '1778665969788-eqrkbji', NULL, NULL),
+(159, '📌 Consulta sobre: Cuidado de bebés responsable y con experiencia\n\nHola Javier, necesito cuidado para mi bebé de 8 meses por las tardes de lunes a viernes durante 3 horas. ¿Tienes disponibilidad?', '2026-05-13 11:27:31.000000', b'1', 102, 103, 46, b'1', 'ae828dad-35fa-4546-95e3-492ce334238e', NULL, NULL),
+(160, 'Hola!', '2026-05-13 11:43:35.000000', b'1', 103, 102, 46, b'1', '784ba863-8514-4ba3-a41d-3938d2934437', NULL, NULL),
+(161, 'Pues mira...', '2026-05-13 11:44:03.000000', b'1', 103, 102, 46, b'1', '1c1ba077-1a2f-4662-be8c-becf91413da1', NULL, NULL),
+(162, 'Dime', '2026-05-13 11:44:13.000000', b'1', 102, 103, 46, b'1', '52952105-d156-45e5-b1a6-cbddf448d543', NULL, NULL),
+(163, '!!', '2026-05-13 11:44:25.000000', b'1', 102, 103, 46, b'1', '603c4e0c-43d6-4efb-89dc-2a0189e633aa', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `mensaje_reaccion`
+--
+
+DROP TABLE IF EXISTS `mensaje_reaccion`;
+CREATE TABLE `mensaje_reaccion` (
+  `id` bigint(20) NOT NULL,
+  `mensaje_id` bigint(20) NOT NULL,
+  `usuario_id` bigint(20) NOT NULL,
+  `emoji` varchar(10) NOT NULL,
+  `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `mensaje_reaccion`
+--
+
+INSERT INTO `mensaje_reaccion` (`id`, `mensaje_id`, `usuario_id`, `emoji`, `fecha_creacion`) VALUES
+(14, 134, 22, '😢', '2026-05-07 10:08:10'),
+(17, 163, 102, '👍', '2026-05-13 11:44:53');
 
 -- --------------------------------------------------------
 
@@ -454,7 +527,14 @@ INSERT INTO `notificacion` (`id`, `fecha_creacion`, `leida`, `mensaje`, `usuario
 (37, '2026-05-04 09:25:15.000000', b'1', 'El profesional ha marcado «Mantenimiento de piscina completo» como completado. ¡Deja tu valoración!', 22),
 (38, '2026-05-04 09:36:04.000000', b'0', 'Nueva solicitud de Pablo para el servicio «Cambio de cerradura urgente 24h».', 48),
 (39, '2026-05-04 09:37:15.000000', b'1', 'Tu solicitud para «Cambio de cerradura urgente 24h» ha sido aceptada.', 22),
-(40, '2026-05-04 18:23:17.000000', b'0', 'Nueva solicitud de Pablo para el servicio «Instalación lámparas».', 4);
+(40, '2026-05-04 18:23:17.000000', b'0', 'Nueva solicitud de Pablo para el servicio «Instalación lámparas».', 4),
+(41, '2026-05-07 07:39:22.000000', b'0', 'Pago #19 confirmado por 30.00 €. Reserva #26 lista para completar.', 48),
+(42, '2026-05-13 08:30:34.000000', b'1', 'Nueva solicitud de Pablo para el servicio «Eliminación de cucarachas, hormigas y plagas comunes».', 49),
+(43, '2026-05-13 08:43:05.000000', b'1', 'Tu solicitud para «Eliminación de cucarachas, hormigas y plagas comunes» ha sido aceptada.', 22),
+(44, '2026-05-13 11:03:53.000000', b'1', 'Nueva solicitud de Pablo para el servicio «Organización de eventos personalizados».', 49),
+(45, '2026-05-13 11:15:13.000000', b'1', 'Tu solicitud para «Organización de eventos personalizados» ha sido aceptada.', 22),
+(46, '2026-05-13 11:45:44.000000', b'0', 'Nueva solicitud de María para el servicio «Cuidado de bebés responsable y con experiencia».', 102),
+(47, '2026-05-13 11:45:58.000000', b'1', 'Tu solicitud para «Cuidado de bebés responsable y con experiencia» ha sido aceptada.', 103);
 
 -- --------------------------------------------------------
 
@@ -469,32 +549,36 @@ CREATE TABLE `pago` (
   `fecha_pago` datetime(6) NOT NULL,
   `importe` decimal(10,2) NOT NULL,
   `metodo` enum('EFECTIVO','TARJETA','TRANSFERENCIA') NOT NULL,
-  `reserva_id` bigint(20) NOT NULL
+  `reserva_id` bigint(20) NOT NULL,
+  `stripe_payment_intent_id` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `pago`
 --
 
-INSERT INTO `pago` (`id`, `estado`, `fecha_pago`, `importe`, `metodo`, `reserva_id`) VALUES
-(1, 'PAGADO', '2026-03-03 12:00:00.000000', 25.00, 'TARJETA', 1),
-(2, 'PAGADO', '2026-03-05 13:00:00.000000', 40.00, 'EFECTIVO', 2),
-(3, 'PAGADO', '2026-03-08 11:00:00.000000', 50.00, 'TARJETA', 5),
-(4, 'PAGADO', '2026-03-13 18:00:00.000000', 45.00, 'TRANSFERENCIA', 9),
-(5, 'PAGADO', '2026-03-17 13:00:00.000000', 20.00, 'EFECTIVO', 12),
-(6, 'PAGADO', '2026-03-19 10:30:00.000000', 24.00, 'TARJETA', 15),
-(7, 'PAGADO', '2026-03-26 10:00:00.000000', 18.00, 'EFECTIVO', 18),
-(8, 'PAGADO', '2026-03-10 12:00:00.000000', 30.00, 'TARJETA', 3),
-(9, 'PAGADO', '2026-03-11 13:00:00.000000', 28.00, 'EFECTIVO', 6),
-(10, 'PAGADO', '2026-03-18 11:00:00.000000', 30.00, 'TRANSFERENCIA', 10),
-(11, 'PAGADO', '2026-03-21 12:00:00.000000', 36.00, 'TARJETA', 13),
-(12, 'PAGADO', '2026-03-23 11:00:00.000000', 60.00, 'TRANSFERENCIA', 16),
-(13, 'PAGADO', '2026-03-27 13:00:00.000000', 50.00, 'TARJETA', 19),
-(14, 'PENDIENTE', '2026-03-12 10:00:00.000000', 60.00, 'TARJETA', 4),
-(15, 'PENDIENTE', '2026-03-20 10:00:00.000000', 55.00, 'TRANSFERENCIA', 11),
-(16, 'PENDIENTE', '2026-05-04 08:35:18.000000', 40.00, 'TARJETA', 24),
-(18, 'PENDIENTE', '2026-05-04 09:07:41.000000', 40.00, 'TARJETA', 25),
-(19, 'PENDIENTE', '2026-05-04 18:18:49.000000', 30.00, 'TARJETA', 26);
+INSERT INTO `pago` (`id`, `estado`, `fecha_pago`, `importe`, `metodo`, `reserva_id`, `stripe_payment_intent_id`) VALUES
+(1, 'PAGADO', '2026-03-03 12:00:00.000000', 25.00, 'TARJETA', 1, NULL),
+(2, 'PAGADO', '2026-03-05 13:00:00.000000', 40.00, 'EFECTIVO', 2, NULL),
+(3, 'PAGADO', '2026-03-08 11:00:00.000000', 50.00, 'TARJETA', 5, NULL),
+(4, 'PAGADO', '2026-03-13 18:00:00.000000', 45.00, 'TRANSFERENCIA', 9, NULL),
+(5, 'PAGADO', '2026-03-17 13:00:00.000000', 20.00, 'EFECTIVO', 12, NULL),
+(6, 'PAGADO', '2026-03-19 10:30:00.000000', 24.00, 'TARJETA', 15, NULL),
+(7, 'PAGADO', '2026-03-26 10:00:00.000000', 18.00, 'EFECTIVO', 18, NULL),
+(8, 'PAGADO', '2026-03-10 12:00:00.000000', 30.00, 'TARJETA', 3, NULL),
+(9, 'PAGADO', '2026-03-11 13:00:00.000000', 28.00, 'EFECTIVO', 6, NULL),
+(10, 'PAGADO', '2026-03-18 11:00:00.000000', 30.00, 'TRANSFERENCIA', 10, NULL),
+(11, 'PAGADO', '2026-03-21 12:00:00.000000', 36.00, 'TARJETA', 13, NULL),
+(12, 'PAGADO', '2026-03-23 11:00:00.000000', 60.00, 'TRANSFERENCIA', 16, NULL),
+(13, 'PAGADO', '2026-03-27 13:00:00.000000', 50.00, 'TARJETA', 19, NULL),
+(14, 'PENDIENTE', '2026-03-12 10:00:00.000000', 60.00, 'TARJETA', 4, NULL),
+(15, 'PENDIENTE', '2026-03-20 10:00:00.000000', 55.00, 'TRANSFERENCIA', 11, NULL),
+(16, 'PENDIENTE', '2026-05-04 08:35:18.000000', 40.00, 'TARJETA', 24, NULL),
+(18, 'PENDIENTE', '2026-05-04 09:07:41.000000', 40.00, 'TARJETA', 25, NULL),
+(19, 'PAGADO', '2026-05-04 18:18:49.000000', 30.00, 'TARJETA', 26, NULL),
+(21, 'PAGADO', '2026-05-13 08:43:29.000000', 50.00, 'TARJETA', 28, 'pi_3TWYcXHqDwC4Xr6G00z09NbZ'),
+(23, 'PAGADO', '2026-05-13 11:15:21.000000', 25.00, 'TARJETA', 29, 'pi_3TWal4HqDwC4Xr6G0yDwgR1D'),
+(25, 'PAGADO', '2026-05-13 11:46:09.000000', 10.00, 'TARJETA', 30, 'pi_3TWbEsHqDwC4Xr6G1LZ4jOLt');
 
 -- --------------------------------------------------------
 
@@ -519,6 +603,25 @@ INSERT INTO `password_reset_token` (`id`, `expiracion`, `token`, `usado`, `usuar
 (1, '2026-04-24 08:56:33.000000', '175ae9ad-81cc-45df-8b46-4c7d08a91f3d', b'1', 22),
 (2, '2026-04-24 11:03:19.000000', '982cd42c-d781-4e6b-b173-d718102bc0f4', b'0', 30),
 (3, '2026-04-27 09:57:19.000000', 'dadb03c4-d977-45f0-a32b-0900bd310444', b'0', 22);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `profesional_ciudad_servicio`
+--
+
+DROP TABLE IF EXISTS `profesional_ciudad_servicio`;
+CREATE TABLE `profesional_ciudad_servicio` (
+  `profesional_id` bigint(20) NOT NULL,
+  `ciudad` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `profesional_ciudad_servicio`
+--
+
+INSERT INTO `profesional_ciudad_servicio` (`profesional_id`, `ciudad`) VALUES
+(17, 'Sevilla');
 
 -- --------------------------------------------------------
 
@@ -560,10 +663,62 @@ INSERT INTO `profesional_info` (`id`, `cif`, `descripcion`, `experiencia`, `nomb
 (10, NULL, 'Soy un trabajador con experiencia en mi sector y con mucha motivación', 5, 'García Ruiz S.L.', 0, 'BASICO', 0, 39, '14900', NULL, NULL, b'0'),
 (11, NULL, 'Perfil en construcción', 35, 'Berger', 0, 'BASICO', 0, 42, '14900', NULL, NULL, b'0'),
 (12, NULL, 'Perfil en construcción', 0, NULL, 1, 'BASICO', 3, 44, NULL, 37.55223076605486, -5.08160566576258, b'1'),
-(13, NULL, 'Perfil en construcción', 0, NULL, 0, 'BASICO', 0, 45, NULL, NULL, NULL, b'0'),
+(13, NULL, 'Perfil en construcción', 0, NULL, 1, 'BASICO', 5, 45, NULL, NULL, NULL, b'0'),
 (14, NULL, 'Perfil en construcción', 0, NULL, 0, 'BASICO', 0, 46, NULL, NULL, NULL, b'0'),
 (15, NULL, 'Perfil en construcción', 0, NULL, 0, 'BASICO', 0, 47, NULL, NULL, NULL, b'0'),
-(16, NULL, 'Perfil en construcción', 0, NULL, 1, 'BASICO', 4, 48, NULL, NULL, NULL, b'0');
+(16, NULL, 'Perfil en construcción', 0, NULL, 1, 'BASICO', 4, 48, NULL, NULL, NULL, b'0'),
+(17, NULL, 'Perfil en construcción', 0, NULL, 0, 'BASICO', 0, 49, NULL, NULL, NULL, b'0'),
+(18, 'B33333333', 'Electricista certificado con 10 años en Madrid. Instalaciones y reparaciones garantizadas.', 10, 'ElectraMiguel', 12, 'PRO', 4.8, 50, '28010', 40.4237, -3.6916, b'1'),
+(19, 'B44444444', 'Fontanera profesional en Barcelona. Urgencias 24h, presupuesto siempre gratis.', 7, NULL, 8, 'PREMIUM', 4.6, 51, '08008', 41.3951, 2.1599, b'1'),
+(20, NULL, 'Servicio de limpieza económico y de calidad en Valencia. Materiales propios incluidos.', 2, NULL, 4, 'BASICO', 3.9, 52, '46001', 39.4728, -0.3696, b'1'),
+(21, NULL, 'Profesor nativo de inglés. Preparación Cambridge, IELTS y conversación fluida.', 5, NULL, 6, 'BASICO', 4.2, 53, '48001', 43.2632, -2.9254, b'1'),
+(22, 'B55555555', 'Cuidadora de mayores con titulación oficial. 12 años de experiencia y referencias.', 12, 'CuidadosCármen', 20, 'PREMIUM', 4.9, 54, '50001', 41.6565, -0.8773, b'1'),
+(23, 'B66666666', 'Entrenador personal certificado. Planes de ejercicio y nutrición totalmente personalizados.', 8, 'FitRaúl', 15, 'PRO', 4.7, 55, '03001', 38.346, -0.4907, b'1'),
+(24, NULL, 'Apasionada de los animales. Paseos, cuidados y hospedaje de mascotas en Murcia.', 3, NULL, 7, 'BASICO', 4.4, 56, '30001', 37.9866, -1.1285, b'1'),
+(25, 'B77777777', 'Fontanero urgente con 15 años en Baleares. Disponible 24h todos los días del año.', 15, 'Fontanería Urgente Baleares', 25, 'PRO', 4.3, 57, '07001', 39.5697, 2.6501, b'1'),
+(26, NULL, 'Profesora de matemáticas para ESO y bachillerato. Clases individuales con resultados.', 6, NULL, 9, 'BASICO', 4.1, 58, '47001', 41.6523, -4.7213, b'1'),
+(27, NULL, 'Masajista y fisioterapeuta titulada. Relajante, deportivo y terapéutico en Santander.', 9, 'PatriciaRelax', 18, 'PREMIUM', 4.8, 59, '39001', 43.4627, -3.8045, b'1'),
+(28, NULL, 'Jardinero con pasión por los jardines. Diseño, mantenimiento y poda en Salamanca.', 4, NULL, 5, 'BASICO', 3.7, 60, '37001', 40.9668, -5.6638, b'1'),
+(29, 'B88888888', 'Cerrajero urgente en Toledo. Aperturas sin daños, cambios de cerradura y copias de llave.', 11, 'CerrajeríaAndrés', 16, 'PRO', 4.5, 61, '45001', 39.86, -4.0245, b'1'),
+(30, NULL, 'Peluquera y estilista a domicilio en Madrid. Cortes, tintes, peinados y maquillaje.', 7, NULL, 11, 'PREMIUM', 4.6, 62, '28004', 40.4239, -3.7009, b'1'),
+(31, NULL, 'Fontanero económico en Barcelona. Precios ajustados y trabajos garantizados.', 2, NULL, 3, 'BASICO', 3.5, 63, '08003', 41.3846, 2.1786, b'1'),
+(32, 'B99999999', 'Veterinaria a domicilio en Valencia. Consultas, vacunas y urgencias sin salir de casa.', 8, 'VetCasa Valencia', 14, 'PRO', 4.9, 64, '46003', 39.4759, -0.3554, b'1'),
+(33, NULL, 'Electricista en Sevilla. Servicio económico para instalaciones básicas y reparaciones menores.', 1, NULL, 2, 'BASICO', 2.8, 65, '41001', 37.3892, -5.9845, b'1'),
+(34, 'C11111111', 'Coach certificada ICF. Sesiones individuales de coaching, mindfulness y gestión del estrés.', 10, 'CoachingNatalia', 22, 'PRO', 4.7, 66, '28006', 40.435, -3.6943, b'1'),
+(35, NULL, 'Cuidadora de niños con experiencia y paciencia. Referencias disponibles a petición.', 5, NULL, 8, 'PREMIUM', 4.3, 67, '48011', 43.2712, -2.9419, b'1'),
+(36, 'C22222222', 'Desarrollador y formador. Clases de Java, Python, web y bases de datos desde cero.', 7, 'CodeDavid', 17, 'PREMIUM', 4.8, 68, '08026', 41.411, 2.19, b'1'),
+(37, NULL, 'Especialista en limpieza post obra y garajes en Madrid. Equipos profesionales.', 6, NULL, 9, 'PRO', 4.1, 69, '28020', 40.454, -3.6941, b'1'),
+(38, NULL, 'Profesional de la limpieza en Madrid con 6 años. Hogares, oficinas y locales.', 6, NULL, 8, 'PREMIUM', 4.5, 70, '28012', 40.4138, -3.7025, b'1'),
+(39, NULL, 'Limpieza y mantenimiento del hogar en Barcelona. Puntual y concienzudo.', 4, NULL, 6, 'BASICO', 4.1, 71, '08007', 41.3925, 2.1602, b'1'),
+(40, NULL, 'Servicio integral de limpieza en Valencia. Materiales incluidos.', 3, NULL, 5, 'BASICO', 3.8, 72, '46010', 39.4753, -0.3584, b'1'),
+(41, NULL, 'Manitas y jardinería en Zaragoza. Amplia experiencia en servicios del hogar.', 5, NULL, 7, 'PREMIUM', 4.2, 73, '50001', 41.6502, -0.8825, b'1'),
+(42, NULL, 'Limpieza económica y eficiente en Sevilla. Horarios flexibles, trato cercano.', 2, NULL, 4, 'BASICO', 3.6, 74, '41002', 37.3951, -5.9932, b'1'),
+(43, 'B11100001', 'Electricista industrial y doméstico en Madrid. 12 años de experiencia. Certificado.', 12, 'ElectraMadrid', 18, 'PRO', 4.7, 75, '28010', 40.4304, -3.6833, b'1'),
+(44, 'B11100002', 'Electricista certificado en Barcelona. Instalaciones y reparaciones con garantía.', 8, 'Ferrer Electricidad', 14, 'PREMIUM', 4.5, 76, '08036', 41.3802, 2.1546, b'1'),
+(45, NULL, 'Electricista autónomo en Valencia. Precios ajustados y trabajo garantizado.', 5, NULL, 9, 'BASICO', 4, 77, '46005', 39.463, -0.3972, b'1'),
+(46, 'B11100003', 'Electricista en Bilbao. Urgencias 24h y revisiones de cuadros eléctricos.', 10, 'Lozano Elec', 16, 'PRO', 4.6, 78, '48010', 43.268, -2.942, b'1'),
+(47, NULL, 'Técnico electricidad en Málaga. Servicio rápido y económico.', 3, NULL, 5, 'BASICO', 3.9, 79, '29015', 36.72, -4.4196, b'1'),
+(48, 'B11100004', 'Fontanero con 14 años en Madrid. Urgencias, fugas y averías de todo tipo. Garantía.', 14, 'PascualFontanería', 22, 'PRO', 4.8, 80, '28004', 40.4226, -3.7022, b'1'),
+(49, NULL, 'Fontanero en Barcelona. Rápido, serio y con precios transparentes.', 7, NULL, 11, 'PREMIUM', 4.4, 81, '08003', 41.3831, 2.1825, b'1'),
+(50, NULL, 'Fontanería a domicilio en Valencia. Urgencias y reparaciones programadas.', 4, NULL, 6, 'BASICO', 4, 82, '46007', 39.4612, -0.3902, b'1'),
+(51, NULL, 'Auxiliar titulada en ayuda a domicilio. Cuidado de mayores y dependientes en Madrid.', 9, NULL, 15, 'PREMIUM', 4.6, 83, '28006', 40.4304, -3.6852, b'1'),
+(52, 'B11100005', 'Cuidadora profesional en Barcelona con certificado en gerontología y primeros auxilios.', 6, 'CuidaBeat', 10, 'PREMIUM', 4.4, 84, '08022', 41.401, 2.149, b'1'),
+(53, NULL, 'Cuidadora y niñera en Sevilla. Cariñosa, responsable, con referencias.', 4, NULL, 7, 'BASICO', 4.2, 85, '41004', 37.3762, -5.992, b'1'),
+(54, NULL, 'Amante de los animales. Paseos, cuidados y adiestramiento en Madrid.', 5, NULL, 9, 'PREMIUM', 4.5, 86, '28015', 40.4276, -3.7182, b'1'),
+(55, NULL, 'Cuidadora de mascotas en Barcelona. Tu perro siempre en buenas manos.', 3, NULL, 6, 'BASICO', 4.3, 87, '08026', 41.4122, 2.189, b'1'),
+(56, NULL, 'Veterinaria y cuidadora de animales en Valencia. Amor y profesionalidad.', 4, NULL, 7, 'PREMIUM', 4.6, 88, '46019', 39.4811, -0.362, b'1'),
+(57, NULL, 'Profesor particular con 10 años. Matemáticas, inglés, programación y baile.', 10, NULL, 20, 'PRO', 4.8, 89, '28009', 40.419, -3.672, b'1'),
+(58, 'B11100006', 'Profesora y formadora en Barcelona. Idiomas, informática y música.', 8, 'HidalgoAcademia', 13, 'PREMIUM', 4.5, 90, '08028', 41.3742, 2.1264, b'1'),
+(59, NULL, 'Clases particulares de inglés, programación y baile en Valencia.', 5, NULL, 8, 'BASICO', 4.1, 91, '46010', 39.486, -0.3541, b'1'),
+(60, NULL, 'Profesora de matemáticas, inglés, programación y baile en Bilbao.', 6, NULL, 10, 'PREMIUM', 4.4, 92, '48001', 43.2562, -2.9221, b'1'),
+(61, NULL, 'Peluquera, maquilladora, masajista y entrenadora personal en Madrid.', 8, NULL, 14, 'PREMIUM', 4.6, 93, '28004', 40.4259, -3.7001, b'1'),
+(62, NULL, 'Estilista, fisioterapeuta e instructor de yoga y pilates en Barcelona.', 6, NULL, 10, 'PREMIUM', 4.4, 94, '08008', 41.3945, 2.1622, b'1'),
+(63, NULL, 'Peluquería, masajes, yoga y entrenamiento a domicilio en Sevilla.', 3, NULL, 5, 'BASICO', 4, 95, '41003', 37.3818, -5.9714, b'1'),
+(64, 'B11100007', 'Técnico informático y cerrajero urgente en Madrid. Respuesta inmediata, 24h.', 10, 'SolucionesUrgente', 19, 'PRO', 4.7, 96, '28013', 40.418, -3.701, b'1'),
+(65, NULL, 'Informático urgente y cerrajero en Barcelona. Disponible 24h todos los días.', 6, NULL, 11, 'PREMIUM', 4.3, 97, '08001', 41.3808, 2.1751, b'1'),
+(66, NULL, 'Técnico en redes WiFi, cerrajería urgente y coaching en Valencia.', 4, NULL, 7, 'BASICO', 4.1, 98, '46002', 39.4704, -0.376, b'1'),
+(67, NULL, 'Informático, coach y técnico de redes en Bilbao. Multidisciplinar.', 5, NULL, 8, 'PREMIUM', 4.4, 99, '48003', 43.266, -2.9271, b'1'),
+(68, NULL, 'Perfil en construcción', 0, NULL, 0, 'BASICO', 0, 102, NULL, NULL, NULL, b'0');
 
 -- --------------------------------------------------------
 
@@ -633,7 +788,10 @@ INSERT INTO `reserva` (`id`, `estado`, `fecha_creacion`, `fecha_inicio`, `precio
 (24, 'CANCELADA', '2026-05-04 08:34:33.000000', '2026-05-20 13:37:00.000000', 40.00, 22, 40, '', 0, NULL),
 (25, 'COMPLETADA', '2026-05-04 09:04:15.000000', '2026-05-20 14:00:00.000000', 40.00, 22, 40, 'Hola, he visto que se ha cancelado el servicio anterior. Sigo necesitando el mantenimiento de la piscina, así que quería saber si tienes otra disponibilidad para esta semana. Me vendría bien cualquier día por la tarde. ¿Podrías confirmarme?', 0, NULL),
 (26, 'CONFIRMADA', '2026-05-04 09:36:04.000000', '2026-05-04 10:34:00.000000', 30.00, 22, 39, 'Necesito un cambio de cerradura urgente en mi vivienda. He perdido las llaves', 0, NULL),
-(27, 'PENDIENTE', '2026-05-04 18:23:17.000000', '2026-05-10 15:00:00.000000', 22.00, 22, 8, '', 0, NULL);
+(27, 'PENDIENTE', '2026-05-04 18:23:17.000000', '2026-05-10 15:00:00.000000', 22.00, 22, 8, '', 0, NULL),
+(28, 'CONFIRMADA', '2026-05-13 08:30:34.000000', '2026-05-20 10:30:00.000000', 50.00, 22, 41, 'Hola, necesito ayuda porque han aparecido cucarachas y algunas hormigas en mi piso, sobre todo por la zona de la cocina. Soy estudiante y no sé muy bien de dónde vienen, pero cada vez veo más. Me gustaría hacer un tratamiento para eliminarlas y evitar que vuelvan a salir.', 0, NULL),
+(29, 'CONFIRMADA', '2026-05-13 11:03:53.000000', '2026-05-30 16:00:00.000000', 25.00, 22, 284, 'Hola, necesito ayuda para organizar un evento personalizado. No lo tengo muy claro todavía, así que me gustaría que me ayudaras con ideas, actividades y cómo organizarlo paso a paso. También necesito orientación para decidir el tipo de evento y que todo quede bien montado.', 0, NULL),
+(30, 'CONFIRMADA', '2026-05-13 11:45:44.000000', '2026-05-20 13:45:00.000000', 10.00, 103, 285, 'Hola, necesitaría cuidado para un bebé el día 20/05/2026 sobre las 15:45. Busco a una persona responsable, puntual y con experiencia. Sería para unas horas mientras trabajo. Gracias.', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -697,7 +855,252 @@ INSERT INTO `servicio_ofrecido` (`id`, `activa`, `descripcion`, `duracion_min`, 
 (37, b'1', 'Ofrezco clases personalizadas de guitarra acústica adaptadas a tu nivel. Aprenderás acordes, ritmos, técnicas básicas y canciones desde el primer día. Las clases son dinámicas y prácticas, ideales tanto para principiantes como para quienes quieren mejorar su técnica.', 60, 15.00, 'Clases de guitarra acústica para principiantes y nivel medio', 14, 114),
 (38, b'1', 'Maquillaje a domicilio para eventos, día o noche. Me adapto a tu estilo (natural o glam) y utilizo productos de buena calidad para un resultado duradero. Incluye asesoramiento básico.', 60, 25.00, 'Maquillaje profesional a domicilio para eventos y ocasiones especiales', 15, 60),
 (39, b'1', 'Cerrajero rápido y fiable. Cambio de cerraduras, apertura de puertas y reparación. Servicio urgente en el día.', 60, 30.00, 'Cambio de cerradura urgente 24h', 16, 134),
-(40, b'1', 'Limpieza, control de cloro y pH, revisión de filtros y mantenimiento general. Servicio puntual o periódico para mantener el agua en perfecto estado.', 120, 20.00, 'Mantenimiento de piscina completo', 16, 12);
+(40, b'1', 'Limpieza, control de cloro y pH, revisión de filtros y mantenimiento general. Servicio puntual o periódico para mantener el agua en perfecto estado.', 120, 20.00, 'Mantenimiento de piscina completo', 16, 12),
+(41, b'1', 'Ofrezco un servicio de control básico de plagas para casas, pisos, oficinas y pequeños locales. Me encargo de eliminar insectos comunes como cucarachas, hormigas, arañas y otros problemas similares usando productos seguros y efectivos. Trabajo de forma limpia y rápida, intentando también prevenir que la plaga vuelva a aparecer en el futuro.', 120, 25.00, 'Eliminación de cucarachas, hormigas y plagas comunes', 17, 24),
+(42, b'1', 'Reparación de instalaciones eléctricas residenciales. Diagnóstico y presupuesto gratuito.', 60, 35.00, 'Reparación eléctrica Madrid', 18, 26),
+(43, b'1', 'Intervención en menos de 2h. Disponible 24h incluidos festivos y fines de semana.', 60, 50.00, 'Electricista urgente 24h Madrid', 18, 128),
+(44, b'1', 'Detección y reparación de fugas, averías y tuberías. Servicio garantizado.', 60, 30.00, 'Reparación fontanería Barcelona', 19, 30),
+(45, b'1', 'Urgencias de fontanería en Barcelona. Respuesta en menos de 60 minutos.', 60, 45.00, 'Fontanero urgente Barcelona', 19, 127),
+(46, b'1', 'Limpieza completa del hogar. Cocina, baños y habitaciones. Materiales incluidos.', 120, 12.00, 'Limpieza del hogar Valencia', 20, 1),
+(47, b'1', 'Limpieza en profundidad con desinfección y desengrasado. Ideal tras mudanza.', 180, 14.00, 'Limpieza profunda Valencia', 20, 2),
+(48, b'1', 'Clases individuales de inglés conversacional. Nivel A1 a C2. Flexible de horario.', 60, 20.00, 'Inglés conversación Bilbao', 21, 104),
+(49, b'1', 'Preparación para exámenes Cambridge, IELTS y TOEFL con metodología probada.', 60, 22.00, 'Inglés exámenes Bilbao', 21, 105),
+(50, b'1', 'Cuidado profesional de personas mayores en su domicilio. Higiene, medicación y compañía.', 240, 15.00, 'Cuidado de mayores Zaragoza', 22, 51),
+(51, b'1', 'Atención integral a personas con dependencia reconocida. Titulación oficial.', 480, 14.00, 'Cuidado de dependientes Zaragoza', 22, 52),
+(52, b'1', 'Entrenamiento personal adaptado a tus objetivos, condición física y disponibilidad.', 60, 40.00, 'Entrenador personal Alicante', 23, 68),
+(53, b'1', 'Sesiones de yoga para todos los niveles. Respiración, relajación y flexibilidad.', 60, 25.00, 'Yoga a domicilio Alicante', 23, 69),
+(54, b'1', 'Paseos de 30 y 60 minutos. Grupos reducidos. Rutas variadas por la ciudad.', 60, 12.00, 'Paseo de perros Murcia', 24, 76),
+(55, b'1', 'Cuidado de perros en tu domicilio mientras estás fuera o trabajas.', 480, 10.00, 'Cuidado de perros en casa Murcia', 24, 77),
+(56, b'1', 'Fontanería urgente en Mallorca. Garantía de satisfacción. Sin desplazamiento.', 60, 60.00, 'Fontanero urgente Palma 24h', 25, 127),
+(57, b'1', 'Resolución urgente de atascos en tuberías domésticas sin obra.', 90, 45.00, 'Desatascos urgentes Palma', 25, 130),
+(58, b'1', 'Clases de matemáticas para la ESO. Refuerzo y preparación de exámenes.', 60, 25.00, 'Matemáticas ESO Valladolid', 26, 102),
+(59, b'1', 'Preparación para selectividad y bachillerato. Resultados garantizados.', 60, 30.00, 'Matemáticas bachillerato Valladolid', 26, 103),
+(60, b'1', 'Masaje relajante sueco y de tejido profundo en tu domicilio. Camilla propia.', 60, 45.00, 'Masajes a domicilio Santander', 27, 65),
+(61, b'1', 'Fisioterapia de rehabilitación y tratamiento de lesiones deportivas.', 60, 55.00, 'Fisioterapia a domicilio Santander', 27, 66),
+(62, b'1', 'Diseño y mantenimiento de jardines privados en Salamanca y alrededores.', 120, 20.00, 'Mantenimiento de jardín Salamanca', 28, 8),
+(63, b'1', 'Corte de césped y recorte de bordes. Precio cerrado por sesión.', 60, 15.00, 'Corte de césped Salamanca', 28, 10),
+(64, b'1', 'Apertura de puertas sin daños en 30 minutos. Servicio en toda la provincia.', 60, 55.00, 'Cerrajero urgente Toledo', 29, 129),
+(65, b'1', 'Instalación de cerraduras de alta seguridad. Asesoramiento incluido.', 60, 50.00, 'Cambio de cerradura Toledo', 29, 134),
+(66, b'1', 'Cortes, tintes y peinados en tu domicilio. Productos profesionales de primera calidad.', 60, 35.00, 'Peluquería a domicilio Madrid', 30, 59),
+(67, b'1', 'Maquillaje profesional para bodas, eventos y fotografía.', 90, 40.00, 'Maquillaje profesional Madrid', 30, 60),
+(68, b'1', 'Reparación de grifos, cisternas y sanitarios. Presupuesto previo sin coste.', 60, 18.00, 'Reparación de grifos Barcelona', 31, 32),
+(69, b'1', 'Desatascos sin obra con máquina de presión de alta potencia.', 60, 22.00, 'Desatascos Barcelona', 31, 33),
+(70, b'1', 'Consultas veterinarias, vacunas y diagnóstico en casa. Sin estrés para tu mascota.', 60, 70.00, 'Veterinario a domicilio Valencia', 32, 89),
+(71, b'1', 'Administración de tratamientos y medicación para mascotas. Pauta incluida.', 30, 35.00, 'Administración medicación mascotas', 32, 90),
+(72, b'1', 'Instalación y reparación de enchufes e interruptores. Precio cerrado.', 60, 15.00, 'Reparación de enchufes Sevilla', 33, 27),
+(73, b'1', 'Cambio de bombillas normales, LED y de bajo consumo.', 30, 10.00, 'Cambio de bombillas Sevilla', 33, 6),
+(74, b'1', 'Sesiones de coaching individual para alcanzar tus metas personales y profesionales.', 60, 80.00, 'Coaching personal Madrid', 34, 170),
+(75, b'1', 'Introducción al mindfulness. Técnicas de reducción del estrés y meditación.', 60, 60.00, 'Mindfulness en casa Madrid', 34, 174),
+(76, b'1', 'Cuidado de niños de 0 a 12 años en su domicilio. Actividades educativas y juego.', 480, 14.00, 'Cuidado de niños Bilbao', 35, 55),
+(77, b'1', 'Servicio de niñera flexible por horas. Sin mínimo de horas.', 120, 12.00, 'Niñera a domicilio Bilbao', 35, 56),
+(78, b'1', 'Clases de Java, Spring Boot y patrones de diseño. Nivel básico a avanzado.', 60, 45.00, 'Programación Java Barcelona', 36, 109),
+(79, b'1', 'Aprende HTML, CSS, JavaScript y React desde cero hasta nivel profesional.', 60, 40.00, 'Desarrollo web Barcelona', 36, 110),
+(80, b'1', 'Limpieza especializada tras obras de construcción o reforma. Equipo propio.', 180, 16.00, 'Limpieza post obra Madrid', 37, 3),
+(81, b'1', 'Limpieza de garajes, trasteros y zonas de almacenaje. Presupuesto gratis.', 120, 14.00, 'Limpieza de garaje Madrid', 37, 15),
+(82, b'1', 'Limpieza completa del hogar: cocina, baños y habitaciones. Materiales incluidos.', 120, 15.00, 'Limpieza del hogar Madrid', 38, 1),
+(83, b'1', 'Limpieza profunda con desengrasante y desinfección. Ideal tras mudanza.', 180, 18.00, 'Limpieza profunda Madrid', 38, 2),
+(84, b'1', 'Limpieza especializada post reforma. Eliminamos polvo, pintura y restos de obra.', 180, 17.00, 'Limpieza post obra Madrid', 38, 3),
+(85, b'1', 'Pequeñas reparaciones y arreglos del hogar. Sin obra, sin licencia.', 60, 22.00, 'Servicio de manitas Madrid', 38, 5),
+(86, b'1', 'Poda de plantas ornamentales y setos en terraza o jardín. Herramientas propias.', 60, 15.00, 'Poda de plantas Madrid', 38, 9),
+(87, b'1', 'Mantenimiento semanal de piscinas privadas: limpieza y control químico.', 90, 30.00, 'Mantenimiento de piscina Madrid', 38, 12),
+(88, b'1', 'Organización de armarios, cocina y almacenaje. Método KonMari adaptado.', 90, 22.00, 'Organización del hogar Madrid', 38, 21),
+(89, b'1', 'Servicio de limpieza a domicilio en Barcelona. Puntual y minucioso.', 120, 14.00, 'Limpieza del hogar Barcelona', 39, 1),
+(90, b'1', 'Limpieza en profundidad con productos ecológicos. Resultado garantizado.', 180, 16.00, 'Limpieza profunda Barcelona', 39, 2),
+(91, b'1', 'Limpieza post reforma con maquinaria profesional. Presupuesto sin compromiso.', 180, 16.00, 'Limpieza post obra Barcelona', 39, 3),
+(92, b'1', 'Arreglos varios en el hogar: cuelgas, montajes y pequeñas reparaciones.', 60, 20.00, 'Manitas Barcelona', 39, 5),
+(93, b'1', 'Mantenimiento de piscina: limpieza de filtros, análisis y equilibrado del agua.', 90, 28.00, 'Piscina Barcelona', 39, 12),
+(94, b'1', 'Limpieza y vaciado de garajes. Organización incluida si se solicita.', 120, 16.00, 'Limpieza de garaje Barcelona', 39, 15),
+(95, b'1', 'Fumigación y control de cucarachas, hormigas y otros insectos domésticos.', 60, 26.00, 'Control de plagas Barcelona', 39, 24),
+(96, b'1', 'Limpieza intensiva con desinfección y desengrasado. Ideal para pisos de alquiler.', 180, 15.00, 'Limpieza profunda Valencia', 40, 2),
+(97, b'1', 'Limpieza post reforma en Valencia. Dejamos tu casa como nueva.', 180, 15.00, 'Limpieza post reforma Valencia', 40, 3),
+(98, b'1', 'Poda y recorte de plantas en terrazas y jardines. Técnica y herramientas propias.', 60, 14.00, 'Poda de plantas Valencia', 40, 9),
+(99, b'1', 'Revisión y limpieza de piscinas. Vacuolado, tratamiento y análisis de agua.', 90, 25.00, 'Mantenimiento de piscina Valencia', 40, 12),
+(100, b'1', 'Limpieza de garajes y trasteros. Retirada de residuos incluida.', 120, 15.00, 'Limpieza de garaje Valencia', 40, 15),
+(101, b'1', 'Organización del hogar: armarios, despensa y zonas de almacenaje.', 90, 20.00, 'Organización del hogar Valencia', 40, 21),
+(102, b'1', 'Tratamiento antiplagas: cucarachas, ratones y mosquitos. Productos homologados.', 60, 24.00, 'Control de plagas Valencia', 40, 24),
+(103, b'1', 'Limpieza a domicilio en Zaragoza. Responsable y eficaz. Precio cerrado.', 120, 13.00, 'Limpieza del hogar Zaragoza', 41, 1),
+(104, b'1', 'Manitas en Zaragoza: cuelgas, montaje de muebles y pequeñas reparaciones.', 60, 18.00, 'Manitas Zaragoza', 41, 5),
+(105, b'1', 'Mantenimiento de jardines privados. Riego, abonado y poda incluidos.', 120, 18.00, 'Mantenimiento jardín Zaragoza', 41, 8),
+(106, b'1', 'Siega de césped y recorte de bordes. Precio fijo por metro cuadrado.', 60, 14.00, 'Corte de césped Zaragoza', 41, 10),
+(107, b'1', 'Control de plagas en Zaragoza. Sin olor residual, mascotas y niños seguros.', 60, 22.00, 'Control de plagas Zaragoza', 41, 24),
+(108, b'1', 'Home organizer en Zaragoza. Orden y optimización de cada espacio.', 90, 18.00, 'Organización del hogar Zaragoza', 41, 21),
+(109, b'1', 'Limpieza de garajes y plazas de aparcamiento. Aspiración y fregado industrial.', 120, 14.00, 'Limpieza de garaje Zaragoza', 41, 15),
+(110, b'1', 'Limpieza profunda de pisos y locales en Sevilla. Materiales de primera calidad.', 180, 13.00, 'Limpieza profunda Sevilla', 42, 2),
+(111, b'1', 'Manitas en Sevilla: cuelgas, pequeñas reparaciones y montaje de muebles.', 60, 18.00, 'Manitas Sevilla', 42, 5),
+(112, b'1', 'Mantenimiento de jardines en Sevilla. Poda, riego y fertilización.', 120, 16.00, 'Mantenimiento jardín Sevilla', 42, 8),
+(113, b'1', 'Poda de árboles ornamentales y arbustos. Herramientas y técnica adecuada.', 60, 13.00, 'Poda de plantas Sevilla', 42, 9),
+(114, b'1', 'Siega y mantenimiento de césped en Sevilla. Presupuesto sin compromiso.', 60, 13.00, 'Corte de césped Sevilla', 42, 10),
+(115, b'1', 'Mantenimiento de piscinas en Sevilla. Análisis semanal y equilibrado.', 90, 22.00, 'Mantenimiento de piscina Sevilla', 42, 12),
+(116, b'1', 'Desinsectación y desratización en Sevilla. Productos ecológicos disponibles.', 60, 20.00, 'Control de plagas Sevilla', 42, 24),
+(117, b'1', 'Instalación y reparación eléctrica en Madrid. 12 años de experiencia. Garantía.', 60, 38.00, 'Reparación eléctrica Madrid', 43, 26),
+(118, b'1', 'Cambio y reparación de enchufes e interruptores. Trabajo limpio y rápido.', 30, 28.00, 'Reparación de enchufes Madrid', 43, 27),
+(119, b'1', 'Sustitución de bombillas fundidas. LED, halógena y bajo consumo.', 30, 14.00, 'Cambio de bombillas Madrid', 43, 6),
+(120, b'1', 'Montaje e instalación de lámparas de techo, pared y apliques.', 60, 22.00, 'Instalación de lámparas Madrid', 43, 7),
+(121, b'1', 'Revisión y actualización de cuadros eléctricos. Diferenciales y magnetotérmicos.', 60, 45.00, 'Cuadro eléctrico Madrid', 43, 29),
+(122, b'1', 'Reparación de frigoríficos y congeladores a domicilio. Todas las marcas.', 60, 52.00, 'Reparación frigoríficos Madrid', 43, 40),
+(123, b'1', 'Reparación de lavadoras en tu domicilio. Garantía de 3 meses incluida.', 60, 48.00, 'Reparación lavadoras Madrid', 43, 39),
+(124, b'1', 'Electricista urgente 24h en Madrid. Cortocircuitos, cortes de luz y averías.', 60, 65.00, 'Electricista urgente Madrid', 43, 128),
+(125, b'1', 'Reparaciones eléctricas en Barcelona. Certificado de instalaciones.', 60, 35.00, 'Reparación eléctrica Barcelona', 44, 26),
+(126, b'1', 'Cambio de enchufes e interruptores en Barcelona. Sin perforar.', 30, 25.00, 'Enchufes Barcelona', 44, 27),
+(127, b'1', 'Cambio de bombillas en Barcelona. Asesoramiento sobre iluminación LED.', 30, 12.00, 'Bombillas Barcelona', 44, 6),
+(128, b'1', 'Instalación de lámparas en Barcelona. Todo tipo de modelos y fabricantes.', 60, 20.00, 'Lámparas Barcelona', 44, 7),
+(129, b'1', 'Mantenimiento y reparación de aires acondicionados. Todas las marcas.', 60, 55.00, 'Aire acondicionado Barcelona', 44, 37),
+(130, b'1', 'Reparación de frigoríficos a domicilio en Barcelona. Diagnóstico en visita.', 60, 50.00, 'Frigoríficos Barcelona', 44, 40),
+(131, b'1', 'Técnico de hornos y vitrocerámicas en Barcelona. Reparación rápida.', 60, 45.00, 'Hornos Barcelona', 44, 41),
+(132, b'1', 'Electricista urgente en Barcelona disponible 24h. Sin recargo nocturno.', 60, 62.00, 'Electricista urgente Barcelona', 44, 128),
+(133, b'1', 'Electricista en Valencia. Instalaciones y reparaciones con presupuesto gratuito.', 60, 32.00, 'Reparación eléctrica Valencia', 45, 26),
+(134, b'1', 'Reparación de enchufes e interruptores en Valencia. Trabajo sin perforaciones.', 30, 22.00, 'Enchufes Valencia', 45, 27),
+(135, b'1', 'Cambio de bombillas y revisión de luminarias en Valencia.', 30, 11.00, 'Bombillas Valencia', 45, 6),
+(136, b'1', 'Revisión y reparación de cuadro eléctrico en Valencia. Certificado incluido.', 60, 40.00, 'Cuadro eléctrico Valencia', 45, 29),
+(137, b'1', 'Reparación de climatizadores y splits en Valencia. Todas las marcas.', 60, 50.00, 'Climatización Valencia', 45, 37),
+(138, b'1', 'Reparación de lavavajillas a domicilio en Valencia. Garantía incluida.', 60, 44.00, 'Lavavajillas Valencia', 45, 42),
+(139, b'1', 'Técnico de lavadoras en Valencia. Sin desplazamiento al taller.', 60, 45.00, 'Lavadoras Valencia', 45, 39),
+(140, b'1', 'Electricista urgente Valencia 24h. Cortes de luz y averías resueltas al momento.', 60, 58.00, 'Electricista urgente Valencia', 45, 128),
+(141, b'1', 'Electricista en Bilbao. Instalaciones industriales y domésticas.', 60, 40.00, 'Reparación eléctrica Bilbao', 46, 26),
+(142, b'1', 'Cambio de enchufes en Bilbao. Rápido, eficaz y con garantía.', 30, 26.00, 'Enchufes Bilbao', 46, 27),
+(143, b'1', 'Instalación de lámparas y apliques en Bilbao. Trabajo limpio y cuidado.', 60, 22.00, 'Lámparas Bilbao', 46, 7),
+(144, b'1', 'Cuadro eléctrico Bilbao. Revisión normativa y actualización de diferenciales.', 60, 44.00, 'Cuadro eléctrico Bilbao', 46, 29),
+(145, b'1', 'Reparación de frigoríficos en Bilbao. Revisión completa con diagnóstico.', 60, 50.00, 'Frigoríficos Bilbao', 46, 40),
+(146, b'1', 'Reparación de hornos eléctricos y de gas en Bilbao. Todas las marcas.', 60, 46.00, 'Hornos Bilbao', 46, 41),
+(147, b'1', 'Reparación de lavavajillas en Bilbao. Avería diagnosticada en primera visita.', 60, 44.00, 'Lavavajillas Bilbao', 46, 42),
+(148, b'1', 'Electricista urgente 24h Bilbao. Festivos y fines de semana sin recargo.', 60, 60.00, 'Electricista urgente Bilbao', 46, 128),
+(149, b'1', 'Electricista en Málaga. Instalaciones y reparaciones con precios ajustados.', 60, 32.00, 'Reparación eléctrica Málaga', 47, 26),
+(150, b'1', 'Cambio de enchufes e interruptores en Málaga. Presupuesto gratuito.', 30, 22.00, 'Enchufes Málaga', 47, 27),
+(151, b'1', 'Cambio de bombillas en Málaga. Consejos de ahorro energético incluidos.', 30, 10.00, 'Bombillas Málaga', 47, 6),
+(152, b'1', 'Instalación de lámparas en Málaga. Modelos modernos y clásicos.', 60, 19.00, 'Lámparas Málaga', 47, 7),
+(153, b'1', 'Reparación de aires acondicionados en Málaga. Recarga de gas y mantenimiento.', 60, 50.00, 'Climatización Málaga', 47, 37),
+(154, b'1', 'Reparación de hornos y placas en Málaga. Sin necesidad de llevarlos a taller.', 60, 42.00, 'Hornos Málaga', 47, 41),
+(155, b'1', 'Reparación de lavavajillas en Málaga. Revisión completa y garantía.', 60, 40.00, 'Lavavajillas Málaga', 47, 42),
+(156, b'1', 'Reparación de lavadoras en Málaga. Técnico certificado. Garantía de 3 meses.', 60, 44.00, 'Lavadoras Málaga', 47, 39),
+(157, b'1', 'Fontanería doméstica en Madrid. Averías, cambios y mejoras. Sin sorpresas.', 60, 36.00, 'Fontanería Madrid', 48, 30),
+(158, b'1', 'Detección y reparación de fugas sin obra innecesaria. Técnica no invasiva.', 60, 42.00, 'Fugas de agua Madrid', 48, 31),
+(159, b'1', 'Cambio y reparación de grifos y mezcladores. Todas las marcas.', 30, 24.00, 'Grifos Madrid', 48, 32),
+(160, b'1', 'Desatascos de fregaderos, bañeras e inodoros. Máquina de presión profesional.', 60, 35.00, 'Desatascos Madrid', 48, 33),
+(161, b'1', 'Fontanero urgente 24h Madrid. Fugas, roturas y atascos resueltos en menos de 1h.', 60, 58.00, 'Fontanero urgente Madrid', 48, 127),
+(162, b'1', 'Desatascos urgentes en Madrid. Técnica hydrojet para atascos graves.', 60, 62.00, 'Desatascos urgentes Madrid', 48, 130),
+(163, b'1', 'Fontanero en Barcelona. Rápido y transparente. Visita gratuita con diagnóstico.', 60, 33.00, 'Fontanería Barcelona', 49, 30),
+(164, b'1', 'Localizo y reparo fugas de agua en Barcelona. Certificado de reparación.', 60, 40.00, 'Fugas de agua Barcelona', 49, 31),
+(165, b'1', 'Reparación de grifos que gotean o no funcionan en Barcelona.', 30, 22.00, 'Grifos Barcelona', 49, 32),
+(166, b'1', 'Desatascos de tuberías en Barcelona. Sin obra y con garantía de resultado.', 60, 32.00, 'Desatascos Barcelona', 49, 33),
+(167, b'1', 'Fontanero urgente 24h en Barcelona. Festivos sin recargo adicional.', 60, 55.00, 'Fontanero urgente Barcelona', 49, 127),
+(168, b'1', 'Desatascos urgentes Barcelona. Máquina de presión de alta potencia.', 60, 58.00, 'Desatascos urgentes Barcelona', 49, 130),
+(169, b'1', 'Fontanería a domicilio en Valencia. Trabajos de calidad a precios ajustados.', 60, 30.00, 'Fontanería Valencia', 50, 30),
+(170, b'1', 'Reparación urgente de fugas en Valencia. Mínima intervención garantizada.', 60, 36.00, 'Fugas de agua Valencia', 50, 31),
+(171, b'1', 'Reparación de grifos y llaves de paso en Valencia. Todas las marcas.', 30, 20.00, 'Grifos Valencia', 50, 32),
+(172, b'1', 'Desatasco de tuberías y sanitarios en Valencia. Presupuesto previo gratis.', 60, 30.00, 'Desatascos Valencia', 50, 33),
+(173, b'1', 'Fontanero urgente en Valencia disponible 24h. Respuesta en menos de 90 minutos.', 60, 52.00, 'Fontanero urgente Valencia', 50, 127),
+(174, b'1', 'Desatascos urgentes en Valencia. Técnica de alta presión. Sin obras.', 60, 55.00, 'Desatascos urgentes Valencia', 50, 130),
+(175, b'1', 'Cuidado de personas mayores en domicilio. Higiene, medicación y compañía.', 240, 16.00, 'Cuidado de mayores Madrid', 51, 51),
+(176, b'1', 'Asistencia a personas dependientes en Madrid. Titulación oficial.', 480, 15.00, 'Cuidado de dependientes Madrid', 51, 52),
+(177, b'1', 'Acompañamiento en casa para mayores o personas con movilidad reducida.', 180, 13.00, 'Acompañamiento en casa Madrid', 51, 53),
+(178, b'1', 'Cuidado de niños en domicilio. De 0 a 12 años. Actividades educativas.', 120, 14.00, 'Cuidado de niños Madrid', 51, 55),
+(179, b'1', 'Niñera con experiencia en Madrid. Cuidado responsable por horas.', 120, 13.00, 'Niñera Madrid', 51, 56),
+(180, b'1', 'Cuidado de mayores en Barcelona. Certificado en gerontología y primeros auxilios.', 240, 17.00, 'Cuidado de mayores Barcelona', 52, 51),
+(181, b'1', 'Asistente a domicilio para personas con dependencia reconocida en Barcelona.', 480, 16.00, 'Dependientes Barcelona', 52, 52),
+(182, b'1', 'Compañía y acompañamiento a domicilio en Barcelona. Paciencia y empatía.', 180, 14.00, 'Acompañamiento Barcelona', 52, 53),
+(183, b'1', 'Cuidadora infantil titulada en Barcelona. Niños de 0 a 10 años.', 120, 15.00, 'Cuidado niños Barcelona', 52, 55),
+(184, b'1', 'Niñera en Barcelona. Flexible de horario, con referencias comprobables.', 120, 14.00, 'Niñera Barcelona', 52, 56),
+(185, b'1', 'Cuidadora de mayores en Sevilla. Trato humano y profesional garantizado.', 240, 14.00, 'Cuidado de mayores Sevilla', 53, 51),
+(186, b'1', 'Asistencia a personas dependientes en Sevilla. Experiencia y dedicación.', 480, 14.00, 'Dependientes Sevilla', 53, 52),
+(187, b'1', 'Servicio de compañía a domicilio en Sevilla. Conversación, paseos y apoyo.', 180, 12.00, 'Acompañamiento Sevilla', 53, 53),
+(188, b'1', 'Cuidado de niños en Sevilla. Entretenimiento educativo garantizado.', 120, 13.00, 'Cuidado niños Sevilla', 53, 55),
+(189, b'1', 'Niñera disponible en Sevilla. Cariño y responsabilidad ante todo.', 120, 12.00, 'Niñera Sevilla', 53, 56),
+(190, b'1', 'Paseos de perros en Madrid. Rutas seguras, grupos de máximo 3.', 60, 14.00, 'Paseo de perros Madrid', 54, 76),
+(191, b'1', 'Cuido a tu perro en su domicilio mientras trabajas. Fotos incluidas.', 480, 13.00, 'Cuidado de perros en casa Madrid', 54, 77),
+(192, b'1', 'Adiestramiento básico en Madrid. Sit, stay, come y socialización canina.', 60, 30.00, 'Adiestramiento básico Madrid', 54, 83),
+(193, b'1', 'Visita veterinaria a domicilio en Madrid. Consulta, vacunas y diagnóstico.', 60, 65.00, 'Veterinario a domicilio Madrid', 54, 89),
+(194, b'1', 'Administración de medicación a mascotas en Madrid. Inyecciones y pastillas.', 30, 28.00, 'Medicación mascotas Madrid', 54, 90),
+(195, b'1', 'Paseadora de perros en Barcelona. Grupos reducidos, rutas variadas.', 60, 13.00, 'Paseo de perros Barcelona', 55, 76),
+(196, b'1', 'Pet sitting en Barcelona. Tu perro feliz en casa con toda la atención.', 480, 12.00, 'Cuidado de perros Barcelona', 55, 77),
+(197, b'1', 'Educación canina básica en Barcelona. Método positivo, sin castigos.', 60, 28.00, 'Adiestramiento básico Barcelona', 55, 83),
+(198, b'1', 'Veterinaria a domicilio en Barcelona. Sin el estrés de la clínica.', 60, 60.00, 'Veterinario a domicilio Barcelona', 55, 89),
+(199, b'1', 'Administración de tratamientos a mascotas en Barcelona. Con pauta incluida.', 30, 26.00, 'Medicación mascotas Barcelona', 55, 90),
+(200, b'1', 'Paseo de perros en Valencia. Seguro, responsable y puntual. Fotos diarias.', 60, 12.00, 'Paseo de perros Valencia', 56, 76),
+(201, b'1', 'Cuido tu perro en casa en Valencia. Cariño y atención garantizados.', 480, 11.00, 'Cuidado de perros Valencia', 56, 77),
+(202, b'1', 'Adiestramiento básico de perros en Valencia. Sesiones individuales.', 60, 26.00, 'Adiestramiento básico Valencia', 56, 83),
+(203, b'1', 'Consulta veterinaria a domicilio en Valencia. Vacunas y revisiones.', 60, 57.00, 'Veterinario a domicilio Valencia', 56, 89),
+(204, b'1', 'Pauta y administración de medicación a mascotas en Valencia.', 30, 25.00, 'Medicación mascotas Valencia', 56, 90),
+(205, b'1', 'Matemáticas para primaria en Madrid. Refuerzo escolar con metodología visual.', 60, 20.00, 'Matemáticas primaria Madrid', 57, 102),
+(206, b'1', 'Matemáticas de bachillerato en Madrid. Análisis, álgebra y estadística.', 60, 28.00, 'Matemáticas bachillerato Madrid', 57, 103),
+(207, b'1', 'Inglés conversacional en Madrid. Profesor con acento neutro. Todos los niveles.', 60, 24.00, 'Inglés conversación Madrid', 57, 104),
+(208, b'1', 'Gramática inglesa en Madrid. Tiempos verbales, estructura y vocabulario.', 60, 24.00, 'Inglés gramática Madrid', 57, 105),
+(209, b'1', 'Desarrollo web en Madrid. HTML, CSS, JavaScript y React desde cero.', 60, 35.00, 'Desarrollo web Madrid', 57, 110),
+(210, b'1', 'Baile urbano en Madrid. Hip-hop y street dance para todos los niveles.', 60, 22.00, 'Baile urbano Madrid', 57, 119),
+(211, b'1', 'Alemán desde cero en Madrid. Vocabulario, pronunciación y gramática A1-A2.', 60, 24.00, 'Alemán Madrid', 57, 126),
+(212, b'1', 'Clases de matemáticas de primaria en Barcelona. Paciencia y resultados.', 60, 18.00, 'Matemáticas primaria Barcelona', 58, 102),
+(213, b'1', 'Matemáticas de bachillerato en Barcelona. Preparación selectividad.', 60, 25.00, 'Matemáticas bachillerato Barcelona', 58, 103),
+(214, b'1', 'Gramática inglesa en Barcelona. Preparación Cambridge y IELTS.', 60, 22.00, 'Inglés gramática Barcelona', 58, 105),
+(215, b'1', 'Programación Java en Barcelona. Desde POO básico a Spring Boot.', 60, 38.00, 'Java Barcelona', 58, 109),
+(216, b'1', 'Programación web en Barcelona. Frontend moderno: HTML, CSS y JavaScript.', 60, 33.00, 'Web Barcelona', 58, 110),
+(217, b'1', 'Guitarra acústica en Barcelona. Acordes, ritmos y tus canciones favoritas.', 60, 24.00, 'Guitarra acústica Barcelona', 58, 114),
+(218, b'1', 'Salsa y bachata en Barcelona. Clases para principiantes y nivel medio.', 60, 22.00, 'Baile latino Barcelona', 58, 120),
+(219, b'1', 'Alemán nivel A1-A2 en Barcelona. Enfoque comunicativo y conversacional.', 60, 22.00, 'Alemán Barcelona', 58, 126),
+(220, b'1', 'Inglés conversacional en Valencia. Fluidez y pronunciación correcta.', 60, 22.00, 'Inglés conversación Valencia', 59, 104),
+(221, b'1', 'Gramática inglesa en Valencia. Estructura y tiempos verbales desde cero.', 60, 22.00, 'Inglés gramática Valencia', 59, 105),
+(222, b'1', 'Programación Java en Valencia. Backend, APIs REST y bases de datos.', 60, 35.00, 'Java Valencia', 59, 109),
+(223, b'1', 'Guitarra acústica en Valencia. Aprende tus canciones favoritas desde cero.', 60, 22.00, 'Guitarra acústica Valencia', 59, 114),
+(224, b'1', 'Baile urbano en Valencia. Hip-hop y freestyle para principiantes.', 60, 20.00, 'Baile urbano Valencia', 59, 119),
+(225, b'1', 'Baile latino en Valencia. Salsa, bachata y cha-cha para todos los niveles.', 60, 20.00, 'Baile latino Valencia', 59, 120),
+(226, b'1', 'Alemán básico en Valencia. Pronunciación, vocabulario y gramática A1.', 60, 20.00, 'Alemán Valencia', 59, 126),
+(227, b'1', 'Matemáticas primaria en Bilbao. Refuerzo y apoyo escolar personalizado.', 60, 20.00, 'Matemáticas primaria Bilbao', 60, 102),
+(228, b'1', 'Matemáticas bachillerato en Bilbao. Exámenes y selectividad.', 60, 26.00, 'Matemáticas bachillerato Bilbao', 60, 103),
+(229, b'1', 'Inglés conversacional en Bilbao. Práctica oral para perder el miedo.', 60, 22.00, 'Inglés conversación Bilbao', 60, 104),
+(230, b'1', 'Programación Java en Bilbao. Proyectos reales desde el primer día.', 60, 36.00, 'Java Bilbao', 60, 109),
+(231, b'1', 'Desarrollo web en Bilbao. HTML, CSS, JavaScript y frameworks modernos.', 60, 32.00, 'Web Bilbao', 60, 110),
+(232, b'1', 'Guitarra acústica en Bilbao. Metodología progresiva y divertida.', 60, 22.00, 'Guitarra acústica Bilbao', 60, 114),
+(233, b'1', 'Baile urbano en Bilbao. Aprende hip-hop y street dance con estilo.', 60, 20.00, 'Baile urbano Bilbao', 60, 119),
+(234, b'1', 'Baile latino en Bilbao. Salsa y bachata para principiantes y nivel medio.', 60, 20.00, 'Baile latino Bilbao', 60, 120),
+(235, b'1', 'Peluquería a domicilio en Madrid. Cortes, tintes y peinados. Material profesional.', 60, 35.00, 'Peluquería a domicilio Madrid', 61, 59),
+(236, b'1', 'Maquillaje profesional en Madrid. Bodas, eventos y fotografía.', 90, 42.00, 'Maquillaje Madrid', 61, 60),
+(237, b'1', 'Masajes relajantes y descontracturantes a domicilio en Madrid. Camilla propia.', 60, 45.00, 'Masajes Madrid', 61, 65),
+(238, b'1', 'Fisioterapia de recuperación en Madrid. Contracturas, lesiones y dolor crónico.', 60, 57.00, 'Fisioterapia Madrid', 61, 66),
+(239, b'1', 'Entrenadora personal en Madrid. Plan adaptado a tus objetivos y nivel.', 60, 40.00, 'Entrenadora personal Madrid', 61, 68),
+(240, b'1', 'Clases de yoga a domicilio en Madrid. Hatha y vinyasa para todos los niveles.', 60, 25.00, 'Yoga Madrid', 61, 69),
+(241, b'1', 'Pilates mat a domicilio en Madrid. Material y programa personal incluidos.', 60, 25.00, 'Pilates Madrid', 61, 70),
+(242, b'1', 'Peluquero a domicilio en Barcelona. Cortes modernos y coloración profesional.', 60, 32.00, 'Peluquería a domicilio Barcelona', 62, 59),
+(243, b'1', 'Maquillaje profesional en Barcelona. Novias, eventos y maquillaje artístico.', 90, 40.00, 'Maquillaje Barcelona', 62, 60),
+(244, b'1', 'Masajes terapéuticos y deportivos en Barcelona. Recuperación muscular en casa.', 60, 42.00, 'Masajes Barcelona', 62, 65),
+(245, b'1', 'Fisioterapeuta colegiado en Barcelona. Atención domiciliaria sin desplazamientos.', 60, 55.00, 'Fisioterapia Barcelona', 62, 66),
+(246, b'1', 'Personal trainer en Barcelona. Fuerza, cardio y nutrición. Resultados visibles.', 60, 38.00, 'Entrenador personal Barcelona', 62, 68),
+(247, b'1', 'Instructor de yoga en Barcelona. Clases individuales o en pareja en casa.', 60, 23.00, 'Yoga Barcelona', 62, 69),
+(248, b'1', 'Pilates a domicilio en Barcelona. Adaptado a tu condición física.', 60, 23.00, 'Pilates Barcelona', 62, 70),
+(249, b'1', 'Peluquería a domicilio en Sevilla. Cortes, tintes y tratamientos capilares.', 60, 28.00, 'Peluquería a domicilio Sevilla', 63, 59),
+(250, b'1', 'Maquilladora profesional en Sevilla. Maquillaje de día, noche y eventos.', 90, 36.00, 'Maquillaje Sevilla', 63, 60),
+(251, b'1', 'Masajes a domicilio en Sevilla. Relajante, deportivo y piedras calientes.', 60, 38.00, 'Masajes Sevilla', 63, 65),
+(252, b'1', 'Fisioterapia a domicilio en Sevilla. Lesiones, contracturas y rehabilitación.', 60, 50.00, 'Fisioterapia Sevilla', 63, 66),
+(253, b'1', 'Entrenadora personal en Sevilla. Plan de entrenamiento y dieta personalizado.', 60, 35.00, 'Entrenadora personal Sevilla', 63, 68),
+(254, b'1', 'Yoga a domicilio en Sevilla. Respiración, flexibilidad y bienestar mental.', 60, 20.00, 'Yoga Sevilla', 63, 69),
+(255, b'1', 'Pilates individual a domicilio en Sevilla. Colchoneta y accesorios incluidos.', 60, 20.00, 'Pilates Sevilla', 63, 70),
+(256, b'1', 'Cerrajero urgente 24h en Madrid. Aperturas sin daños en menos de 30 minutos.', 60, 58.00, 'Cerrajero urgente Madrid', 64, 129),
+(257, b'1', 'Desatascos urgentes en Madrid. Hydrojet de alta presión. Sin obra.', 60, 62.00, 'Desatascos urgentes Madrid', 64, 130),
+(258, b'1', 'Cambio de cerradura urgente en Madrid. Alta seguridad y multiestrella.', 60, 52.00, 'Cambio cerradura urgente Madrid', 64, 134),
+(259, b'1', 'Técnico informático urgente en Madrid. Virus, pantallas azules y fallos del sistema.', 60, 48.00, 'Informático urgente Madrid', 64, 147),
+(260, b'1', 'Recuperación de datos en Madrid. Disco duro, SSD, USB y tarjetas.', 60, 58.00, 'Recuperación de datos Madrid', 64, 148),
+(261, b'1', 'Configuración WiFi en Madrid. Cobertura total en toda la vivienda.', 60, 38.00, 'Configuración WiFi Madrid', 64, 159),
+(262, b'1', 'Optimización de red doméstica en Madrid. PLC, repetidores y router.', 60, 40.00, 'Red doméstica Madrid', 64, 160),
+(263, b'1', 'Mindfulness y meditación a domicilio en Madrid. Gestión del estrés.', 60, 38.00, 'Mindfulness Madrid', 64, 174),
+(264, b'1', 'Cerrajero urgente en Barcelona. Apertura de puertas en 20 minutos garantizados.', 60, 55.00, 'Cerrajero urgente Barcelona', 65, 129),
+(265, b'1', 'Desatascos urgentes en Barcelona. Respuesta inmediata, sin recargo nocturno.', 60, 58.00, 'Desatascos urgentes Barcelona', 65, 130),
+(266, b'1', 'Técnico informático urgente en Barcelona. PC que no arranca, virus y pérdida datos.', 60, 45.00, 'Informático urgente Barcelona', 65, 147),
+(267, b'1', 'Recuperación urgente de datos en Barcelona. Formateos y fallos de disco.', 60, 55.00, 'Recuperación datos Barcelona', 65, 148),
+(268, b'1', 'Técnico WiFi en Barcelona. Optimización de señal y configuración de router.', 60, 35.00, 'WiFi Barcelona', 65, 159),
+(269, b'1', 'Mejora del rendimiento de red doméstica en Barcelona. Cableado y WiFi.', 60, 38.00, 'Red doméstica Barcelona', 65, 160),
+(270, b'1', 'Coaching personal en Barcelona. Coach certificado ICF. Metas y objetivos.', 60, 72.00, 'Coaching Barcelona', 65, 170),
+(271, b'1', 'Cerrajero urgente en Valencia. Aperturas sin daños, disponible todo el año.', 60, 52.00, 'Cerrajero urgente Valencia', 66, 129),
+(272, b'1', 'Desatascos urgentes en Valencia. Maquinaria profesional, resultado inmediato.', 60, 55.00, 'Desatascos urgentes Valencia', 66, 130),
+(273, b'1', 'Cambio de cerradura urgente en Valencia. Seguridad alta y asesoramiento.', 60, 48.00, 'Cambio cerradura urgente Valencia', 66, 134),
+(274, b'1', 'Soporte técnico informático urgente en Valencia. Tablets, móviles y PC.', 60, 42.00, 'Informático urgente Valencia', 66, 147),
+(275, b'1', 'Configuración y optimización de WiFi en Valencia. Cobertura total garantizada.', 60, 33.00, 'WiFi Valencia', 66, 159),
+(276, b'1', 'Coach profesional en Valencia. Sesiones de coaching de vida y carrera.', 60, 68.00, 'Coaching Valencia', 66, 170),
+(277, b'1', 'Mindfulness a domicilio en Valencia. Técnicas de relajación y meditación.', 60, 36.00, 'Mindfulness Valencia', 66, 174),
+(278, b'1', 'Recuperación de datos en Bilbao. Discos duros, USB y memoria flash.', 60, 52.00, 'Recuperación datos Bilbao', 67, 148),
+(279, b'1', 'Técnico WiFi en Bilbao. Instalación de repetidores y configuración óptima.', 60, 32.00, 'WiFi Bilbao', 67, 159),
+(280, b'1', 'Optimización de red doméstica en Bilbao. Velocidad máxima garantizada.', 60, 34.00, 'Red doméstica Bilbao', 67, 160),
+(281, b'1', 'Coaching personal en Bilbao. Coach certificado. Transforma tu vida.', 60, 68.00, 'Coaching Bilbao', 67, 170),
+(282, b'1', 'Mindfulness y meditación en Bilbao. Reducción del estrés y bienestar.', 60, 35.00, 'Mindfulness Bilbao', 67, 174),
+(283, b'1', 'Ofrezco cuidado de gatos con atención personalizada, cariño y experiencia. Me adapto a las necesidades de cada gato: alimentación, limpieza del arenero, juegos y compañía para que se sienta tranquilo y seguro mientras estás fuera. Ideal para vacaciones, viajes o días ocupados.', 60, 12.00, 'Cuidado de gatos', 17, 78),
+(284, b'1', 'Me encargo de la organización integral de eventos sociales y corporativos, adaptados a las necesidades de cada cliente. Coordinación, planificación, decoración, gestión de proveedores y atención al detalle para que tu evento sea un éxito. Ideal para cumpleaños, bodas, reuniones de empresa, inauguraciones y celebraciones privadas.', 60, 25.00, 'Organización de eventos personalizados', 17, 167),
+(285, b'1', 'Ofrezco servicio de cuidado de bebés con atención responsable, cariñosa y segura. Me adapto a las rutinas de cada familia (alimentación, siestas, juegos tranquilos y cambio de pañales). Tengo paciencia y experiencia cuidando niños pequeños, garantizando siempre su bienestar y seguridad. Disponible por horas, con flexibilidad horaria.', 60, 10.00, 'Cuidado de bebés responsable y con experiencia', 68, 57);
 
 -- --------------------------------------------------------
 
@@ -921,41 +1324,41 @@ CREATE TABLE `usuario` (
 --
 
 INSERT INTO `usuario` (`id`, `apellidos`, `ciudad`, `direccion`, `email`, `nombre`, `password`, `rol`, `telefono`, `foto_url`, `ultima_conexion`) VALUES
-(1, 'García López', 'Córdoba', 'Calle Sevilla 12', 'maria.garcia.lopez@gmail.com', 'María', '$2a$10$fizdrns/l8d11ysGeW9gxuKhzaww40/jdNAQXk9bJXZZPhKzGM2UK', 'CLIENTE', '+34612345678', NULL, NULL),
-(2, 'Fernández Ruiz', 'Sevilla', 'Avenida Andalucía 45', 'juan.fernandez88@hotmail.com', 'Juan', '$2a$10$z1lXU5n1Ww7L/IQcEZVjGeBtIrUuHd0gTqC2tQRExsLLFbi6YjNc2', 'PROFESIONAL', '+34623456789', NULL, NULL),
-(3, 'Martínez Pérez', 'Madrid', 'Calle Alcalá 102', 'lucia.martinez.p@gmail.com', 'Lucía', '$2a$10$QcZbp5dSgLJqDZZvKSGHFuUrzqJxMItwbnaMu4syn0mneN0dfvebW', 'CLIENTE', '+34634567890', NULL, NULL),
-(4, 'Sánchez Gómez', 'Málaga', 'Calle Larios 8', 'david.sanchezg@gmail.com', 'David', '$2a$10$M1HGT3EKr4ayLmn9/0TS5ewSVgdHhXCSJH2lgsoEp.82UycB8FoEm', 'PROFESIONAL', '+34645678901', NULL, NULL),
-(5, 'Romero Torres', 'Córdoba', 'Calle Palma 3', 'carmen.romero.torres@gmail.com', 'Carmen', '$2a$10$0K3yEhZVhQZ3mJdVrzFZmuLPJ7y3I956h5RL2wNS0VCFRw8fvV4wa', 'CLIENTE', '+34656789012', NULL, NULL),
-(6, 'Navarro Jiménez', 'Granada', 'Calle Recogidas 21', 'antonio.navarro.j@gmail.com', 'Antonio', '$2a$10$NG.ghUcDcpA.5iEReA8zJ.Qc2KYu4/0i4DW1KtdJ6dSGnH/KdtNju', 'PROFESIONAL', '+34667890123', NULL, NULL),
-(7, 'Moreno Castillo', 'Jaén', 'Calle Úbeda 14', 'laura.moreno.c@gmail.com', 'Laura', '$2a$10$2egsOQWwX/QfK0g6iflNs.oSSCC/2EcipR96.Dl0mj1wmSj5rUBLi', 'CLIENTE', '+34678901234', NULL, NULL),
-(8, 'Delgado Herrera', 'Cádiz', 'Avenida del Mar 9', 'sergio.delgado.h@gmail.com', 'Sergio', '$2a$10$cl0csAEWoyKlqkTBym1fXuqYm5BNtQpj9.JqoMf33vAceBmscIxt2', 'PROFESIONAL', '+34689012345', NULL, NULL),
-(9, 'Ortega Medina', 'Valencia', 'Calle Colón 56', 'ana.ortega.medina@gmail.com', 'Ana', '$2a$10$Ee9QrtrzRA8p3gudYzUEDOtcMxrFA/qEol/fAdf5CIxR6H/Vx4tRi', 'CLIENTE', '+34690123456', NULL, NULL),
-(10, 'Castro Molina', 'Barcelona', 'Calle Aragón 210', 'javier.castro.m@gmail.com', 'Javier', '$2a$10$f8r4EOBoUyuhMSiPVo6LfeScpMSuFMyfHm/2gvTPVw37icP/ESApC', 'PROFESIONAL', '+34601234567', NULL, NULL),
-(11, 'Ramos Vidal', 'Sevilla', 'Calle Triana 33', 'paula.ramos.vidal@gmail.com', 'Paula', '$2a$10$gY21F1kTCIT7XmR7urAY2eekK4qtu/jpixL5YBTu9SfeXazrNiMJG', 'CLIENTE', '+34612987654', NULL, NULL),
-(12, 'Reyes Santos', 'Córdoba', 'Calle Cruz Conde 7', 'alberto.reyes.s@gmail.com', 'Alberto', '$2a$10$V1OI.zWh6xpJwsLpNGeS0OFWr59yN7xupmYmCw5h4slJZunLZf7h2', 'PROFESIONAL', '+34623876543', NULL, NULL),
-(13, 'Molina Vega', 'Málaga', 'Calle Carretería 19', 'elena.molina.v@gmail.com', 'Elena', '$2a$10$0kvX7CtuR0X9PmlpjM55xujBqSL.rm0trZU9SFPq.i.IuntpSzJba', 'CLIENTE', '+34634765432', NULL, NULL),
-(14, 'Ibáñez Navarro', 'Madrid', 'Calle Gran Vía 88', 'daniel.ibanez.n@gmail.com', 'Daniel', '$2a$10$AbkMfAdm2Dk/eNG/L3k/duWZOSKNyCkgn0ruecT5BbAbJ3DWwj1UC', 'PROFESIONAL', '+34645654321', NULL, NULL),
-(15, 'Campos Ríos', 'Granada', 'Calle Alhambra 4', 'silvia.campos.rios@gmail.com', 'Silvia', '$2a$10$wWpqdZndKD0mooD4qcZ1HuFjc17J.bVibzKeIbH5EP2RCHewQhFQi', 'CLIENTE', '+34656543210', NULL, NULL),
-(16, 'Serrano Fuentes', 'Sevilla', 'Calle Nervión 22', 'miguel.serrano.f@gmail.com', 'Miguel', '$2a$10$Y9d8LZziNA9utgtJvThnleSz0F818.5BTtJrqdlPwpWWtuYj.w6G.', 'PROFESIONAL', '+34667432109', NULL, NULL),
-(17, 'Vargas León', 'Córdoba', 'Calle Feria 11', 'rocio.vargas.leon@gmail.com', 'Rocío', '$2a$10$lDnt9dXlZbWngYuVCaJYqeY1b8iH32c3L2CS.M8qVObOTBz0NnF3a', 'CLIENTE', '+34678321098', NULL, NULL),
-(18, 'Peña Cortés', 'Cádiz', 'Calle San Juan 6', 'fernando.pena.c@gmail.com', 'Fernando', '$2a$10$sJwUp17xo/M21/llRkVR3udJeZtotTkkcQwGVraEVzh2cvgFM9fRK', 'PROFESIONAL', '+34689210987', NULL, NULL),
-(19, 'Herrera Márquez', 'Jaén', 'Calle Linares 15', 'marta.herrera.m@gmail.com', 'Marta', '$2a$10$IdC21Mo/.7zGVfyHxCnye.Eky17c1t3SBFkhWr8SNx5pKnB7ArwNa', 'CLIENTE', '+34690198765', NULL, NULL),
+(1, 'García López', 'Córdoba', 'Calle Sevilla 12', 'maria.garcia.lopez@gmail.com', 'María', '$2a$10$fizdrns/l8d11ysGeW9gxuKhzaww40/jdNAQXk9bJXZZPhKzGM2UK', 'CLIENTE', '+34612345678', 'https://randomuser.me/api/portraits/women/23.jpg', NULL),
+(2, 'Fernández Ruiz', 'Sevilla', 'Avenida Andalucía 45', 'juan.fernandez88@hotmail.com', 'Juan', '$2a$10$z1lXU5n1Ww7L/IQcEZVjGeBtIrUuHd0gTqC2tQRExsLLFbi6YjNc2', 'PROFESIONAL', '+34623456789', 'https://randomuser.me/api/portraits/men/29.jpg', NULL),
+(3, 'Martínez Pérez', 'Madrid', 'Calle Alcalá 102', 'lucia.martinez.p@gmail.com', 'Lucía', '$2a$10$QcZbp5dSgLJqDZZvKSGHFuUrzqJxMItwbnaMu4syn0mneN0dfvebW', 'CLIENTE', '+34634567890', 'https://randomuser.me/api/portraits/women/24.jpg', NULL),
+(4, 'Sánchez Gómez', 'Málaga', 'Calle Larios 8', 'david.sanchezg@gmail.com', 'David', '$2a$10$M1HGT3EKr4ayLmn9/0TS5ewSVgdHhXCSJH2lgsoEp.82UycB8FoEm', 'PROFESIONAL', '+34645678901', 'https://randomuser.me/api/portraits/men/30.jpg', NULL),
+(5, 'Romero Torres', 'Córdoba', 'Calle Palma 3', 'carmen.romero.torres@gmail.com', 'Carmen', '$2a$10$0K3yEhZVhQZ3mJdVrzFZmuLPJ7y3I956h5RL2wNS0VCFRw8fvV4wa', 'CLIENTE', '+34656789012', 'https://randomuser.me/api/portraits/women/25.jpg', NULL),
+(6, 'Navarro Jiménez', 'Granada', 'Calle Recogidas 21', 'antonio.navarro.j@gmail.com', 'Antonio', '$2a$10$NG.ghUcDcpA.5iEReA8zJ.Qc2KYu4/0i4DW1KtdJ6dSGnH/KdtNju', 'PROFESIONAL', '+34667890123', 'https://randomuser.me/api/portraits/men/33.jpg', NULL),
+(7, 'Moreno Castillo', 'Jaén', 'Calle Úbeda 14', 'laura.moreno.c@gmail.com', 'Laura', '$2a$10$2egsOQWwX/QfK0g6iflNs.oSSCC/2EcipR96.Dl0mj1wmSj5rUBLi', 'CLIENTE', '+34678901234', 'https://randomuser.me/api/portraits/women/26.jpg', NULL),
+(8, 'Delgado Herrera', 'Cádiz', 'Avenida del Mar 9', 'sergio.delgado.h@gmail.com', 'Sergio', '$2a$10$cl0csAEWoyKlqkTBym1fXuqYm5BNtQpj9.JqoMf33vAceBmscIxt2', 'PROFESIONAL', '+34689012345', 'https://randomuser.me/api/portraits/men/34.jpg', NULL),
+(9, 'Ortega Medina', 'Valencia', 'Calle Colón 56', 'ana.ortega.medina@gmail.com', 'Ana', '$2a$10$Ee9QrtrzRA8p3gudYzUEDOtcMxrFA/qEol/fAdf5CIxR6H/Vx4tRi', 'CLIENTE', '+34690123456', 'https://randomuser.me/api/portraits/women/27.jpg', NULL),
+(10, 'Castro Molina', 'Barcelona', 'Calle Aragón 210', 'javier.castro.m@gmail.com', 'Javier', '$2a$10$f8r4EOBoUyuhMSiPVo6LfeScpMSuFMyfHm/2gvTPVw37icP/ESApC', 'PROFESIONAL', '+34601234567', 'https://randomuser.me/api/portraits/men/35.jpg', NULL),
+(11, 'Ramos Vidal', 'Sevilla', 'Calle Triana 33', 'paula.ramos.vidal@gmail.com', 'Paula', '$2a$10$gY21F1kTCIT7XmR7urAY2eekK4qtu/jpixL5YBTu9SfeXazrNiMJG', 'CLIENTE', '+34612987654', 'https://randomuser.me/api/portraits/women/28.jpg', NULL),
+(12, 'Reyes Santos', 'Córdoba', 'Calle Cruz Conde 7', 'alberto.reyes.s@gmail.com', 'Alberto', '$2a$10$V1OI.zWh6xpJwsLpNGeS0OFWr59yN7xupmYmCw5h4slJZunLZf7h2', 'PROFESIONAL', '+34623876543', 'https://randomuser.me/api/portraits/men/36.jpg', NULL),
+(13, 'Molina Vega', 'Málaga', 'Calle Carretería 19', 'elena.molina.v@gmail.com', 'Elena', '$2a$10$0kvX7CtuR0X9PmlpjM55xujBqSL.rm0trZU9SFPq.i.IuntpSzJba', 'CLIENTE', '+34634765432', 'https://randomuser.me/api/portraits/women/29.jpg', NULL),
+(14, 'Ibáñez Navarro', 'Madrid', 'Calle Gran Vía 88', 'daniel.ibanez.n@gmail.com', 'Daniel', '$2a$10$AbkMfAdm2Dk/eNG/L3k/duWZOSKNyCkgn0ruecT5BbAbJ3DWwj1UC', 'PROFESIONAL', '+34645654321', 'https://randomuser.me/api/portraits/men/37.jpg', NULL),
+(15, 'Campos Ríos', 'Granada', 'Calle Alhambra 4', 'silvia.campos.rios@gmail.com', 'Silvia', '$2a$10$wWpqdZndKD0mooD4qcZ1HuFjc17J.bVibzKeIbH5EP2RCHewQhFQi', 'CLIENTE', '+34656543210', 'https://randomuser.me/api/portraits/women/31.jpg', NULL),
+(16, 'Serrano Fuentes', 'Sevilla', 'Calle Nervión 22', 'miguel.serrano.f@gmail.com', 'Miguel', '$2a$10$Y9d8LZziNA9utgtJvThnleSz0F818.5BTtJrqdlPwpWWtuYj.w6G.', 'PROFESIONAL', '+34667432109', 'https://randomuser.me/api/portraits/men/32.jpg', NULL),
+(17, 'Vargas León', 'Córdoba', 'Calle Feria 11', 'rocio.vargas.leon@gmail.com', 'Rocío', '$2a$10$lDnt9dXlZbWngYuVCaJYqeY1b8iH32c3L2CS.M8qVObOTBz0NnF3a', 'CLIENTE', '+34678321098', 'https://randomuser.me/api/portraits/women/32.jpg', NULL),
+(18, 'Peña Cortés', 'Cádiz', 'Calle San Juan 6', 'fernando.pena.c@gmail.com', 'Fernando', '$2a$10$sJwUp17xo/M21/llRkVR3udJeZtotTkkcQwGVraEVzh2cvgFM9fRK', 'PROFESIONAL', '+34689210987', 'https://randomuser.me/api/portraits/men/38.jpg', NULL),
+(19, 'Herrera Márquez', 'Jaén', 'Calle Linares 15', 'marta.herrera.m@gmail.com', 'Marta', '$2a$10$IdC21Mo/.7zGVfyHxCnye.Eky17c1t3SBFkhWr8SNx5pKnB7ArwNa', 'CLIENTE', '+34690198765', 'https://randomuser.me/api/portraits/women/33.jpg', NULL),
 (20, 'Admin Sistema', 'Madrid', 'Calle Central 1', 'admin@jobfree.com', 'Admin', '$2y$10$HDxxNVbkUVFZLmWCdFPI4.Zar/HOIFeJrYcq1pMPUhD8akcH/L2j6', 'ADMIN', '+34600000000', NULL, '2026-05-02 20:15:09'),
-(21, 'Heredia López', 'Córdoba', 'Sin especificar', 'pacoro@gmail.com', 'Pablo', '$2a$10$reHmE0UbUWIyAPZ.h3uGTudpGWWX6S6owfoezHbLYsO2PzOrPsXUe', 'CLIENTE', '+34627719120', NULL, NULL),
-(22, 'Heredia Ruiz', 'Córdoba', 'Sin especificar', 'pablorh20042007redes@gmail.com', 'Pablo', '$2a$10$tyK8u3Gst9Lhm0nkpi7MY.GAVTZ9x/dFXBCaMBdLc1CXd/3mwSL7m', 'CLIENTE', '+34627719121', '/uploads/fotos/1fbe728e-e506-4cca-bca7-d6b4bae97f2a.jpg', '2026-05-04 18:41:09'),
-(23, 'Heredia Sánchez', 'Córdoba', 'Sin especificar', 'alberto.heredia@gmail.com', 'Alberto', '$2a$10$xFiji5I6Q7uEym9vezHcBuItLoAgSVPUeqeMKgI7xiLr5xRb2/nMi', 'CLIENTE', '+34627719122', NULL, NULL),
-(24, 'Heredia Torres', 'Palma del Río', 'Calle Ancha 31', 'pacoroca@gmail.com', 'Pablo', '$2a$10$fhhqEr0/5WHMC0lImgHiKOxChskB3LclqDIbV3r8ZnucRqw3AW2am', 'CLIENTE', '+34626638923', NULL, NULL),
-(25, 'Martínez López', 'Palma del Río', 'Calle Ancha 31', 'luis.profesional@gmail.com', 'Luis', '$2a$10$kvQLVi4T3CJauQasU1Eqtu6gmYUpWuS.iIywMuf633xdCzkIMzGA.', 'PROFESIONAL', '+3467732836433', NULL, NULL),
-(26, 'León', 'Palma del Río', 'Calle Alberca', 'pacoleon123@gmail.com', 'Paco', '$2a$10$XMIWIgSN/iJ2lpksvF7IqeJ6Zm75Lr5y2CQRgPfPhi32ItbCJ5D.q', 'PROFESIONAL', '+44612236537', NULL, NULL),
-(27, 'García Gutiérrez', 'Huelva', 'Calle Ancha', 'pruebagarcia@gmail.com', 'Luis Antonio', '$2a$10$kh04524gSXwBUpE.Q5rVNOeJjuQbbqYbSkD7fPG.e.AcBTVEaIIqC', 'CLIENTE', '+351617723485', NULL, NULL),
-(28, 'Heredia Valenzuela', 'Peñaflor', 'Calle Pera', 'yolandita@gmail.com', 'Yolanda', '$2a$10$jcmmC6XInQX94fhtKg5AxeQiGOg5.ExAb9qWyME8oZjI45rWJ5WCi', 'CLIENTE', '+34664828077', NULL, NULL),
-(29, 'Román Martín', 'Cádiz capital', 'Calle Jaén', 'gustavorm@hotmail.com', 'Gustavo', '$2a$10$Z2Re.ucGj3QtPtyj.ePkrOgDwhsIvyclDkNF2IFkgAe3FI/Jd8S1e', 'PROFESIONAL', '+33456472843', NULL, NULL),
-(30, 'Heredia Gómez', 'Córdoba', 'Calle Ancha 31', 'pablorh20042007@gmail.com', 'Pablo', '$2a$10$vQ64xHBaIsPsVetRh/BffuZUMrrrr016U.VWxngtAjAtlFLcICf4u', 'CLIENTE', '+34612234576', NULL, NULL),
-(31, 'Baena', 'Murcia', 'Calle Ácaro', 'javierbaena@gmail.com', 'Javier', '$2a$10$MqicbHql5kmuC8tuW1HVKebJg09lZxNtYNCo79qD4ZwRW/Em2P59a', 'CLIENTE', '+34616634589', NULL, NULL),
-(35, 'Guti', 'Jaén', 'Calle Perla', 'beti@gmail.com', 'Betty', '$2a$10$q2hw2Zm0dmLjaFaPpKt7LOdu8aRsOv7QtTluuOMZyY0NQJ7fDZZQ2', 'CLIENTE', '+34617723458', NULL, NULL),
-(36, 'García Márquez', 'Palma del Río', 'Calle Ancha 31', 'joanmarquez@gmail.com', 'Joan', '$2a$10$GmtKiwtMLWFMgyWCndVB.OLICoMgwDkaCXW.HRMY7x0bsz8jU5wCu', 'PROFESIONAL', '+34617719273', NULL, NULL),
-(37, 'García Márquez', 'Aljaraque', 'Calle Villaverde', 'maria.garcia.lopez1@gmail.com', 'Maria', '$2a$10$wUdDBezu4wgcTkiKjjrxMeUPQxkYyo45jZfPN4pLr2w3evTYuwFZa', 'CLIENTE', '+34727734568', NULL, NULL),
-(38, 'Heredia Martín', 'Madrid', 'Calle Huelva', 'yolandeva2020@gmail.com', 'Yolanda', '$2a$10$l8JFNs6jWEQ6bK8rPKWp0erh7ReErPhHlyUCkBaHc6hVZ/Q1F7MSK', 'PROFESIONAL', '+34623345782', NULL, NULL),
+(21, 'Heredia López', 'Córdoba', 'Sin especificar', 'pacoro@gmail.com', 'Pablo', '$2a$10$reHmE0UbUWIyAPZ.h3uGTudpGWWX6S6owfoezHbLYsO2PzOrPsXUe', 'CLIENTE', '+34627719120', 'https://randomuser.me/api/portraits/men/39.jpg', NULL),
+(22, 'Heredia Ruiz', 'Córdoba', 'Sin especificar', 'pablorh20042007redes@gmail.com', 'Pablo', '$2a$10$tyK8u3Gst9Lhm0nkpi7MY.GAVTZ9x/dFXBCaMBdLc1CXd/3mwSL7m', 'CLIENTE', '+34627719121', '/uploads/fotos/1fbe728e-e506-4cca-bca7-d6b4bae97f2a.jpg', '2026-05-13 11:19:48'),
+(23, 'Heredia Sánchez', 'Córdoba', 'Sin especificar', 'alberto.heredia@gmail.com', 'Alberto', '$2a$10$xFiji5I6Q7uEym9vezHcBuItLoAgSVPUeqeMKgI7xiLr5xRb2/nMi', 'CLIENTE', '+34627719122', 'https://randomuser.me/api/portraits/men/40.jpg', NULL),
+(24, 'Heredia Torres', 'Palma del Río', 'Calle Ancha 31', 'pacoroca@gmail.com', 'Pablo', '$2a$10$fhhqEr0/5WHMC0lImgHiKOxChskB3LclqDIbV3r8ZnucRqw3AW2am', 'CLIENTE', '+34626638923', 'https://randomuser.me/api/portraits/men/41.jpg', NULL),
+(25, 'Martínez López', 'Palma del Río', 'Calle Ancha 31', 'luis.profesional@gmail.com', 'Luis', '$2a$10$kvQLVi4T3CJauQasU1Eqtu6gmYUpWuS.iIywMuf633xdCzkIMzGA.', 'PROFESIONAL', '+3467732836433', 'https://randomuser.me/api/portraits/men/42.jpg', NULL),
+(26, 'León', 'Palma del Río', 'Calle Alberca', 'pacoleon123@gmail.com', 'Paco', '$2a$10$XMIWIgSN/iJ2lpksvF7IqeJ6Zm75Lr5y2CQRgPfPhi32ItbCJ5D.q', 'PROFESIONAL', '+44612236537', 'https://randomuser.me/api/portraits/men/43.jpg', NULL),
+(27, 'García Gutiérrez', 'Huelva', 'Calle Ancha', 'pruebagarcia@gmail.com', 'Luis Antonio', '$2a$10$kh04524gSXwBUpE.Q5rVNOeJjuQbbqYbSkD7fPG.e.AcBTVEaIIqC', 'CLIENTE', '+351617723485', 'https://randomuser.me/api/portraits/men/44.jpg', NULL),
+(28, 'Heredia Valenzuela', 'Peñaflor', 'Calle Pera', 'yolandita@gmail.com', 'Yolanda', '$2a$10$jcmmC6XInQX94fhtKg5AxeQiGOg5.ExAb9qWyME8oZjI45rWJ5WCi', 'CLIENTE', '+34664828077', 'https://randomuser.me/api/portraits/women/34.jpg', NULL),
+(29, 'Román Martín', 'Cádiz capital', 'Calle Jaén', 'gustavorm@hotmail.com', 'Gustavo', '$2a$10$Z2Re.ucGj3QtPtyj.ePkrOgDwhsIvyclDkNF2IFkgAe3FI/Jd8S1e', 'PROFESIONAL', '+33456472843', 'https://randomuser.me/api/portraits/men/45.jpg', NULL),
+(30, 'Heredia Gómez', 'Córdoba', 'Calle Ancha 31', 'pablorh20042007@gmail.com', 'Pablo', '$2a$10$vQ64xHBaIsPsVetRh/BffuZUMrrrr016U.VWxngtAjAtlFLcICf4u', 'CLIENTE', '+34612234576', 'https://randomuser.me/api/portraits/men/46.jpg', NULL),
+(31, 'Baena', 'Murcia', 'Calle Ácaro', 'javierbaena@gmail.com', 'Javier', '$2a$10$MqicbHql5kmuC8tuW1HVKebJg09lZxNtYNCo79qD4ZwRW/Em2P59a', 'CLIENTE', '+34616634589', 'https://randomuser.me/api/portraits/men/47.jpg', NULL),
+(35, 'Guti', 'Jaén', 'Calle Perla', 'beti@gmail.com', 'Betty', '$2a$10$q2hw2Zm0dmLjaFaPpKt7LOdu8aRsOv7QtTluuOMZyY0NQJ7fDZZQ2', 'CLIENTE', '+34617723458', 'https://randomuser.me/api/portraits/women/35.jpg', NULL),
+(36, 'García Márquez', 'Palma del Río', 'Calle Ancha 31', 'joanmarquez@gmail.com', 'Joan', '$2a$10$GmtKiwtMLWFMgyWCndVB.OLICoMgwDkaCXW.HRMY7x0bsz8jU5wCu', 'PROFESIONAL', '+34617719273', 'https://randomuser.me/api/portraits/men/48.jpg', NULL),
+(37, 'García Márquez', 'Aljaraque', 'Calle Villaverde', 'maria.garcia.lopez1@gmail.com', 'Maria', '$2a$10$wUdDBezu4wgcTkiKjjrxMeUPQxkYyo45jZfPN4pLr2w3evTYuwFZa', 'CLIENTE', '+34727734568', 'https://randomuser.me/api/portraits/women/36.jpg', NULL),
+(38, 'Heredia Martín', 'Madrid', 'Calle Huelva', 'yolandeva2020@gmail.com', 'Yolanda', '$2a$10$l8JFNs6jWEQ6bK8rPKWp0erh7ReErPhHlyUCkBaHc6hVZ/Q1F7MSK', 'PROFESIONAL', '+34623345782', 'https://randomuser.me/api/portraits/women/37.jpg', NULL),
 (39, 'Márquez', 'Palma', 'Calle Ancha 30', 'javiermarquez@gmail.com', 'Javier', '$2a$10$z3mhFwiv8TWwqkbxX1VMe.svYnKodZc6QKx5g064cNQJIwoJovBLy', 'PROFESIONAL', '+34662345566', '/uploads/fotos/bec074fc-2fbe-43af-b8bf-fbdecf23d506.png', NULL),
 (40, 'Paredes', 'Hornachuelos', 'C. Murcia', 'juanvazquez1979@gmail.com', 'Marta', '$2a$10$mpeWWvjWrO7rJ.r89op9KeaXzDvUCD8ZofemssCql9qaDttG0npGa', 'PROFESIONAL', '+34623418234', '/uploads/fotos/5130c183-5ebe-42e2-bde8-67ea3ba003cf.png', NULL),
 (41, 'Martínez Morales', 'Córdoba', 'Calle Gran Vía 123, 1ºB', 'juan.martinez93@gmail.com', 'Juan Carlos', '$2a$10$fnZZ7C3gxxNKPPxvcwZZf.Y4jaQxAkOh5GwIKfSbuwNBYiWKv7EUG', 'CLIENTE', '+34673221234', '/uploads/fotos/f69ca673-355b-4110-a119-6e435bc3ac3f.png', NULL),
@@ -963,9 +1366,62 @@ INSERT INTO `usuario` (`id`, `apellidos`, `ciudad`, `direccion`, `email`, `nombr
 (43, 'López', 'Córdoba', 'Calle Ronda de los Tejares 34, 1ºB', 'maria.lopez.garcia1992@gmail.com', 'María', '$2a$10$Jdf6XACRoTOdFbUToPeY6OowhIS6YqNtnLvDlDpEaQii3ejk2/lOW', 'CLIENTE', '+34622914500', '/uploads/fotos/1560441e-2ed3-4844-9ca5-a60b857904f4.jpg', NULL),
 (44, 'Gómez Vargas', 'Valencia', 'Calle de Colón 45, 3ºB', 'luis.gomez.pro@gmail.com', 'Luis', '$2a$10$1Oi2dp3wfbGG6X6dTSxO3.j8ZTBcvP8VyL1BjMgqqcNlaSkEVbP/.', 'PROFESIONAL', '+34612335678', '/uploads/fotos/a54c3fa9-0dc7-4fe8-8641-210c714ee53d.png', NULL),
 (45, 'Nevado', 'Exija', 'Mariana pineda 73', 'pruebaclase@gmail.com', 'Pablo', '$2a$10$y.BKiN1iadYixAUaAUU.p.FtEYzsFQTvDPT8BMZVF3qDDgeowisV.', 'PROFESIONAL', '+34644984355', '/uploads/fotos/7919515f-c954-49cb-9b01-b0e37e24e072.png', NULL),
-(46, 'García Romero', 'Córdoba', 'Avenida de la Libertad 45, 3ºA', 'elsa.garciaromero122@gmail.com', 'Elsa', '$2a$10$8EpxPtEqWq3zj.NVaoudwudu7eFt/GYKboF94PswPb1MVdqWihKjm', 'PROFESIONAL', '+34623847519', NULL, '2026-04-30 07:35:46'),
-(47, 'Thompson', 'Málaga', 'Avenida de Andalucía 54, 4ºD', 'daniel.thompson.uk@gmail.com', 'Daniel', '$2a$10$qoK37zxX0T5/5Lq7vURCmOK7Q8B/oIMV0718DT6uKrgECEtu8N0ki', 'PROFESIONAL', '+34611274983', NULL, '2026-05-02 20:01:24'),
-(48, 'García Romero', 'El Palmar de Troya', 'Calle Virgen de Fátima 7', 'manugarcia88@gmail.com', 'Manuel', '$2a$10$gIYF5B3OAgFV.uNZfiqNBu.G7uMQfdK36l81qzEDG5KtrdQr7zZ5W', 'PROFESIONAL', '+34622518374', NULL, '2026-05-04 09:38:03');
+(46, 'García Romero', 'Córdoba', 'Avenida de la Libertad 45, 3ºA', 'elsa.garciaromero122@gmail.com', 'Elsa', '$2a$10$8EpxPtEqWq3zj.NVaoudwudu7eFt/GYKboF94PswPb1MVdqWihKjm', 'PROFESIONAL', '+34623847519', 'https://randomuser.me/api/portraits/women/38.jpg', '2026-04-30 07:35:46'),
+(47, 'Thompson', 'Málaga', 'Avenida de Andalucía 54, 4ºD', 'daniel.thompson.uk@gmail.com', 'Daniel', '$2a$10$qoK37zxX0T5/5Lq7vURCmOK7Q8B/oIMV0718DT6uKrgECEtu8N0ki', 'PROFESIONAL', '+34611274983', 'https://randomuser.me/api/portraits/men/49.jpg', '2026-05-02 20:01:24'),
+(48, 'García Romero', 'El Palmar de Troya', 'Calle Virgen de Fátima 7', 'manugarcia88@gmail.com', 'Manuel', '$2a$10$gIYF5B3OAgFV.uNZfiqNBu.G7uMQfdK36l81qzEDG5KtrdQr7zZ5W', 'PROFESIONAL', '+34622518374', 'https://randomuser.me/api/portraits/men/31.jpg', '2026-05-04 09:38:03'),
+(49, 'García Ruiz', 'Córdoba', 'Calle Sevilla 12', 'elenagarcia24@gmail.com', 'Elena', '$2a$10$Gq2Lw6SLINkur56b2LnTyud4AzKlf8LjjPiiTg/.QoApBpSNQkd2q', 'PROFESIONAL', '+39622514387', 'https://randomuser.me/api/portraits/women/30.jpg', '2026-05-13 11:19:46'),
+(50, 'Torres Ruiz', 'Madrid', 'Calle Alcalá 45', 'miguel.electricista@example.com', 'Miguel', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000050', 'https://randomuser.me/api/portraits/men/1.jpg', NULL),
+(51, 'Vidal Soler', 'Barcelona', 'Passeig de Gràcia 20', 'elena.fontanera@example.com', 'Elena', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000051', 'https://randomuser.me/api/portraits/women/1.jpg', NULL),
+(52, 'Martín Gómez', 'Valencia', 'Av. del Puerto 12', 'rosa.limpieza@example.com', 'Rosa', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000052', 'https://randomuser.me/api/portraits/women/2.jpg', NULL),
+(53, 'Ruiz Etxebarria', 'Bilbao', 'Gran Vía 8', 'javier.ingles@example.com', 'Javier', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000053', 'https://randomuser.me/api/portraits/men/2.jpg', NULL),
+(54, 'López Domínguez', 'Zaragoza', 'Calle Alfonso I 30', 'carmen.cuidadora@example.com', 'Carmen', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000054', 'https://randomuser.me/api/portraits/women/3.jpg', NULL),
+(55, 'García Esteve', 'Alicante', 'Rambla Méndez Núñez 5', 'raul.entrenador@example.com', 'Raúl', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000055', 'https://randomuser.me/api/portraits/men/3.jpg', NULL),
+(56, 'Sanz Pedrón', 'Murcia', 'Gran Vía 15', 'isabel.mascotas@example.com', 'Isabel', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000056', 'https://randomuser.me/api/portraits/women/4.jpg', NULL),
+(57, 'Moreno Bover', 'Palma', 'Passeig del Born 9', 'antonio.fontanero.urgente@example.com', 'Antonio', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000057', 'https://randomuser.me/api/portraits/men/4.jpg', NULL),
+(58, 'Fernández Alonso', 'Valladolid', 'Calle Santiago 3', 'lucia.mates@example.com', 'Lucía', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000058', 'https://randomuser.me/api/portraits/women/5.jpg', NULL),
+(59, 'Díaz Gutiérrez', 'Santander', 'Calle Burgos 10', 'patricia.masajista@example.com', 'Patricia', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000059', 'https://randomuser.me/api/portraits/women/6.jpg', NULL),
+(60, 'Herrera Prado', 'Salamanca', 'Calle Zamora 6', 'francisco.jardinero@example.com', 'Francisco', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000060', 'https://randomuser.me/api/portraits/men/5.jpg', NULL),
+(61, 'Castro Núñez', 'Toledo', 'Calle Comercio 22', 'andres.cerrajero@example.com', 'Andrés', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000061', 'https://randomuser.me/api/portraits/men/6.jpg', NULL),
+(62, 'Molina Serrano', 'Madrid', 'Calle Fuencarral 80', 'cristina.peluquera@example.com', 'Cristina', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000062', 'https://randomuser.me/api/portraits/women/7.jpg', NULL),
+(63, 'Jiménez Palau', 'Barcelona', 'Av. del Paral·lel 55', 'roberto.fontanero.eco@example.com', 'Roberto', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000063', 'https://randomuser.me/api/portraits/men/7.jpg', NULL),
+(64, 'Blanco Cordero', 'Valencia', 'Calle Colón 3', 'maria.veterinaria@example.com', 'María', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000064', 'https://randomuser.me/api/portraits/women/8.jpg', NULL),
+(65, 'Romero Cabello', 'Sevilla', 'Calle Sierpes 40', 'sergio.electricista.eco@example.com', 'Sergio', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000065', 'https://randomuser.me/api/portraits/men/8.jpg', NULL),
+(66, 'Ortiz Medina', 'Madrid', 'Calle Velázquez 12', 'natalia.coach@example.com', 'Natalia', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000066', 'https://randomuser.me/api/portraits/women/9.jpg', NULL),
+(67, 'Navarro Ibáñez', 'Bilbao', 'Alameda Urquijo 3', 'marta.ninera@example.com', 'Marta', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000067', 'https://randomuser.me/api/portraits/women/10.jpg', NULL),
+(68, 'Gil Castellano', 'Barcelona', 'Carrer Marina 200', 'david.programacion@example.com', 'David', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000068', 'https://randomuser.me/api/portraits/men/9.jpg', NULL),
+(69, 'Flores Contreras', 'Madrid', 'Calle Hortaleza 60', 'emilio.limpieza.obra@example.com', 'Emilio', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000069', 'https://randomuser.me/api/portraits/men/10.jpg', NULL),
+(70, 'Vega Torres', 'Madrid', 'Calle Atocha 22', 'carolina.vega@example.com', 'Carolina', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000070', 'https://randomuser.me/api/portraits/women/11.jpg', NULL),
+(71, 'Ibáñez Soler', 'Barcelona', 'Calle Provença 45', 'pedro.ibanez.limp@example.com', 'Pedro', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000071', 'https://randomuser.me/api/portraits/men/11.jpg', NULL),
+(72, 'Castillo Martín', 'Valencia', 'Av. Blasco Ibáñez 10', 'nuria.castillo@example.com', 'Nuria', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000072', 'https://randomuser.me/api/portraits/women/12.jpg', NULL),
+(73, 'Mendoza Ruiz', 'Zaragoza', 'Calle Cinco de Marzo 8', 'alberto.mendoza.jard@example.com', 'Alberto', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000073', 'https://randomuser.me/api/portraits/men/12.jpg', NULL),
+(74, 'Delgado Herrera', 'Sevilla', 'Calle Betis 15', 'sofia.delgado.limp@example.com', 'Sofía', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000074', 'https://randomuser.me/api/portraits/women/13.jpg', NULL),
+(75, 'Aguilar Pérez', 'Madrid', 'Calle Serrano 40', 'marcos.aguilar.elec@example.com', 'Marcos', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000075', 'https://randomuser.me/api/portraits/men/13.jpg', NULL),
+(76, 'Ferrer Molina', 'Barcelona', 'Av. Diagonal 300', 'tomas.ferrer.elec@example.com', 'Tomás', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000076', 'https://randomuser.me/api/portraits/men/14.jpg', NULL),
+(77, 'Benítez Castro', 'Valencia', 'Calle Russafa 5', 'ignacio.benitez.elec@example.com', 'Ignacio', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000077', 'https://randomuser.me/api/portraits/men/15.jpg', NULL),
+(78, 'Lozano Fuentes', 'Bilbao', 'Calle Autonomía 18', 'hector.lozano.elec@example.com', 'Héctor', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000078', 'https://randomuser.me/api/portraits/men/16.jpg', NULL),
+(79, 'Prieto Blanco', 'Málaga', 'Calle Larios 12', 'victor.prieto.elec@example.com', 'Víctor', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000079', 'https://randomuser.me/api/portraits/men/17.jpg', NULL),
+(80, 'Pascual Vera', 'Madrid', 'Calle Preciados 30', 'ramon.pascual.font@example.com', 'Ramón', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000080', 'https://randomuser.me/api/portraits/men/18.jpg', NULL),
+(81, 'Aranda Vega', 'Barcelona', 'Calle Pelai 20', 'gonzalo.aranda.font@example.com', 'Gonzalo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000081', 'https://randomuser.me/api/portraits/men/19.jpg', NULL),
+(82, 'Cano Romero', 'Valencia', 'Calle San Vicente 8', 'felipe.cano.font@example.com', 'Felipe', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000082', 'https://randomuser.me/api/portraits/men/20.jpg', NULL),
+(83, 'Fuentes Medina', 'Madrid', 'Calle Mayor 5', 'gloria.fuentes.cuid@example.com', 'Gloria', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000083', 'https://randomuser.me/api/portraits/women/14.jpg', NULL),
+(84, 'Rubio Parra', 'Barcelona', 'Rambla de Catalunya 50', 'beatriz.rubio.cuid@example.com', 'Beatriz', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000084', 'https://randomuser.me/api/portraits/women/15.jpg', NULL),
+(85, 'Ramos Reyes', 'Sevilla', 'Calle Tetuán 3', 'manuela.ramos.cuid@example.com', 'Manuela', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000085', 'https://randomuser.me/api/portraits/women/16.jpg', NULL),
+(86, 'Santamaría Flores', 'Madrid', 'Calle Sagasta 14', 'diego.santamaria.masc@example.com', 'Diego', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000086', 'https://randomuser.me/api/portraits/men/21.jpg', NULL),
+(87, 'Expósito Cruz', 'Barcelona', 'Calle Aragó 28', 'paula.exposito.masc@example.com', 'Paula', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000087', 'https://randomuser.me/api/portraits/women/17.jpg', NULL),
+(88, 'Muñoz León', 'Valencia', 'Calle Marvà 7', 'irene.munoz.masc@example.com', 'Irene', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000088', 'https://randomuser.me/api/portraits/women/18.jpg', NULL),
+(89, 'Guerrero Vidal', 'Madrid', 'Calle Goya 35', 'oscar.guerrero.edu@example.com', 'Óscar', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000089', 'https://randomuser.me/api/portraits/men/22.jpg', NULL),
+(90, 'Hidalgo Sanz', 'Barcelona', 'Av. Gaudí 12', 'amparo.hidalgo.edu@example.com', 'Amparo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000090', 'https://randomuser.me/api/portraits/women/19.jpg', NULL),
+(91, 'Parra Jiménez', 'Valencia', 'Calle Bailén 4', 'victor.parra.edu@example.com', 'Víctor', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000091', 'https://randomuser.me/api/portraits/men/23.jpg', NULL),
+(92, 'Montoya Gil', 'Bilbao', 'Calle Henao 9', 'susana.montoya.edu@example.com', 'Susana', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000092', 'https://randomuser.me/api/portraits/women/20.jpg', NULL),
+(93, 'Carrillo Ortiz', 'Madrid', 'Calle Hortaleza 28', 'vanesa.carrillo.sal@example.com', 'Vanesa', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000093', 'https://randomuser.me/api/portraits/women/21.jpg', NULL),
+(94, 'Reina Navarro', 'Barcelona', 'Calle Balmes 60', 'alvaro.reina.sal@example.com', 'Álvaro', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000094', 'https://randomuser.me/api/portraits/men/24.jpg', NULL),
+(95, 'Mora Díaz', 'Sevilla', 'Calle Amor de Dios 2', 'leticia.mora.sal@example.com', 'Leticia', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000095', 'https://randomuser.me/api/portraits/women/22.jpg', NULL),
+(96, 'Valdés Serrano', 'Madrid', 'Calle Alberto Aguilera 20', 'bruno.valdes.urg@example.com', 'Bruno', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000096', 'https://randomuser.me/api/portraits/men/25.jpg', NULL),
+(97, 'Cabrera Morales', 'Barcelona', 'Calle Enric Granados 15', 'enrique.cabrera.urg@example.com', 'Enrique', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000097', 'https://randomuser.me/api/portraits/men/26.jpg', NULL),
+(98, 'Medina Campos', 'Valencia', 'Calle Játiva 3', 'rodrigo.medina.urg@example.com', 'Rodrigo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000098', 'https://randomuser.me/api/portraits/men/27.jpg', NULL),
+(99, 'Bravo Esteve', 'Bilbao', 'Calle Ledesma 6', 'nicolas.bravo.urg@example.com', 'Nicolás', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LgoMwnt1jxy', 'PROFESIONAL', '+34622000099', 'https://randomuser.me/api/portraits/men/28.jpg', NULL),
+(102, 'Morales Vega', 'Málaga', 'Avenida de Andalucía 115, 2A, 29007 Málaga, España', 'jmorales.work88@outlook.com', 'Javier', '$2a$10$xONNGXHVlD7nlFG3XNfZD.TptPFKJMrL2Mp2zFw7/zXhcjjgGwD.y', 'PROFESIONAL', '+34687214509', NULL, '2026-05-13 11:45:52'),
+(103, 'Fernández López', 'Córdoba', 'Avenida de Barcelona 112, 2ºA', 'maria.fernandez.lopez97@gmail.com', 'María', '$2a$10$qIIZDfKWLkO604mHb4M8a.J4sC06ZUIbfS32tvcAWKLImDzCHKQ.G', 'CLIENTE', '+34673482915', NULL, '2026-05-13 11:52:28');
 
 -- --------------------------------------------------------
 
@@ -997,7 +1453,8 @@ INSERT INTO `valoracion` (`id`, `comentario`, `estrellas`, `fecha`, `cliente_id`
 (6, 'Servicio rápido y eficaz, muy amable.', 4, '2026-03-19 12:00:00.000000', 7, 5, 15),
 (7, 'Todo perfecto, muy profesional y puntual.', 5, '2026-03-26 12:30:00.000000', 13, 6, 18),
 (8, '', 3, '2026-04-24 09:30:01.000000', 22, 12, 21),
-(9, '', 4, '2026-05-04 09:26:08.000000', 22, 16, 25);
+(9, '', 4, '2026-05-04 09:26:08.000000', 22, 16, 25),
+(10, 'Genial, totalmente recomendado', 5, '2026-05-07 11:50:20.000000', 22, 13, 22);
 
 --
 -- Índices para tablas volcadas
@@ -1070,6 +1527,14 @@ ALTER TABLE `mensaje`
   ADD KEY `fk_mensaje_respondido` (`mensaje_respondido_id`);
 
 --
+-- Indices de la tabla `mensaje_reaccion`
+--
+ALTER TABLE `mensaje_reaccion`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_msg_user_emoji` (`mensaje_id`,`usuario_id`,`emoji`),
+  ADD KEY `fk_reaccion_usuario` (`usuario_id`);
+
+--
 -- Indices de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
@@ -1090,6 +1555,12 @@ ALTER TABLE `password_reset_token`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `UKg0guo4k8krgpwuagos61oc06j` (`token`),
   ADD KEY `FKaehv7qqwsde87cy79hxhy4lke` (`usuario_id`);
+
+--
+-- Indices de la tabla `profesional_ciudad_servicio`
+--
+ALTER TABLE `profesional_ciudad_servicio`
+  ADD KEY `fk_pcs_profesional` (`profesional_id`);
 
 --
 -- Indices de la tabla `profesional_info`
@@ -1168,7 +1639,7 @@ ALTER TABLE `aud_migracion_mensaje`
 -- AUTO_INCREMENT de la tabla `bloqueo_usuario`
 --
 ALTER TABLE `bloqueo_usuario`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `categoria_servicio`
@@ -1180,31 +1651,37 @@ ALTER TABLE `categoria_servicio`
 -- AUTO_INCREMENT de la tabla `conversacion`
 --
 ALTER TABLE `conversacion`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT de la tabla `favorito_servicio`
 --
 ALTER TABLE `favorito_servicio`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `mensaje`
 --
 ALTER TABLE `mensaje`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
+
+--
+-- AUTO_INCREMENT de la tabla `mensaje_reaccion`
+--
+ALTER TABLE `mensaje_reaccion`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT de la tabla `pago`
 --
 ALTER TABLE `pago`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `password_reset_token`
@@ -1216,7 +1693,7 @@ ALTER TABLE `password_reset_token`
 -- AUTO_INCREMENT de la tabla `profesional_info`
 --
 ALTER TABLE `profesional_info`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT de la tabla `resena_profesional`
@@ -1228,13 +1705,13 @@ ALTER TABLE `resena_profesional`
 -- AUTO_INCREMENT de la tabla `reserva`
 --
 ALTER TABLE `reserva`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de la tabla `servicio_ofrecido`
 --
 ALTER TABLE `servicio_ofrecido`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=286;
 
 --
 -- AUTO_INCREMENT de la tabla `subcategoria_servicio`
@@ -1246,13 +1723,13 @@ ALTER TABLE `subcategoria_servicio`
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
 
 --
 -- AUTO_INCREMENT de la tabla `valoracion`
 --
 ALTER TABLE `valoracion`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Restricciones para tablas volcadas
@@ -1290,6 +1767,13 @@ ALTER TABLE `mensaje`
   ADD CONSTRAINT `fk_mensaje_respondido` FOREIGN KEY (`mensaje_respondido_id`) REFERENCES `mensaje` (`id`) ON DELETE SET NULL;
 
 --
+-- Filtros para la tabla `mensaje_reaccion`
+--
+ALTER TABLE `mensaje_reaccion`
+  ADD CONSTRAINT `fk_reaccion_mensaje` FOREIGN KEY (`mensaje_id`) REFERENCES `mensaje` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_reaccion_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id`) ON DELETE CASCADE;
+
+--
 -- Filtros para la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
@@ -1306,6 +1790,12 @@ ALTER TABLE `pago`
 --
 ALTER TABLE `password_reset_token`
   ADD CONSTRAINT `FKaehv7qqwsde87cy79hxhy4lke` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id`);
+
+--
+-- Filtros para la tabla `profesional_ciudad_servicio`
+--
+ALTER TABLE `profesional_ciudad_servicio`
+  ADD CONSTRAINT `fk_pcs_profesional` FOREIGN KEY (`profesional_id`) REFERENCES `profesional_info` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `profesional_info`
