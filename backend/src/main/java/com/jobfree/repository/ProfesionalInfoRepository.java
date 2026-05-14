@@ -24,4 +24,8 @@ public interface ProfesionalInfoRepository extends JpaRepository<ProfesionalInfo
 	List<ProfesionalInfo> findByLatitudBetweenAndLongitudBetween(
 			Double latitudMin, Double latitudMax,
 			Double longitudMin, Double longitudMax);
+
+	Optional<ProfesionalInfo> findByStripeCustomerId(String stripeCustomerId);
+
+	Optional<ProfesionalInfo> findByStripeSubscriptionId(String stripeSubscriptionId);
 }

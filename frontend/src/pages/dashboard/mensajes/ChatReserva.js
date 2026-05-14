@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeftIcon, ArrowPathIcon, ArrowUturnLeftIcon, BellIcon, BellSlashIcon, CalendarDaysIcon, FaceSmileIcon, NoSymbolIcon, PaperAirplaneIcon, PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ArrowPathIcon, ArrowUturnLeftIcon, BellIcon, BellSlashIcon, CalendarDaysIcon, CheckIcon, FaceSmileIcon, NoSymbolIcon, PaperAirplaneIcon, PencilSquareIcon, PhotoIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import EmojiPickerES from "./EmojiPickerES";
 import { obtenerConversacion, obtenerConversacionPorReserva, silenciarConversacion } from "api/conversaciones";
 import { bloquearUsuario, desbloquearUsuario } from "api/bloqueos";
-import { enviarMensaje, marcarMensajesLeidos, marcarMensajesRecibidos, obtenerMensajesDeConversacion, subirImagenMensaje, toggleReaccion } from "api/mensajes";
+import { crearReporte } from "api/reportes";
+import { editarMensaje, eliminarMensaje, enviarMensaje, marcarMensajesLeidos, marcarMensajesRecibidos, obtenerMensajesDeConversacion, subirImagenMensaje, toggleReaccion } from "api/mensajes";
 import { crearReserva } from "api/reservas";
 import { obtenerServiciosActivosPorProfesionalUsuario } from "api/servicios";
 import { useAuth } from "context/AuthContext";
@@ -287,6 +288,9 @@ function ChatReserva() {
   const [subiendoImagen, setSubiendoImagen] = useState(false);
   const [imagenModal, setImagenModal] = useState(null);
   const [openReactionPickerId, setOpenReactionPickerId] = useState(null);
+  const [mensajeEditando, setMensajeEditando] = useState(null);
+  const [textoEditando, setTextoEditando] = useState("");
+  const [mensajeEliminandoId, setMensajeEliminandoId] = useState(null);
   const [silenciada, setSilenciada] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
   const [meBloqueo, setMeBloqueo] = useState(false);
@@ -550,6 +554,16 @@ function ChatReserva() {
       if (evento?.tipo === "conversacion.actualizada" && evento.conversacion) {
         setConversacion((prev) => ({ ...prev, ...evento.conversacion }));
       }
+      if (evento?.tipo === "mensaje.editado" && evento.mensaje) {
+        setMensajes((prev) => prev.map((m) =>
+          Number(m.id) === Number(evento.mensaje.id) ? { ...m, ...evento.mensaje } : m
+        ));
+      }
+      if (evento?.tipo === "mensaje.eliminado" && evento.mensaje) {
+        setMensajes((prev) => prev.map((m) =>
+          Number(m.id) === Number(evento.mensaje.id) ? { ...m, ...evento.mensaje } : m
+        ));
+      }
       if (evento?.tipo === "mensaje.reaccion") {
         setMensajes((prev) => prev.map((m) =>
           Number(m.id) === Number(evento.mensajeId) ? { ...m, reacciones: evento.reacciones ?? [] } : m
@@ -779,14 +793,25 @@ function ChatReserva() {
     }
   }
 
-  async function ejecutarBloqueo(bloquear, motivo) {
+  async function ejecutarBloqueo(bloquear, conReporte) {
     if (!otraPersona?.id || accionModeracion) return;
     setConfirmarBloqueo(false);
     setAccionModeracion(true);
     setErrorModeracion("");
     try {
       if (bloquear) {
-        await bloquearUsuario(otraPersona.id, motivo);
+        await bloquearUsuario(otraPersona.id, conReporte ? "Reportado por el usuario" : null);
+        if (conReporte) {
+          const ultimos = mensajes
+            .filter((m) => !m.eliminado)
+            .slice(-10)
+            .map((m) => ({
+              contenido: m.contenido || "",
+              esMio: Number(m.remitenteId) === Number(usuario?.id),
+              fechaEnvio: m.fechaEnvio,
+            }));
+          await crearReporte(otraPersona.id, ultimos).catch(() => {});
+        }
         setBloqueado(true);
       } else {
         await desbloquearUsuario(otraPersona.id);
@@ -797,6 +822,44 @@ function ChatReserva() {
     } finally {
       setAccionModeracion(false);
     }
+  }
+
+  const LIMITE_MODIFICACION_MS = 2 * 60 * 1000; // 2 minutos
+
+  function puedeModificar(msg) {
+    return Number(msg.remitenteId) === Number(usuario?.id)
+      && !msg.eliminado
+      && Date.now() - new Date(msg.fechaEnvio).getTime() < LIMITE_MODIFICACION_MS;
+  }
+
+  async function handleEliminarMensaje(mensajeId) {
+    if (mensajeEliminandoId) return;
+    setMensajeEliminandoId(mensajeId);
+    try {
+      const actualizado = await eliminarMensaje(mensajeId);
+      setMensajes((prev) => prev.map((m) => Number(m.id) === Number(actualizado.id) ? { ...m, ...actualizado } : m));
+    } catch (err) {
+      setError(err.message || tx("No se pudo eliminar el mensaje."));
+    } finally {
+      setMensajeEliminandoId(null);
+    }
+  }
+
+  async function handleGuardarEdicion() {
+    if (!mensajeEditando?.id || !textoEditando.trim()) return;
+    try {
+      const actualizado = await editarMensaje(mensajeEditando.id, textoEditando.trim());
+      setMensajes((prev) => prev.map((m) => Number(m.id) === Number(actualizado.id) ? { ...m, ...actualizado } : m));
+      setMensajeEditando(null);
+      setTextoEditando("");
+    } catch (err) {
+      setError(err.message || tx("No se pudo editar el mensaje."));
+    }
+  }
+
+  function handleCancelarEdicion() {
+    setMensajeEditando(null);
+    setTextoEditando("");
   }
 
   async function handleToggleReaccion(mensajeId, emoji) {
@@ -860,7 +923,7 @@ function ChatReserva() {
           </button>
           <button
             type="button"
-            onClick={() => ejecutarBloqueo(true, reportarJobFree ? "Reportado por el usuario" : null)}
+            onClick={() => ejecutarBloqueo(true, reportarJobFree)}
             className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
           >
             {tx("Bloquear")}
@@ -949,7 +1012,7 @@ function ChatReserva() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          {esClienteActual && (!conversacion?.reservaId || ["COMPLETADA", "CANCELADA", "RECHAZADA"].includes(conversacion?.estadoReserva)) && (
+          {esClienteActual && (
             <button
               type="button"
               onClick={() => setModalReservaAbierta(true)}
@@ -1039,14 +1102,37 @@ function ChatReserva() {
                   className={`group flex items-end gap-1 ${esMio ? "justify-end" : "justify-start"} px-1 py-0.5`}
                 >
                   {esMio && (
-                    <button
-                      type="button"
-                      onClick={() => setMensajeRespondido(item)}
-                      title={tx("Responder")}
-                      className="mb-1 shrink-0 rounded-full p-1 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:text-blue-500"
-                    >
-                      <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="mb-1 flex flex-col gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setMensajeRespondido(item)}
+                        title={tx("Responder")}
+                        className="shrink-0 rounded-full p-1 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:text-blue-500"
+                      >
+                        <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
+                      </button>
+                      {puedeModificar(item) && item.contenido?.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => { setMensajeEditando(item); setTextoEditando(item.contenido || ""); }}
+                          title={tx("Editar")}
+                          className="shrink-0 rounded-full p-1 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:text-blue-500"
+                        >
+                          <PencilSquareIcon className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {puedeModificar(item) && (
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarMensaje(item.id)}
+                          disabled={mensajeEliminandoId === item.id}
+                          title={tx("Eliminar")}
+                          className="shrink-0 rounded-full p-1 text-slate-400 opacity-0 transition group-hover:opacity-100 hover:text-red-500 disabled:opacity-50"
+                        >
+                          <TrashIcon className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   <div className={`flex flex-col gap-0.5 ${esMio ? "items-end" : "items-start"} ${
@@ -1121,7 +1207,7 @@ function ChatReserva() {
                           </div>
                         )}
 
-                        {item.imagenUrl && (
+                        {item.imagenUrl && !item.eliminado && (
                           <button
                             type="button"
                             className="block w-full text-left"
@@ -1136,12 +1222,58 @@ function ChatReserva() {
                         )}
 
                         <div className={`px-4 ${item.imagenUrl ? "pt-2 pb-2.5" : "py-2.5"}`}>
-                          {item.contenido?.trim() && (
-                            <p className="whitespace-pre-wrap break-words text-[13.5px] leading-snug">{item.contenido}</p>
+                          {item.eliminado ? (
+                            <p className={`text-[13px] italic ${esMio ? "text-white/50" : "text-slate-400"}`}>
+                              {tx("Este mensaje fue eliminado")}
+                            </p>
+                          ) : mensajeEditando?.id === item.id ? (
+                            <div>
+                              <textarea
+                                autoFocus
+                                value={textoEditando}
+                                onChange={(e) => setTextoEditando(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleGuardarEdicion(); }
+                                  if (e.key === "Escape") handleCancelarEdicion();
+                                }}
+                                maxLength={1000}
+                                rows={1}
+                                style={{ height: "auto", minHeight: "28px" }}
+                                onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`; }}
+                                className="w-full resize-none rounded-lg bg-blue-400/50 px-2 py-1 text-[13.5px] leading-snug text-white outline-none placeholder:text-white/50 focus:bg-blue-400/60"
+                              />
+                              <div className="mt-1 flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={handleGuardarEdicion}
+                                  className="rounded-full p-0.5 text-white/80 transition hover:text-white"
+                                  title={tx("Guardar")}
+                                >
+                                  <CheckIcon className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelarEdicion}
+                                  className="rounded-full p-0.5 text-white/60 transition hover:text-white"
+                                  title={tx("Cancelar")}
+                                >
+                                  <XMarkIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {item.contenido?.trim() && (
+                                <p className="whitespace-pre-wrap break-words text-[13.5px] leading-snug">{item.contenido}</p>
+                              )}
+                            </>
                           )}
-                          <p className={`${item.contenido?.trim() ? "mt-1" : ""} text-right text-[10px] ${esMio ? "text-white/60" : "text-slate-400"}`}>
-                            {formatearHora(item.fechaEnvio, idioma)}
-                            {esMio && (
+                          <p className={`${item.contenido?.trim() && mensajeEditando?.id !== item.id ? "mt-1" : "mt-1"} text-right text-[10px] ${esMio ? "text-white/60" : "text-slate-400"}`}>
+                            {item.editado && !item.eliminado && mensajeEditando?.id !== item.id && (
+                              <span className="mr-1 opacity-70">{tx("editado")}</span>
+                            )}
+                            {mensajeEditando?.id !== item.id && formatearHora(item.fechaEnvio, idioma)}
+                            {esMio && mensajeEditando?.id !== item.id && (
                               <span className="ml-1 inline-flex items-center align-middle">
                                 <EstadoMensaje mensaje={item} />
                               </span>

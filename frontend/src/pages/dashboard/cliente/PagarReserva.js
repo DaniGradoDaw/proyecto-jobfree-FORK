@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -94,47 +94,49 @@ function FormularioPago({ reserva, pagoId, onExito }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-opacity ${procesando ? "pointer-events-none opacity-50" : ""}`}>
+      {/* PaymentElement: oculto visualmente durante el procesamiento pero permanece en el DOM
+          para que stripe.confirmPayment() pueda completar la petición en vuelo */}
+      <div className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${procesando ? "hidden" : ""}`}>
         <PaymentElement options={{ layout: "tabs" }} onReady={() => setElementListo(true)} />
       </div>
+
       {procesando && <ProcesandoPago />}
+
       {errorPago && !procesando && (
         <div className="flex items-center gap-2.5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
           <ExclamationTriangleIcon className="h-4 w-4 shrink-0" />
           {errorPago}
         </div>
       )}
-      <button
-        type="submit"
-        disabled={!stripe || !elementListo || procesando}
-        className="w-full rounded-2xl py-4 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
-        style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", boxShadow: "0 8px 24px rgba(79,70,229,0.35)" }}
-      >
-        {procesando ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            Procesando...
-          </span>
-        ) : (
-          <span className="flex items-center justify-center gap-2">
-            <LockClosedIcon className="h-4 w-4" />
-            Pagar {Number(reserva.precioTotal).toFixed(2)} €
-          </span>
-        )}
-      </button>
-      <div className="flex items-center justify-center gap-4 pt-1">
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <LockClosedIcon className="h-3 w-3" />
-          SSL 256-bit
-        </div>
-        <span className="text-slate-200">·</span>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-          <ShieldCheckIcon className="h-3 w-3" />
-          Pago seguro
-        </div>
-        <span className="text-slate-200">·</span>
-        <span className="text-[11px] text-slate-400">Datos cifrados</span>
-      </div>
+
+      {!procesando && (
+        <>
+          <button
+            type="submit"
+            disabled={!stripe || !elementListo}
+            className="w-full rounded-2xl py-4 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+            style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", boxShadow: "0 8px 24px rgba(79,70,229,0.35)" }}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <LockClosedIcon className="h-4 w-4" />
+              Pagar {Number(reserva.precioTotal).toFixed(2)} €
+            </span>
+          </button>
+          <div className="flex items-center justify-center gap-4 pt-1">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <LockClosedIcon className="h-3 w-3" />
+              SSL 256-bit
+            </div>
+            <span className="text-slate-200">·</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <ShieldCheckIcon className="h-3 w-3" />
+              Pago seguro
+            </div>
+            <span className="text-slate-200">·</span>
+            <span className="text-[11px] text-slate-400">Datos cifrados</span>
+          </div>
+        </>
+      )}
     </form>
   );
 }
@@ -193,34 +195,40 @@ function PagarReserva() {
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
   const [yaPagado, setYaPagado] = useState(false);
+  const initRef = useRef(null);
 
-  const inicializar = useCallback(async () => {
+  useEffect(() => {
+    // Bloquea la doble ejecución de React Strict Mode para no llamar crearPago dos veces
+    if (initRef.current === reservaId) return;
+    initRef.current = reservaId;
+
     if (!stripePromise) {
       setError("El sistema de pago no está configurado. Contacta con soporte.");
       setLoading(false);
       return;
     }
-    try {
-      const [reservaData, pagoExistente] = await Promise.all([
-        obtenerReservaPorId(reservaId),
-        obtenerPagoPorReserva(reservaId),
-      ]);
-      setReserva(reservaData);
-      if (pagoExistente?.estado === "PAGADO") { setYaPagado(true); return; }
-      const pago = pagoExistente ?? (await crearPago(reservaId));
-      setPagoId(pago.id);
-      const { clientSecret: cs, yaPagado: yaConfirmado } = await crearPaymentIntent(pago.id);
-      if (yaConfirmado === "true") { setYaPagado(true); return; }
-      setClientSecret(cs);
-    } catch (err) {
-      setError(err.message || tx("No se pudo inicializar el pago."));
-    } finally {
-      setLoading(false);
-    }
+
+    (async () => {
+      try {
+        const [reservaData, pagoExistente] = await Promise.all([
+          obtenerReservaPorId(reservaId),
+          obtenerPagoPorReserva(reservaId),
+        ]);
+        setReserva(reservaData);
+        if (pagoExistente?.estado === "PAGADO") { setYaPagado(true); return; }
+        const pago = pagoExistente ?? (await crearPago(reservaId));
+        setPagoId(pago.id);
+        const { clientSecret: cs, yaPagado: yaConfirmado } = await crearPaymentIntent(pago.id);
+        if (yaConfirmado === "true") { setYaPagado(true); return; }
+        setClientSecret(cs);
+      } catch (err) {
+        setError(err.message || tx("No se pudo inicializar el pago."));
+      } finally {
+        setLoading(false);
+      }
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservaId]);
-
-  useEffect(() => { inicializar(); }, [inicializar]);
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -250,7 +258,10 @@ function PagarReserva() {
 
   if (exito && reserva) return (
     <div className="mx-auto max-w-lg">
-      <PantallaExito reserva={reserva} onVerReservas={() => navigate("/dashboard/cliente/reservas")} />
+      <PantallaExito
+        reserva={reserva}
+        onVerReservas={() => window.location.replace("/dashboard/cliente/reservas")}
+      />
     </div>
   );
 

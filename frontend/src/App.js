@@ -33,10 +33,12 @@ import PanelCliente from "./pages/dashboard/cliente/PanelCliente";
 import MisFavoritos from "./pages/dashboard/cliente/MisFavoritos";
 import MisReservas from "./pages/dashboard/cliente/MisReservas";
 import MisResenas from "./pages/dashboard/cliente/MisResenas";
+import Facturas from "./pages/dashboard/cliente/Facturas";
 import ValorarReserva from "./pages/dashboard/cliente/ValorarReserva";
 import PagarReserva from "./pages/dashboard/cliente/PagarReserva";
 import ProfesionalDashboard from "./pages/dashboard/profesional/ProfesionalDashboard";
 import ResenasRecibidas from "./pages/dashboard/profesional/ResenasRecibidas";
+import PlanProfesional from "./pages/dashboard/profesional/PlanProfesional";
 import MisSolicitudes from "./pages/dashboard/profesional/MisSolicitudes";
 import MisServicios from "./pages/dashboard/profesional/MisServicios";
 import CalendarioProfesional from "./pages/dashboard/profesional/CalendarioProfesional";
@@ -50,7 +52,9 @@ import PanelAdmin from "./pages/dashboard/admin/PanelAdmin";
 import UsuariosAdmin from "./pages/dashboard/admin/UsuariosAdmin";
 import ReservasAdmin from "./pages/dashboard/admin/ReservasAdmin";
 import PagosAdmin from "./pages/dashboard/admin/PagosAdmin";
-import NotificacionesAdmin from "./pages/dashboard/admin/NotificacionesAdmin";
+import ServiciosAdmin from "./pages/dashboard/admin/ServiciosAdmin";
+import ValoracionesAdmin from "./pages/dashboard/admin/ValoracionesAdmin";
+import ReportesAdmin from "./pages/dashboard/admin/ReportesAdmin";
 import CategoriasAdmin from "./pages/dashboard/admin/CategoriasAdmin";
 
 class ErrorBoundary extends React.Component {
@@ -147,6 +151,7 @@ function App() {
               <Route path="favoritos" element={<MisFavoritos />} />
               <Route path="reservas" element={<MisReservas />} />
               <Route path="resenas" element={<MisResenas />} />
+              <Route path="facturas" element={<Facturas />} />
               <Route path="valorar/:reservaId" element={<ValorarReserva />} />
               <Route path="pagar/:reservaId" element={<PagarReserva />} />
               <Route path="mensajes" element={<MensajesLayout />}>
@@ -183,6 +188,7 @@ function App() {
               {/* Página para publicar y gestionar servicios */}
               <Route path="servicios" element={<MisServicios />} />
               <Route path="resenas" element={<ResenasRecibidas />} />
+              <Route path="plan" element={<PlanProfesional />} />
               <Route path="mensajes" element={<MensajesLayout />}>
                 <Route index element={<PlaceholderChat />} />
                 <Route path=":conversacionId" element={<ChatReserva />} />
@@ -207,7 +213,9 @@ function App() {
               <Route path="usuarios" element={<UsuariosAdmin />} />
               <Route path="reservas" element={<ReservasAdmin />} />
               <Route path="pagos" element={<PagosAdmin />} />
-              <Route path="notificaciones" element={<NotificacionesAdmin />} />
+              <Route path="servicios" element={<ServiciosAdmin />} />
+              <Route path="valoraciones" element={<ValoracionesAdmin />} />
+              <Route path="reportes" element={<ReportesAdmin />} />
               <Route path="categorias" element={<CategoriasAdmin />} />
             </Route>
 

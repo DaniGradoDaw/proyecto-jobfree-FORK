@@ -29,12 +29,43 @@ export async function listarTodosPagos() {
   return res.json();
 }
 
-// ── Notificaciones ────────────────────────────────────────────────────────────
+// ── Servicios ─────────────────────────────────────────────────────────────────
 
-export async function listarTodasNotificaciones() {
-  const res = await apiFetch("/notificaciones");
-  if (!res.ok) throw new Error("Error al cargar notificaciones");
+export async function listarTodosServicios() {
+  const res = await apiFetch("/servicios?size=500&sort=id,desc");
+  if (!res.ok) throw new Error("Error al cargar servicios");
+  const data = await res.json();
+  return data.content ?? data;
+}
+
+export async function activarServicioAdmin(id) {
+  const res = await apiFetch(`/servicios/${id}/admin/activar`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al activar el servicio");
   return res.json();
+}
+
+export async function desactivarServicioAdmin(id) {
+  const res = await apiFetch(`/servicios/${id}/admin/desactivar`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al desactivar el servicio");
+  return res.json();
+}
+
+export async function eliminarServicioAdmin(id) {
+  const res = await apiFetch(`/servicios/${id}/admin`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el servicio");
+}
+
+// ── Valoraciones ──────────────────────────────────────────────────────────────
+
+export async function listarTodasValoraciones() {
+  const res = await apiFetch("/valoraciones");
+  if (!res.ok) throw new Error("Error al cargar valoraciones");
+  return res.json();
+}
+
+export async function eliminarValoracionAdmin(id) {
+  const res = await apiFetch(`/valoraciones/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar la valoración");
 }
 
 // ── Categorías ────────────────────────────────────────────────────────────────
@@ -137,4 +168,23 @@ export async function confirmarPagoAdmin(id) {
   const res = await apiFetch(`/pagos/${id}/confirmar`, { method: "PATCH" });
   if (!res.ok) throw new Error("Error al confirmar el pago");
   return res.json();
+}
+
+// ── Reportes ──────────────────────────────────────────────────────────────────
+
+export async function listarTodosReportes() {
+  const res = await apiFetch("/reportes");
+  if (!res.ok) throw new Error("Error al cargar reportes");
+  return res.json();
+}
+
+export async function resolverReporteAdmin(id) {
+  const res = await apiFetch(`/reportes/${id}/resolver`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al resolver el reporte");
+  return res.json();
+}
+
+export async function eliminarReporteAdmin(id) {
+  const res = await apiFetch(`/reportes/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el reporte");
 }

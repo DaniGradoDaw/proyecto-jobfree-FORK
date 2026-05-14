@@ -276,6 +276,29 @@ public class ServicioOfrecidoController {
      *
      * @return usuario autenticado
      */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/admin/activar")
+    public ResponseEntity<ServicioDTO> activarAdmin(@PathVariable Long id) {
+        ServicioOfrecido s = servicioService.obtenerPorId(id);
+        s.setActiva(true);
+        return ResponseEntity.ok(ServicioMapper.toDTO(servicioService.guardar(s)));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/admin/desactivar")
+    public ResponseEntity<ServicioDTO> desactivarAdmin(@PathVariable Long id) {
+        ServicioOfrecido s = servicioService.obtenerPorId(id);
+        s.setActiva(false);
+        return ResponseEntity.ok(ServicioMapper.toDTO(servicioService.guardar(s)));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}/admin")
+    public ResponseEntity<Void> eliminarAdmin(@PathVariable Long id) {
+        servicioService.eliminarServicioAdmin(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private Usuario getUsuarioAutenticado() {
         return (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }

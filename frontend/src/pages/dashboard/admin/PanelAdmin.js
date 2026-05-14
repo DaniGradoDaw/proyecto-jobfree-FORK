@@ -4,13 +4,15 @@ import {
   UsersIcon,
   CalendarDaysIcon,
   CreditCardIcon,
-  BellIcon,
+  StarIcon,
   TagIcon,
   ArrowPathIcon,
   BanknotesIcon,
+  WrenchScrewdriverIcon,
+  FlagIcon,
 } from "@heroicons/react/24/outline";
 import { useLanguage } from "context/LanguageContext";
-import { listarUsuarios, listarTodasReservas, listarTodosPagos, listarTodasNotificaciones } from "api/admin";
+import { listarUsuarios, listarTodasReservas, listarTodosPagos, listarTodosServicios, listarTodasValoraciones, listarTodosReportes } from "api/admin";
 import { obtenerCategorias } from "api/categorias";
 
 const ESTADOS_RESERVA = {
@@ -62,10 +64,12 @@ function PanelAdmin() {
       listarUsuarios(),
       listarTodasReservas(),
       listarTodosPagos(),
-      listarTodasNotificaciones(),
+      listarTodosServicios(),
+      listarTodasValoraciones(),
+      listarTodosReportes(),
       obtenerCategorias(),
     ])
-      .then(([usuarios, reservas, pagos, notificaciones, categorias]) => {
+      .then(([usuarios, reservas, pagos, servicios, valoraciones, reportes, categorias]) => {
         const ingresos = pagos
           .filter((p) => p.estado === "PAGADO")
           .reduce((acc, p) => acc + Number(p.importe ?? 0), 0);
@@ -78,7 +82,11 @@ function PanelAdmin() {
           reservasPendientes: reservas.filter((r) => r.estado === "PENDIENTE").length,
           pagos: pagos.length,
           ingresos,
-          notificaciones: notificaciones.filter((n) => !n.leida).length,
+          servicios: servicios.length,
+          serviciosActivos: servicios.filter((s) => s.activa).length,
+          valoraciones: valoraciones.length,
+          reportes: reportes.length,
+          reportesPendientes: reportes.filter((r) => !r.resuelto).length,
           categorias: categorias.length,
         });
         setUltimasReservas(
@@ -107,7 +115,7 @@ function PanelAdmin() {
         <p className="mt-1 text-sm text-slate-500">{tx("Resumen general de la plataforma.")}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
         <StatCard
           icono={UsersIcon}
           label={tx("Usuarios registrados")}
@@ -139,11 +147,27 @@ function PanelAdmin() {
           onClick={() => navigate("/dashboard/admin/pagos")}
         />
         <StatCard
-          icono={BellIcon}
-          label={tx("Notif. sin leer")}
-          valor={stats?.notificaciones}
+          icono={WrenchScrewdriverIcon}
+          label={tx("Servicios")}
+          sublabel={stats?.serviciosActivos != null ? `${stats.serviciosActivos} activos` : null}
+          valor={stats?.servicios}
+          color="bg-blue-100 text-blue-600"
+          onClick={() => navigate("/dashboard/admin/servicios")}
+        />
+        <StatCard
+          icono={StarIcon}
+          label={tx("Valoraciones")}
+          valor={stats?.valoraciones}
           color="bg-amber-100 text-amber-600"
-          onClick={() => navigate("/dashboard/admin/notificaciones")}
+          onClick={() => navigate("/dashboard/admin/valoraciones")}
+        />
+        <StatCard
+          icono={FlagIcon}
+          label={tx("Reportes")}
+          sublabel={stats?.reportesPendientes > 0 ? `${stats.reportesPendientes} pendientes` : null}
+          valor={stats?.reportes}
+          color="bg-red-100 text-red-600"
+          onClick={() => navigate("/dashboard/admin/reportes")}
         />
         <StatCard
           icono={TagIcon}

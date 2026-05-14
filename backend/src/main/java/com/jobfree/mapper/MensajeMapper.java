@@ -27,6 +27,9 @@ public class MensajeMapper {
 		MensajeDTO dto = new MensajeDTO(m.getId(), m.getContenido(), m.getClientMessageId(), m.isLeido(), m.isRecibido(), m.getFechaEnvio(), m.getRemitente().getId(),
 				m.getDestinatario().getId(), m.getConversacion().getId());
 		dto.setImagenUrl(m.getImagenUrl());
+		dto.setEditado(m.isEditado());
+		dto.setFechaEdicion(m.getFechaEdicion());
+		dto.setEliminado(m.isEliminado());
 		return dto;
 	}
 

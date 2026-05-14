@@ -53,10 +53,7 @@ function ModalContacto({ servicio, onClose, onExito }) {
     setError("");
     try {
       const conv = await crearOObtenerConversacionContacto(servicio.profesionalUsuarioId);
-      const esNueva = !conv.ultimoMensaje;
-      const mensajeEnviar = esNueva
-        ? `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`
-        : contenido;
+      const mensajeEnviar = `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`;
       await enviarMensaje({
         contenido: mensajeEnviar,
         destinatarioId: servicio.profesionalUsuarioId,

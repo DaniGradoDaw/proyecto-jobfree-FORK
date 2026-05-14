@@ -40,3 +40,12 @@ export async function confirmarPago(pagoId) {
   return res.json();
 }
 
+export async function obtenerMisFacturas() {
+  const res = await apiFetch("/pagos/mis-facturas");
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Error al obtener las facturas");
+  }
+  return res.json();
+}
+

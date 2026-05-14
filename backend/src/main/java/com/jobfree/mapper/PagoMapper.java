@@ -1,9 +1,11 @@
 package com.jobfree.mapper;
 
+import com.jobfree.dto.pago.FacturaDTO;
 import com.jobfree.dto.pago.PagoCreateDTO;
 import com.jobfree.dto.pago.PagoDTO;
 import com.jobfree.model.entity.Pago;
 import com.jobfree.model.entity.Reserva;
+import com.jobfree.model.entity.Usuario;
 
 /**
  * Mapper para convertir entre la entidad Pago y sus DTOs.
@@ -19,6 +21,34 @@ public class PagoMapper {
 	public static PagoDTO toDTO(Pago p) {
 		return new PagoDTO(p.getId(), p.getImporte(), p.getMetodo().getLabel(), p.getEstado().name(), p.getFechaPago(),
 				p.getReserva().getId());
+	}
+
+	public static FacturaDTO toFacturaDTO(Pago p) {
+		Reserva r = p.getReserva();
+		Usuario cliente = r.getCliente();
+		Usuario profesional = r.getServicio().getProfesional().getUsuario();
+
+		String numeroFactura = String.format("JF-%d-%04d",
+				p.getFechaPago() != null ? p.getFechaPago().getYear() : java.time.LocalDateTime.now().getYear(),
+				p.getId());
+
+		String profesionalNombre = profesional.getNombre() + " " + profesional.getApellidos();
+		String clienteNombre     = cliente.getNombre() + " " + cliente.getApellidos();
+
+		return new FacturaDTO(
+				p.getId(),
+				numeroFactura,
+				p.getImporte(),
+				p.getMetodo().getLabel(),
+				p.getEstado().name(),
+				p.getFechaPago(),
+				r.getId(),
+				r.getServicio().getTitulo(),
+				profesionalNombre,
+				clienteNombre,
+				cliente.getEmail(),
+				r.getFechaInicio()
+		);
 	}
 
 	/**

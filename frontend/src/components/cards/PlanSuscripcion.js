@@ -1,31 +1,35 @@
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "context/LanguageContext";
 
 function PlanSuscripcion({ esAnual }) {
     const { tx } = useLanguage();
+    const navigate = useNavigate();
 
     const featuresBasico = [
         tx("Perfil visible en la plataforma"),
         tx("Elegir zona de trabajo"),
         tx("Recibir solicitudes de clientes"),
         tx("Recibir valoraciones"),
-        tx("Prioridad en búsquedas"),
-        tx("Perfil destacado"),
+        tx("Prioridad estándar en búsquedas"),
+        tx("Hasta 3 servicios publicados"),
     ];
     const featuresPro = [
         tx("Todo lo incluido en Básico"),
-        tx("Mayor prioridad en búsquedas"),
-        tx("Perfil destacado"),
-        tx("Menores comisiones"),
-        tx("Acceso a estadisticas"),
-        tx("Banner promociónal"),
+        tx("Servicios ilimitados"),
+        tx("Alta prioridad en búsquedas"),
+        tx("Perfil destacado con badge verificado"),
+        tx("Descuentos en tiendas asociadas"),
+        tx("Acceso a estadísticas de visitas"),
+        tx("Soporte por email prioritario"),
     ];
     const featuresPremium = [
         tx("Todo en PRO"),
-        tx("Máxima visibilidad"),
+        tx("Máxima visibilidad en la plataforma"),
         tx("Insignia Top Profesional"),
-        tx("Comisiones aún más bajas"),
+        tx("Más descuentos exclusivos en tiendas"),
+        tx("Asesor de éxito personal"),
         tx("Doble de puntos por servicio"),
-        tx("Soporte prioritario"),
+        tx("Soporte prioritario 24/7"),
     ];
 
     const limiteBasico = featuresBasico.length - 2;
@@ -80,7 +84,7 @@ function PlanSuscripcion({ esAnual }) {
                     </ul>
 
                     {/* botón */}
-                    <button className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
+                    <button onClick={() => navigate("/login")} className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
                         {tx("Empezar gratis")}
                     </button>
                 </div>
@@ -138,7 +142,7 @@ function PlanSuscripcion({ esAnual }) {
                     </ul>
 
                     {/* botón */}
-                    <button className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
+                    <button onClick={() => navigate("/login")} className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
                         {tx("Contratar PRO")}
                     </button>
                 </div>
@@ -177,7 +181,7 @@ function PlanSuscripcion({ esAnual }) {
                     </ul>
 
                     {/* botón */}
-                    <button className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
+                    <button onClick={() => navigate("/login")} className="mt-6 w-full rounded-md bg-[#2596be] px-3 py-2 text-center text-sm font-semibold text-white shadow hover:bg-[#1e7fa3]">
                         {tx("Contratar PREMIUM")}
                     </button>
                 </div>

@@ -76,6 +76,27 @@ export async function marcarMensajesLeidos(ids) {
   return res.json();
 }
 
+export async function eliminarMensaje(id) {
+  const res = await apiFetch(`/mensajes/${id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Error al eliminar el mensaje");
+  }
+  return res.json();
+}
+
+export async function editarMensaje(id, contenido) {
+  const res = await apiFetch(`/mensajes/${id}/contenido`, {
+    method: "PUT",
+    body: JSON.stringify({ contenido }),
+  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Error al editar el mensaje");
+  }
+  return res.json();
+}
+
 export async function toggleReaccion(mensajeId, emoji) {
   const res = await apiFetch(`/mensajes/${mensajeId}/reacciones`, {
     method: "POST",

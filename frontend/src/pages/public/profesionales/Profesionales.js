@@ -24,7 +24,7 @@ import { useLanguage } from "context/LanguageContext";
 import { useAuth } from "context/AuthContext";
 import { useGeolocalizacion } from "hooks/useGeolocalizacion";
 import { anadirFavorito, eliminarFavorito, obtenerMisFavoritos } from "api/favoritos";
-import API_URL from "api/config";
+
 import Avatar from "components/Avatar";
 import "leaflet/dist/leaflet.css";
 import { Circle, CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
@@ -244,12 +244,6 @@ function SkeletonCard() {
 function TarjetaProfesional({ servicio, onContratar, onToggleFavorito, esFavorito, puedeFavorito, onVerPerfil }) {
   const { tx } = useLanguage();
 
-  const iniciales = (servicio.nombreProfesional ?? "?")
-    .split(" ")
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
 
   const duracionFormateada =
     servicio.duracionMin >= 60
@@ -380,10 +374,7 @@ function ModalContratacion({ servicio, onClose, onExito }) {
         throw new Error(tx("No se pudo identificar al profesional."));
       }
       const conversacion = await crearOObtenerConversacionContacto(profesionalUsuarioId);
-      const esNueva = !conversacion.ultimoMensaje;
-      const mensajeEnviar = esNueva
-        ? `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`
-        : contenido;
+      const mensajeEnviar = `📌 ${tx("Consulta sobre")}: ${servicio.titulo}\n\n${contenido}`;
       await enviarMensaje({
         contenido: mensajeEnviar,
         destinatarioId: profesionalUsuarioId,

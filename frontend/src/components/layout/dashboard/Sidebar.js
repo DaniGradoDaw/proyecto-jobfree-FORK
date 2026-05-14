@@ -11,13 +11,12 @@ import {
     ClipboardDocumentListIcon,
     WrenchScrewdriverIcon,
     ArrowRightOnRectangleIcon,
-    UserCircleIcon,
     UsersIcon,
     TagIcon,
-    BellIcon,
     ShieldCheckIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    FlagIcon,
 } from "@heroicons/react/24/outline";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -28,9 +27,9 @@ import { useLanguage } from "context/LanguageContext";
 // importamos el contexto de sesión para mostrar el nombre real y poder cerrar sesión
 import { useAuth } from "context/AuthContext";
 import logoJobFree from "assets/images/logo.png";
-import API_URL from "api/config";
 import Avatar from "components/Avatar";
 import { obtenerConteoMensajesNoLeidos } from "api/mensajes";
+import { obtenerMiPlan, verificarSuscripcion } from "api/suscripciones";
 import { useChatSocket } from "context/ChatSocketContext";
 
 function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
@@ -44,6 +43,18 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
     const { usuario, cerrarSesion } = useAuth();
     const { subscribeToUserQueue } = useChatSocket();
     const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
+    const [planLabel, setPlanLabel] = useState(null);
+
+    useEffect(() => {
+        if (tipo !== "profesional" || !usuario?.id) return;
+        const fn = location.search.includes("success=true") ? verificarSuscripcion : obtenerMiPlan;
+        fn()
+            .then((data) => {
+                const map = { BASICO: "Básico", PRO: "Pro", PREMIUM: "Premium" };
+                setPlanLabel(map[data?.plan] ?? data?.plan ?? null);
+            })
+            .catch(() => {});
+    }, [tipo, usuario?.id, location.pathname, location.search]);
 
     useEffect(() => {
         if (!usuario?.id) {
@@ -67,6 +78,7 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 || evento?.tipo === "mensaje.recibido"
                 || evento?.tipo === "mensaje.recibido.lote"
                 || evento?.tipo === "usuario.mensajes.actualizados"
+                || evento?.tipo === "conversacion.actualizada"
             ) {
                 cargarConteo();
             }
@@ -90,8 +102,10 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
         adminUsuarios: tx("Usuarios"),
         adminReservas: tx("Reservas"),
         adminPagos: tx("Pagos"),
-        adminNotificaciones: tx("Notificaciones"),
+        adminServicios: tx("Servicios"),
+        adminValoraciones: tx("Valoraciones"),
         adminCategorias: tx("Categorias"),
+        adminReportes: tx("Reportes"),
     };
 
     const menuItems =
@@ -118,12 +132,14 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 { key: "configuracion", icono: Cog6ToothIcon, ruta: "/dashboard/profesional/configuracion" },
             ]
             : [
-                { key: "panelAdmin", icono: ShieldCheckIcon, ruta: "/dashboard/admin" },
-                { key: "adminUsuarios", icono: UsersIcon, ruta: "/dashboard/admin/usuarios" },
-                { key: "adminReservas", icono: CalendarDaysIcon, ruta: "/dashboard/admin/reservas" },
-                { key: "adminPagos", icono: CreditCardIcon, ruta: "/dashboard/admin/pagos" },
-                { key: "adminNotificaciones", icono: BellIcon, ruta: "/dashboard/admin/notificaciones" },
-                { key: "adminCategorias", icono: TagIcon, ruta: "/dashboard/admin/categorias" },
+                { key: "panelAdmin",       icono: ShieldCheckIcon,        ruta: "/dashboard/admin" },
+                { key: "adminUsuarios",    icono: UsersIcon,               ruta: "/dashboard/admin/usuarios" },
+                { key: "adminReservas",    icono: CalendarDaysIcon,        ruta: "/dashboard/admin/reservas" },
+                { key: "adminPagos",       icono: CreditCardIcon,          ruta: "/dashboard/admin/pagos" },
+                { key: "adminServicios",   icono: WrenchScrewdriverIcon,   ruta: "/dashboard/admin/servicios" },
+                { key: "adminValoraciones",icono: StarIcon,                ruta: "/dashboard/admin/valoraciones" },
+                { key: "adminCategorias",  icono: TagIcon,                 ruta: "/dashboard/admin/categorias" },
+                { key: "adminReportes",    icono: FlagIcon,                ruta: "/dashboard/admin/reportes" },
             ];
 
     /**
@@ -180,7 +196,7 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
 
                 {menuItems.map((item) => {
                     const Icono = item.icono;
-                    const esRutaBaseDashboard = item.key === "panelPrincipal";
+                    const esRutaBaseDashboard = item.key === "panelPrincipal" || item.key === "panelAdmin";
                     const isActivo = esRutaBaseDashboard
                         ? location.pathname === item.ruta
                         : location.pathname === item.ruta || location.pathname.startsWith(`${item.ruta}/`);
@@ -204,9 +220,16 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                             {!collapsed && (
                                 <>
                                     <span className="truncate">{labels[item.key] ?? item.key}</span>
+                                    {item.key === "miPlan" && planLabel && (
+                                        <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                            isActivo ? "bg-emerald-500 text-white" : "bg-white/30 text-white"
+                                        }`}>
+                                            {planLabel}
+                                        </span>
+                                    )}
                                     {contador > 0 && (
                                         <span className={`ml-auto flex min-w-[1.35rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                                            isActivo ? "bg-emerald-100 text-emerald-700" : "bg-white text-emerald-600"
+                                            isActivo ? "bg-emerald-500 text-white" : "bg-white text-emerald-600"
                                         }`}>
                                             {contador > 99 ? "99+" : contador}
                                         </span>
@@ -230,12 +253,17 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
 
                 {collapsed ? (
                     <>
-                        <Avatar
-                            src={usuario?.fotoUrl}
-                            nombre={usuario?.nombre}
-                            className="w-8 h-8 rounded-full shrink-0 ring-2 ring-white/40"
-                            iconFallback
-                        />
+                        <div className="relative">
+                            <Avatar
+                                src={usuario?.fotoUrl}
+                                nombre={usuario?.nombre}
+                                className="w-8 h-8 rounded-full shrink-0 ring-2 ring-white/40"
+                                iconFallback
+                            />
+                            {planLabel === "Premium" && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] shadow" title="Premium">★</span>
+                            )}
+                        </div>
                         <button
                             onClick={handleCerrarSesion}
                             className="cursor-pointer hover:text-red-200"
@@ -248,14 +276,19 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 ) : (
                     <>
                         <div className="flex items-center gap-2 overflow-hidden">
+                            <div className="relative shrink-0">
                             <Avatar
                                 src={usuario?.fotoUrl}
                                 nombre={usuario?.nombre}
-                                className="w-8 h-8 rounded-full shrink-0 ring-2 ring-white/40"
+                                className="w-8 h-8 rounded-full ring-2 ring-white/40"
                                 iconFallback
                             />
+                            {planLabel === "Premium" && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px] shadow" title="Premium">★</span>
+                            )}
+                            </div>
                             <span className="text-sm font-medium truncate">
-                                {usuario?.nombreCompleto ?? "..."}
+                                {tipo === "admin" ? "Admin JobFree" : (usuario?.nombreCompleto ?? "...")}
                             </span>
                         </div>
                         <button

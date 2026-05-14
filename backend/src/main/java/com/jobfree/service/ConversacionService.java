@@ -63,7 +63,17 @@ public class ConversacionService {
 	public Conversacion obtenerPorReservaSeguro(Long reservaId, Usuario usuario) {
 		Reserva reserva = reservaRepository.findById(reservaId)
 				.orElseThrow(() -> new ReservaNotFoundException(reservaId));
-		Conversacion conversacion = obtenerOCrearPorReserva(reserva);
+		// Buscar primero por FK directa; si la conv fue reasignada a una reserva posterior,
+		// usar el par cliente-profesional como fallback para no romper la navegación desde MisReservas.
+		Conversacion conversacion = conversacionRepository.findByReservaId(reserva.getId())
+				.orElseGet(() -> {
+					Usuario cliente = reserva.getCliente();
+					Usuario profesional = reserva.getServicio().getProfesional().getUsuario();
+					return conversacionRepository
+							.findFirstByClienteIdAndProfesionalIdOrderByFechaCreacionDesc(
+									cliente.getId(), profesional.getId())
+							.orElseGet(() -> obtenerOCrearPorReserva(reserva));
+				});
 		validarParticipante(conversacion, usuario);
 		return conversacion;
 	}
@@ -189,7 +199,8 @@ public class ConversacionService {
 			return conversacionRepository.save(porClave);
 		}
 
-		// 2. Conversación ya existente entre este par (segunda reserva o posterior)
+		// 2. Conversación ya existente — reutilizarla siempre (tenga o no reserva activa)
+		// para mantener todo el historial en un único chat por par cliente-profesional.
 		Conversacion existente = conversacionRepository
 				.findFirstByClienteIdAndProfesionalIdOrderByFechaCreacionDesc(cliente.getId(), profesional.getId())
 				.orElse(null);
@@ -198,7 +209,7 @@ public class ConversacionService {
 			return conversacionRepository.save(existente);
 		}
 
-		// 3. Primera vez que se cruzan sin haber pasado por el chat de contacto
+		// 3. Sin conversación previa — crear una nueva
 		return conversacionRepository.save(new Conversacion(reserva, cliente, profesional));
 	}
 

@@ -198,6 +198,23 @@ function EventoCalendario({ event }) {
   );
 }
 
+function AgendaEvento({ event }) {
+  const reserva = event.resource;
+  const color = ESTADO_META[reserva?.estado]?.evento ?? "#94a3b8";
+  return (
+    <div className="flex items-center gap-2.5 py-0.5">
+      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      <span className="text-sm font-semibold text-slate-800 flex-1 min-w-0 truncate">{event.title}</span>
+      {reserva?.clienteNombre && (
+        <span className="text-xs text-slate-400 shrink-0">· {reserva.clienteNombre}</span>
+      )}
+      <span className="text-xs font-bold text-slate-700 tabular-nums shrink-0">
+        {Number(reserva?.precioTotal ?? 0).toFixed(2)} €
+      </span>
+    </div>
+  );
+}
+
 function reservasAEventos(reservas) {
   return reservas
     .filter((r) => r.fechaInicio && (r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")))
@@ -219,6 +236,8 @@ function CalendarioProfesional() {
   const [error, setError] = useState("");
   const [filtro, setFiltro] = useState("todas");
   const [eventoModal, setEventoModal] = useState(null);
+  const [calView, setCalView] = useState("month");
+  const [calDate, setCalDate] = useState(new Date());
 
   useEffect(() => {
     obtenerMisSolicitudes()
@@ -272,62 +291,31 @@ function CalendarioProfesional() {
         )}
       </div>
 
-      {/* Estadísticas rápidas */}
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { estado: "PENDIENTE",  label: tx("Pendientes"),  bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-100", disabled: true },
-          { estado: "CONFIRMADA", label: tx("Pagadas"),     bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-100" },
-          { estado: "COMPLETADA", label: tx("Completadas"), bg: "bg-slate-50",   text: "text-slate-600",   border: "border-slate-100" },
-          { estado: "CANCELADA",  label: tx("Canceladas"),  bg: "bg-red-50",     text: "text-red-600",     border: "border-red-100" },
-        ].map(({ estado, label, bg, text, border, disabled }) => (
-          <button
-            key={estado}
-            onClick={() => !disabled && setFiltro(filtro === estado ? "todas" : estado)}
-            className={`rounded-xl border ${border} ${bg} p-3 text-center transition ${disabled ? "cursor-default" : "hover:opacity-80"} ${filtro === estado ? "ring-2 ring-offset-1 ring-current" : ""}`}
-          >
-            <p className={`text-2xl font-bold ${text}`}>
-              {estado === "CONFIRMADA"
-                ? reservas.filter((r) => r.estado === estado && r.estadoPago === "PAGADO").length
-                : reservas.filter((r) => r.estado === estado).length}
-            </p>
-            <p className={`text-xs font-medium ${text} opacity-80`}>{label}</p>
-            {disabled && <p className={`mt-0.5 text-[10px] ${text} opacity-60`}>{tx("No entra en calendario")}</p>}
-          </button>
-        ))}
-      </div>
-
-      {/* Filtro textual */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {FILTROS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFiltro(f)}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-              filtro === f
-                ? "bg-slate-900 text-white"
-                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {f === "todas" ? tx("Todas") : ESTADO_META[f]?.label ?? f}
-            <span className="ml-1.5 opacity-60">
-              {f === "todas"
-                ? reservas.filter((r) => r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")).length
-                : f === "CONFIRMADA"
-                  ? reservas.filter((r) => r.estado === f && r.estadoPago === "PAGADO").length
-                  : reservas.filter((r) => r.estado === f).length}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Leyenda */}
-      <div className="mb-4 flex flex-wrap gap-3">
-        {Object.entries(ESTADO_META).map(([estado, meta]) => (
-          <span key={estado} className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: meta.evento }} />
-            {meta.label}
-          </span>
-        ))}
+      {/* Filtros + leyenda compactos */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {FILTROS.map((f) => {
+          const count = f === "todas"
+            ? reservas.filter((r) => r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")).length
+            : f === "CONFIRMADA"
+              ? reservas.filter((r) => r.estado === f && r.estadoPago === "PAGADO").length
+              : reservas.filter((r) => r.estado === f).length;
+          const dot = f === "todas" ? null : ESTADO_META[f]?.evento;
+          return (
+            <button
+              key={f}
+              onClick={() => setFiltro(f)}
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                filtro === f
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {dot && <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: dot }} />}
+              {f === "todas" ? tx("Todas") : ESTADO_META[f]?.label ?? f}
+              <span className="opacity-60">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Calendario */}
@@ -350,16 +338,21 @@ function CalendarioProfesional() {
             style={{ height: 580 }}
             culture="es"
             messages={MENSAJES}
-            defaultView="month"
-            views={["month", "week", "day", "agenda"]}
-            components={{ event: EventoCalendario }}
+            view={calView}
+            date={calDate}
+            onView={setCalView}
+            onNavigate={setCalDate}
+            views={["month", "agenda"]}
+            components={{ event: EventoCalendario, agenda: { event: AgendaEvento } }}
             onSelectEvent={(event) => setEventoModal(event.resource)}
             eventPropGetter={(event) => ({
-              style: {
-                backgroundColor: ESTADO_META[event.resource?.estado]?.evento ?? "#94a3b8",
-                border: "none",
-                borderRadius: "6px",
-              },
+              style: calView === "agenda"
+                ? { backgroundColor: "transparent", border: "none" }
+                : {
+                    backgroundColor: ESTADO_META[event.resource?.estado]?.evento ?? "#94a3b8",
+                    border: "none",
+                    borderRadius: "6px",
+                  },
             })}
             popup
           />

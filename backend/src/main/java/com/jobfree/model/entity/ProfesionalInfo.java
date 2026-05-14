@@ -70,6 +70,10 @@ public class ProfesionalInfo {
 	@Column
 	private Double longitud;
 
+	// true cuando el profesional fijó sus coordenadas manualmente (no por geocodificación)
+	@Column(name = "ubicacion_manual", nullable = false)
+	private boolean ubicacionManual = false;
+
 	// Ciudades donde el profesional ofrece sus servicios
 	@ElementCollection(fetch = FetchType.LAZY)
 	@CollectionTable(name = "profesional_ciudad_servicio", joinColumns = @JoinColumn(name = "profesional_id"))
@@ -100,6 +104,12 @@ public class ProfesionalInfo {
 	@JsonIgnore
 	@OneToMany(mappedBy = "profesional", fetch = FetchType.LAZY)
 	private List<Valoracion> valoraciones = new ArrayList<>();
+
+	@Column(name = "stripe_customer_id", length = 255)
+	private String stripeCustomerId;
+
+	@Column(name = "stripe_subscription_id", length = 255)
+	private String stripeSubscriptionId;
 
 	// Constructor vacío obligatorio
 	public ProfesionalInfo() {
@@ -208,6 +218,14 @@ public class ProfesionalInfo {
 		this.longitud = longitud;
 	}
 
+	public boolean isUbicacionManual() {
+		return ubicacionManual;
+	}
+
+	public void setUbicacionManual(boolean ubicacionManual) {
+		this.ubicacionManual = ubicacionManual;
+	}
+
 	public List<String> getCiudadesServicio() {
 		return ciudadesServicio;
 	}
@@ -230,6 +248,22 @@ public class ProfesionalInfo {
 
 	public void setValoraciones(List<Valoracion> valoraciones) {
 		this.valoraciones = valoraciones;
+	}
+
+	public String getStripeCustomerId() {
+		return stripeCustomerId;
+	}
+
+	public void setStripeCustomerId(String stripeCustomerId) {
+		this.stripeCustomerId = stripeCustomerId;
+	}
+
+	public String getStripeSubscriptionId() {
+		return stripeSubscriptionId;
+	}
+
+	public void setStripeSubscriptionId(String stripeSubscriptionId) {
+		this.stripeSubscriptionId = stripeSubscriptionId;
 	}
 
 }

@@ -52,6 +52,15 @@ public class Mensaje {
 	@Column(nullable = false)
 	private boolean recibido = false;
 
+	@Column(nullable = false)
+	private boolean editado = false;
+
+	@Column(name = "fecha_edicion")
+	private LocalDateTime fechaEdicion;
+
+	@Column(nullable = false)
+	private boolean eliminado = false;
+
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime fechaEnvio;
 
@@ -137,6 +146,30 @@ public class Mensaje {
 
 	public void setRecibido(boolean recibido) {
 		this.recibido = recibido;
+	}
+
+	public boolean isEditado() {
+		return editado;
+	}
+
+	public void setEditado(boolean editado) {
+		this.editado = editado;
+	}
+
+	public boolean isEliminado() {
+		return eliminado;
+	}
+
+	public void setEliminado(boolean eliminado) {
+		this.eliminado = eliminado;
+	}
+
+	public LocalDateTime getFechaEdicion() {
+		return fechaEdicion;
+	}
+
+	public void setFechaEdicion(LocalDateTime fechaEdicion) {
+		this.fechaEdicion = fechaEdicion;
 	}
 
 	public LocalDateTime getFechaEnvio() {

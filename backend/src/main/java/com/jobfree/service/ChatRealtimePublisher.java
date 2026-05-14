@@ -12,6 +12,8 @@ import com.jobfree.dto.reaccion.ReaccionDTO;
 import com.jobfree.dto.realtime.MensajeEstadoDTO;
 import com.jobfree.dto.realtime.ConversacionActualizadaEventDTO;
 import com.jobfree.dto.realtime.MensajeEstadoLoteEventDTO;
+import com.jobfree.dto.realtime.MensajeEditadoEventDTO;
+import com.jobfree.dto.realtime.MensajeEliminadoEventDTO;
 import com.jobfree.dto.realtime.MensajeNuevoEventDTO;
 import com.jobfree.dto.realtime.MensajeReaccionEventDTO;
 import com.jobfree.dto.realtime.UsuarioMensajesActualizadosEventDTO;
@@ -36,6 +38,26 @@ public class ChatRealtimePublisher {
 				continue;
 			}
 			messagingTemplate.convertAndSendToUser(usuarioDestino, "/queue/conversaciones", evento);
+		}
+	}
+
+	public void publicarMensajeEditado(Long conversacionId, MensajeDTO mensaje, String emailA, String emailB) {
+		MensajeEditadoEventDTO evento = new MensajeEditadoEventDTO(conversacionId, mensaje);
+		messagingTemplate.convertAndSend("/topic/conversaciones/" + conversacionId, evento);
+		for (String email : List.of(emailA, emailB)) {
+			if (email != null && !email.isBlank()) {
+				messagingTemplate.convertAndSendToUser(email, "/queue/conversaciones", evento);
+			}
+		}
+	}
+
+	public void publicarMensajeEliminado(Long conversacionId, MensajeDTO mensaje, String emailA, String emailB) {
+		MensajeEliminadoEventDTO evento = new MensajeEliminadoEventDTO(conversacionId, mensaje);
+		messagingTemplate.convertAndSend("/topic/conversaciones/" + conversacionId, evento);
+		for (String email : List.of(emailA, emailB)) {
+			if (email != null && !email.isBlank()) {
+				messagingTemplate.convertAndSendToUser(email, "/queue/conversaciones", evento);
+			}
 		}
 	}
 

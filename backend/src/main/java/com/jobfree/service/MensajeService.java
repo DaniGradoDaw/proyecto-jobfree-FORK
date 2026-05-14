@@ -1,5 +1,7 @@
 package com.jobfree.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -326,6 +328,79 @@ public class MensajeService {
 		if (actualizados.isEmpty()) return mensajes;
 		publicarEventosBatchLeido(mensajeRepository.saveAll(actualizados), idsNuevosRecibidos, usuario);
 		return mensajes;
+	}
+
+	public MensajeDTO editarMensaje(Long mensajeId, String nuevoContenido, Usuario usuario) {
+		String contenido = nuevoContenido != null ? nuevoContenido.trim() : "";
+		Mensaje mensaje = obtenerPorId(mensajeId);
+
+		if (!mensaje.getRemitente().getId().equals(usuario.getId())) {
+			throw new IllegalArgumentException("Solo el remitente puede editar su propio mensaje");
+		}
+		if (mensaje.isEliminado()) {
+			throw new IllegalArgumentException("No puedes editar un mensaje eliminado");
+		}
+		if (ChronoUnit.SECONDS.between(mensaje.getFechaEnvio(), LocalDateTime.now()) > 120) {
+			throw new IllegalArgumentException("Solo puedes editar mensajes enviados hace menos de 2 minutos");
+		}
+		if (contenido.isBlank() && (mensaje.getImagenUrl() == null || mensaje.getImagenUrl().isBlank())) {
+			throw new IllegalArgumentException("El contenido del mensaje no puede estar vacío");
+		}
+
+		mensaje.setContenido(contenido);
+		mensaje.setEditado(true);
+		mensaje.setFechaEdicion(LocalDateTime.now());
+
+		Mensaje guardado = mensajeRepository.save(mensaje);
+		MensajeDTO dto = MensajeMapper.toDTOFull(guardado);
+
+		Conversacion conversacion = guardado.getConversacion();
+		chatRealtimePublisher.publicarMensajeEditado(
+				conversacion.getId(),
+				dto,
+				conversacion.getCliente().getEmail(),
+				conversacion.getProfesional().getEmail()
+		);
+		return dto;
+	}
+
+	public MensajeDTO eliminarMensaje(Long mensajeId, Usuario usuario) {
+		Mensaje mensaje = obtenerPorId(mensajeId);
+
+		if (!mensaje.getRemitente().getId().equals(usuario.getId())) {
+			throw new IllegalArgumentException("Solo el remitente puede eliminar su propio mensaje");
+		}
+		if (mensaje.isEliminado()) {
+			return MensajeMapper.toDTOFull(mensaje);
+		}
+		if (ChronoUnit.SECONDS.between(mensaje.getFechaEnvio(), LocalDateTime.now()) > 120) {
+			throw new IllegalArgumentException("Solo puedes eliminar mensajes enviados hace menos de 2 minutos");
+		}
+
+		mensaje.setEliminado(true);
+		mensaje.setContenido("");
+		mensaje.setImagenUrl(null);
+
+		Mensaje guardado = mensajeRepository.save(mensaje);
+		MensajeDTO dto = MensajeMapper.toDTOFull(guardado);
+
+		Conversacion conversacion = guardado.getConversacion();
+
+		// Si era el último mensaje de la conversación, actualizar el resumen del sidebar
+		mensajeRepository.findFirstByConversacionIdOrderByFechaEnvioDesc(conversacion.getId())
+				.filter(ultimo -> ultimo.getId().equals(guardado.getId()))
+				.ifPresent(ultimo -> {
+					conversacion.setUltimoMensajeContenido("Este mensaje fue eliminado");
+					publicarActualizacionConversacion(conversacion);
+				});
+
+		chatRealtimePublisher.publicarMensajeEliminado(
+				conversacion.getId(),
+				dto,
+				conversacion.getCliente().getEmail(),
+				conversacion.getProfesional().getEmail()
+		);
+		return dto;
 	}
 
 	public long contarNoLeidos(Usuario usuario) {

@@ -2,6 +2,7 @@ package com.jobfree.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -47,6 +48,15 @@ public class PagoService {
 		return pagoRepository.findAll();
 	}
 
+	public java.util.Optional<Pago> buscarPorReservaId(Long reservaId) {
+		return pagoRepository.findByReservaId(reservaId);
+	}
+
+	public List<Pago> listarFacturasCliente(Usuario usuario) {
+		return pagoRepository.findByReservaClienteIdAndEstadoInOrderByFechaPagoDesc(
+				usuario.getId(), List.of(EstadoPago.PAGADO, EstadoPago.REEMBOLSADO));
+	}
+
 	public Pago obtenerPorId(Long id) {
 		return pagoRepository.findById(id).orElseThrow(() -> new PagoNotFoundException(id));
 	}
@@ -87,7 +97,12 @@ public class PagoService {
 		if (pago.getReserva().getEstado() != EstadoReserva.CONFIRMADA) {
 			throw new PagoInvalidoException("Solo se pueden pagar reservas aceptadas por el profesional");
 		}
-		if (pagoRepository.findByReservaId(pago.getReserva().getId()).isPresent()) {
+		Optional<Pago> existente = pagoRepository.findByReservaId(pago.getReserva().getId());
+		if (existente.isPresent()) {
+			// Idempotencia: si ya hay un pago PENDIENTE, devolverlo sin crear otro
+			if (existente.get().getEstado() == EstadoPago.PENDIENTE) {
+				return existente.get();
+			}
 			throw new PagoInvalidoException("La reserva ya tiene un pago asociado");
 		}
 
@@ -98,11 +113,9 @@ public class PagoService {
 					guardado.getId(), pago.getReserva().getId(), guardado.getImporte());
 			return guardado;
 		} catch (DataIntegrityViolationException e) {
-			// La constraint UNIQUE de reserva_id captura el caso en que dos peticiones
-			// concurrentes pasen el findByReservaId().isPresent() al mismo tiempo.
-			log.warn("Intento de crear pago duplicado para reserva {} (race condition capturado por constraint DB)",
-					pago.getReserva().getId());
-			throw new PagoInvalidoException("La reserva ya tiene un pago asociado");
+			// Dos peticiones concurrentes pasaron el check simultáneamente; la segunda falla por constraint UNIQUE.
+			log.warn("Pago duplicado para reserva {} capturado por constraint DB", pago.getReserva().getId());
+			throw new PagoInvalidoException("Pago ya iniciado, vuelve a la página de pago para continuar");
 		}
 	}
 

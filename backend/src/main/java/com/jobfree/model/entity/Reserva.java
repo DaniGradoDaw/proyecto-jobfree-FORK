@@ -19,7 +19,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -37,7 +36,6 @@ public class Reserva {
 
 	// Fecha de inicio de la reserva.
 	@NotNull(message = "La fecha es obligatoria")
-	@FutureOrPresent(message = "La fecha no puede ser pasada")
 	@Column(nullable = false)
 	private LocalDateTime fechaInicio;
 

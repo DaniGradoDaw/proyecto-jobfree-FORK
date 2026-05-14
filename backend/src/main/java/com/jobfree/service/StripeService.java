@@ -5,6 +5,10 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
+import com.stripe.model.Subscription;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.net.RequestOptions;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
@@ -18,7 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.jobfree.model.entity.Pago;
+import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.enums.EstadoPago;
+import com.jobfree.model.enums.Plan;
+import com.jobfree.repository.ProfesionalInfoRepository;
 
 import java.math.BigDecimal;
 
@@ -34,9 +41,11 @@ public class StripeService {
     private String webhookSecret;
 
     private final PagoService pagoService;
+    private final ProfesionalInfoRepository profesionalInfoRepository;
 
-    public StripeService(PagoService pagoService) {
+    public StripeService(PagoService pagoService, ProfesionalInfoRepository profesionalInfoRepository) {
         this.pagoService = pagoService;
+        this.profesionalInfoRepository = profesionalInfoRepository;
     }
 
     @PostConstruct
@@ -87,6 +96,35 @@ public class StripeService {
     }
 
     /**
+     * Emite un reembolso completo para el PaymentIntent asociado al pago.
+     * Lanza RuntimeException si Stripe rechaza el reembolso.
+     */
+    public String crearReembolso(Pago pago) {
+        String piId = pago.getStripePaymentIntentId();
+        if (piId == null || piId.isBlank()) {
+            throw new RuntimeException("No hay PaymentIntent asociado al pago #" + pago.getId());
+        }
+        try {
+            RefundCreateParams params = RefundCreateParams.builder()
+                    .setPaymentIntent(piId)
+                    .putMetadata("pagoId",    String.valueOf(pago.getId()))
+                    .putMetadata("reservaId", String.valueOf(pago.getReserva().getId()))
+                    .build();
+
+            RequestOptions opts = RequestOptions.builder()
+                    .setIdempotencyKey("reembolso-" + pago.getId())
+                    .build();
+
+            Refund refund = Refund.create(params, opts);
+            log.info("Reembolso {} creado para pago {} — PaymentIntent {}", refund.getId(), pago.getId(), piId);
+            return refund.getId();
+        } catch (StripeException e) {
+            log.error("Error creando reembolso para pago {}: {}", pago.getId(), e.getMessage());
+            throw new RuntimeException("Error al procesar el reembolso con Stripe: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Comprueba con la API de Stripe si el PaymentIntent ha sido completado con éxito.
      * Usado como fallback cuando el webhook no ha procesado el evento todavía.
      */
@@ -120,6 +158,8 @@ public class StripeService {
         switch (event.getType()) {
             case "payment_intent.succeeded" -> manejarPagoExitoso(event);
             case "payment_intent.payment_failed" -> manejarPagoFallido(event);
+            case "checkout.session.completed" -> manejarCheckoutCompletado(event);
+            case "customer.subscription.deleted" -> manejarSuscripcionEliminada(event);
             default -> log.debug("Evento Stripe ignorado: tipo={} eventId={}", event.getType(), event.getId());
         }
     }
@@ -177,6 +217,54 @@ public class StripeService {
                 intent.getId(), event.getId());
         throw new RuntimeException(
                 "Metadata insuficiente en webhook failed — el estado del pago no se actualizó. eventId=" + event.getId());
+    }
+
+    private void manejarCheckoutCompletado(Event event) {
+        Session session = (Session) event.getDataObjectDeserializer().getObject()
+                .orElseThrow(() -> new RuntimeException("No se pudo deserializar la sesión del webhook — eventId=" + event.getId()));
+
+        String mode = session.getMode();
+        if (!"subscription".equals(mode)) {
+            return; // solo nos interesan checkout de suscripción aquí
+        }
+
+        String profesionalIdStr = session.getMetadata().get("profesionalId");
+        String planStr = session.getMetadata().get("plan");
+        String subscriptionId = session.getSubscription();
+
+        if (profesionalIdStr == null || planStr == null) {
+            log.error("Webhook checkout.session.completed sin metadata profesionalId/plan — sessionId={}", session.getId());
+            return;
+        }
+
+        Long profesionalId = Long.parseLong(profesionalIdStr);
+        profesionalInfoRepository.findById(profesionalId).ifPresent(perfil -> {
+            try {
+                Plan plan = Plan.valueOf(planStr);
+                perfil.setPlan(plan);
+                perfil.setStripeSubscriptionId(subscriptionId);
+                if (perfil.getStripeCustomerId() == null && session.getCustomer() != null) {
+                    perfil.setStripeCustomerId(session.getCustomer());
+                }
+                profesionalInfoRepository.save(perfil);
+                log.info("Profesional {} actualizado a plan {} vía checkout — subscriptionId={}", profesionalId, plan, subscriptionId);
+            } catch (IllegalArgumentException e) {
+                log.error("Plan desconocido '{}' en metadata del webhook — profesionalId={}", planStr, profesionalId);
+            }
+        });
+    }
+
+    private void manejarSuscripcionEliminada(Event event) {
+        Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject()
+                .orElseThrow(() -> new RuntimeException("No se pudo deserializar la suscripción del webhook — eventId=" + event.getId()));
+
+        String subscriptionId = subscription.getId();
+        profesionalInfoRepository.findByStripeSubscriptionId(subscriptionId).ifPresent(perfil -> {
+            perfil.setPlan(Plan.BASICO);
+            perfil.setStripeSubscriptionId(null);
+            profesionalInfoRepository.save(perfil);
+            log.info("Suscripción {} eliminada — profesional {} revertido a BASICO", subscriptionId, perfil.getId());
+        });
     }
 
     private PaymentIntent deserializarIntent(Event event) {

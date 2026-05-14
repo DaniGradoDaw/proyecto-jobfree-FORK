@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -127,6 +129,24 @@ public class MensajeController {
 			return ".gif";
 		}
 		return null;
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@DeleteMapping("/{id}")
+	public ResponseEntity<MensajeDTO> eliminarMensaje(@PathVariable Long id) {
+		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return ResponseEntity.ok(mensajeService.eliminarMensaje(id, usuario));
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@PutMapping("/{id}/contenido")
+	public ResponseEntity<MensajeDTO> editarMensaje(@PathVariable Long id, @RequestBody Map<String, String> body) {
+		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String contenido = body.get("contenido");
+		if (contenido == null) {
+			return ResponseEntity.badRequest().build();
+		}
+		return ResponseEntity.ok(mensajeService.editarMensaje(id, contenido, usuario));
 	}
 
 	@PreAuthorize("isAuthenticated()")

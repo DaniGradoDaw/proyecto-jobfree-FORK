@@ -30,13 +30,19 @@ public class ReservaService {
 	private final ReservaRepository   reservaRepository;
 	private final ConversacionService conversacionService;
 	private final NotificacionService notificacionService;
+	private final PagoService         pagoService;
+	private final StripeService       stripeService;
 
 	public ReservaService(ReservaRepository reservaRepository,
 	                      ConversacionService conversacionService,
-	                      NotificacionService notificacionService) {
+	                      NotificacionService notificacionService,
+	                      PagoService pagoService,
+	                      StripeService stripeService) {
 		this.reservaRepository   = reservaRepository;
 		this.conversacionService = conversacionService;
 		this.notificacionService = notificacionService;
+		this.pagoService         = pagoService;
+		this.stripeService       = stripeService;
 	}
 
 	public List<Reserva> listarReservas() {
@@ -158,13 +164,34 @@ public class ReservaService {
 		if (reserva.getEstado() == EstadoReserva.COMPLETADA) {
 			throw new ReservaInvalidaException("No se puede cancelar una reserva completada");
 		}
-
 		if (reserva.getEstado() == EstadoReserva.CANCELADA) {
 			throw new ReservaInvalidaException("La reserva ya está cancelada");
 		}
 
+		// Si el pago está confirmado, emitir reembolso antes de cancelar
+		pagoService.buscarPorReservaId(reserva.getId()).ifPresent(pago -> {
+			if (pago.getEstado() == EstadoPago.PAGADO) {
+				if (pago.getStripePaymentIntentId() != null && !pago.getStripePaymentIntentId().isBlank()) {
+					stripeService.crearReembolso(pago); // lanza RuntimeException si Stripe falla
+				}
+				pagoService.actualizarEstado(pago.getId(), EstadoPago.REEMBOLSADO);
+				log.info("Reembolso procesado para pago {} al cancelar reserva {}", pago.getId(), reserva.getId());
+			}
+		});
+
 		reserva.setEstado(EstadoReserva.CANCELADA);
-		return reservaRepository.save(reserva);
+		Reserva guardada = reservaRepository.save(reserva);
+
+		notificacionService.crear(
+				"Tu reserva de «" + guardada.getServicio().getTitulo() + "» ha sido cancelada.",
+				guardada.getCliente()
+		);
+		notificacionService.crear(
+				"La reserva de «" + guardada.getServicio().getTitulo() + "» ha sido cancelada.",
+				guardada.getServicio().getProfesional().getUsuario()
+		);
+
+		return guardada;
 	}
 
 	public Reserva actualizarProgreso(Reserva reserva, int progreso, String notas, Usuario usuario) {

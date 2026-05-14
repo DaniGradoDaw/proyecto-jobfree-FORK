@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { obtenerMiPerfil } from "api/profesional";
 import { obtenerValoracionesPorProfesional } from "api/valoraciones";
+import Avatar from "components/Avatar";
 import { useLanguage } from "context/LanguageContext";
 
 function Estrellas({ n, total = 5, size = "h-4 w-4" }) {
@@ -101,18 +102,33 @@ function ResenasRecibidas() {
         <div className="space-y-3">
           {valoraciones.map((valoracion) => (
             <article key={valoracion.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Avatar
+                  src={valoracion.clienteFotoUrl}
+                  nombre={valoracion.clienteNombre || tx("Cliente")}
+                  className="h-10 w-10 shrink-0 rounded-full ring-2 ring-white"
+                  bgClass="bg-slate-700"
+                  textClass="text-xs font-bold text-white"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-slate-900 leading-tight">
+                    {valoracion.clienteNombre || tx("Cliente")}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(valoracion.fecha).toLocaleDateString(locale, {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </p>
+                </div>
                 <Estrellas n={valoracion.estrellas} />
-                <p className="text-xs text-slate-400">
-                  {new Date(valoracion.fecha).toLocaleDateString(locale, {
-                    day: "numeric", month: "long", year: "numeric",
-                  })}
-                </p>
               </div>
               {valoracion.comentario && (
-                <p className="mt-3 border-l-2 border-amber-200 pl-3 text-sm leading-relaxed text-slate-600 italic">
-                  "{valoracion.comentario}"
-                </p>
+                <div className="mt-4 flex gap-2">
+                  <ChatBubbleLeftEllipsisIcon className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
+                  <p className="text-sm leading-relaxed text-slate-600 italic">
+                    "{valoracion.comentario}"
+                  </p>
+                </div>
               )}
             </article>
           ))}

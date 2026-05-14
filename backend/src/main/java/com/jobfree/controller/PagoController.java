@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.jobfree.dto.pago.FacturaDTO;
 import com.jobfree.dto.pago.PagoCreateDTO;
 import com.jobfree.dto.pago.PagoDTO;
 import com.jobfree.mapper.PagoMapper;
@@ -42,6 +43,20 @@ public class PagoController {
 		this.pagoService = pagoService;
 		this.reservaService = reservaService;
 		this.stripeService = stripeService;
+	}
+
+	/**
+	 * Devuelve todas las facturas del cliente autenticado (todos los pagos de sus reservas).
+	 */
+	@PreAuthorize("hasRole('CLIENTE')")
+	@GetMapping("/mis-facturas")
+	public ResponseEntity<List<FacturaDTO>> misFacturas() {
+		Usuario usuario = getUsuarioAutenticado();
+		List<FacturaDTO> facturas = pagoService.listarFacturasCliente(usuario)
+				.stream()
+				.map(PagoMapper::toFacturaDTO)
+				.toList();
+		return ResponseEntity.ok(facturas);
 	}
 
 	/**

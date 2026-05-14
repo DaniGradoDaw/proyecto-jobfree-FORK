@@ -268,6 +268,17 @@ public class ServicioOfrecidoService {
      * @param usuarioId identificador del usuario autenticado
      * @throws ServicioInvalidoException si el usuario no es propietario
      */
+    public ServicioOfrecido guardar(ServicioOfrecido servicio) {
+        return servicioRepository.save(servicio);
+    }
+
+    public void eliminarServicioAdmin(Long id) {
+        ServicioOfrecido servicio = obtenerPorId(id);
+        reservaRepository.deleteAll(reservaRepository.findByServicioId(id));
+        servicioRepository.delete(servicio);
+        log.info("Servicio {} eliminado por admin", id);
+    }
+
     private void validarPropietario(ServicioOfrecido servicio, Long usuarioId) {
         if (!servicio.getProfesional().getUsuario().getId().equals(usuarioId)) {
             throw new ServicioInvalidoException("No tienes permisos sobre este servicio");

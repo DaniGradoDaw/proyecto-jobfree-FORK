@@ -27,6 +27,9 @@ public class MensajeDTO {
 
 	private String imagenUrl;
 	private List<ReaccionDTO> reacciones = new ArrayList<>();
+	private boolean editado;
+	private LocalDateTime fechaEdicion;
+	private boolean eliminado;
 
 	public MensajeDTO() {
 	}
@@ -120,6 +123,30 @@ public class MensajeDTO {
 
 	public void setReacciones(List<ReaccionDTO> reacciones) {
 		this.reacciones = reacciones;
+	}
+
+	public boolean isEditado() {
+		return editado;
+	}
+
+	public void setEditado(boolean editado) {
+		this.editado = editado;
+	}
+
+	public LocalDateTime getFechaEdicion() {
+		return fechaEdicion;
+	}
+
+	public void setFechaEdicion(LocalDateTime fechaEdicion) {
+		this.fechaEdicion = fechaEdicion;
+	}
+
+	public boolean isEliminado() {
+		return eliminado;
+	}
+
+	public void setEliminado(boolean eliminado) {
+		this.eliminado = eliminado;
 	}
 
 }
