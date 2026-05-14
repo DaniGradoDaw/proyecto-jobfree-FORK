@@ -1,5 +1,7 @@
 package com.jobfree.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -12,6 +14,8 @@ import com.jobfree.repository.UsuarioRepository;
 
 @Component
 public class DataInitializer implements ApplicationRunner {
+
+	private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
 	private final UsuarioRepository usuarioRepository;
 	private final PasswordEncoder passwordEncoder;
@@ -26,15 +30,19 @@ public class DataInitializer implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
-		if (usuarioRepository.existsByEmail("admin@jobfree.com")) return;
+		try {
+			if (usuarioRepository.existsByEmail("admin@jobfree.com")) return;
 
-		Usuario admin = new Usuario();
-		admin.setNombre("Admin");
-		admin.setApellidos("JobFree");
-		admin.setEmail("admin@jobfree.com");
-		admin.setTelefono("+34600000001");
-		admin.setPassword(passwordEncoder.encode(adminPassword));
-		admin.setRol(Rol.ADMIN);
-		usuarioRepository.save(admin);
+			Usuario admin = new Usuario();
+			admin.setNombre("Admin");
+			admin.setApellidos("JobFree");
+			admin.setEmail("admin@jobfree.com");
+			admin.setTelefono("+34600000001");
+			admin.setPassword(passwordEncoder.encode(adminPassword));
+			admin.setRol(Rol.ADMIN);
+			usuarioRepository.save(admin);
+		} catch (Exception e) {
+			log.warn("DataInitializer: no se pudo inicializar datos (¿esquema no listo?): {}", e.getMessage());
+		}
 	}
 }
