@@ -3,6 +3,7 @@ package com.jobfree.service;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -133,5 +134,9 @@ public class SubcategoriaServicioService {
 	 */
 	public Page<SubcategoriaServicio> obtenerPorCategoria(Long categoriaId, Pageable pageable) {
 		return subcategoriaRepository.findByCategoria_Id(categoriaId, pageable);
+	}
+
+	public List<SubcategoriaServicio> listarPorPopularidad() {
+		return subcategoriaRepository.findTopPopulares(PageRequest.of(0, 8));
 	}
 }

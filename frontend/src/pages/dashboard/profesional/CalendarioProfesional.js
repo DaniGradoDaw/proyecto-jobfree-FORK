@@ -39,10 +39,8 @@ const MENSAJES = {
 };
 
 const ESTADO_META = {
-  PENDIENTE:  { color: "bg-amber-100 text-amber-700 ring-amber-200",       dot: "bg-amber-400",   evento: "#f59e0b", label: "Pendiente" },
-  CONFIRMADA: { color: "bg-emerald-100 text-emerald-700 ring-emerald-200", dot: "bg-emerald-500", evento: "#10b981", label: "Pagada" },
-  COMPLETADA: { color: "bg-slate-100 text-slate-600 ring-slate-200",       dot: "bg-slate-400",   evento: "#94a3b8", label: "Completada" },
-  CANCELADA:  { color: "bg-red-100 text-red-600 ring-red-200",             dot: "bg-red-400",     evento: "#f87171", label: "Cancelada" },
+  CONFIRMADA: { color: "bg-sky-100 text-sky-700 ring-sky-200",             dot: "bg-sky-500",    eventoBg: "#0ea5e9", label: "Activa"     },
+  COMPLETADA: { color: "bg-slate-100 text-slate-500 ring-slate-200",       dot: "bg-slate-400",  eventoBg: "#cbd5e1", label: "Completada" },
 };
 
 function BadgeEstado({ reserva }) {
@@ -158,15 +156,13 @@ function ModalEvento({ reserva, onCerrar, navigate }) {
             )}
 
             <div className="flex gap-2">
-              {["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && (
-                <button
-                  onClick={() => { onCerrar(); navigate(`/dashboard/profesional/mensajes/reserva/${reserva.id}`); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
-                  {tx("Chat")}
-                </button>
-              )}
+              <button
+                onClick={() => { onCerrar(); navigate(`/dashboard/profesional/mensajes/reserva/${reserva.id}`); }}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
+                {tx("Chat")}
+              </button>
               <button
                 onClick={() => { onCerrar(); navigate("/dashboard/profesional/solicitudes"); }}
                 className="flex-1 rounded-full bg-slate-900 py-2 text-xs font-semibold text-white hover:bg-slate-800 transition"
@@ -183,17 +179,13 @@ function ModalEvento({ reserva, onCerrar, navigate }) {
 
 function EventoCalendario({ event }) {
   const estado = event.resource?.estado;
-  const color = ESTADO_META[estado]?.evento ?? "#94a3b8";
-  const progreso = event.resource?.progreso;
+  const esActiva = estado === "CONFIRMADA";
+  const hora = event.start ? event.start.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) : null;
+  const cliente = event.resource?.clienteNombre?.split(" ").slice(0, 2).join(" ") ?? null;
   return (
-    <div
-      style={{ backgroundColor: color }}
-      className="truncate rounded-md px-1.5 py-0.5 text-white text-[0.7rem] font-medium shadow-sm flex items-center gap-1"
-    >
-      <span className="truncate">{event.title}</span>
-      {estado === "CONFIRMADA" && progreso > 0 && (
-        <span className="shrink-0 text-white/80 text-[9px]">{progreso}%</span>
-      )}
+    <div className={`truncate px-1.5 py-0.5 text-[0.7rem] font-semibold ${esActiva ? "text-white" : "text-slate-500"}`}>
+      {hora && <span>{hora}</span>}
+      {cliente && <span className="ml-1 opacity-90">· {cliente}</span>}
     </div>
   );
 }
@@ -226,7 +218,7 @@ function reservasAEventos(reservas) {
     });
 }
 
-const FILTROS = ["todas", "CONFIRMADA", "COMPLETADA"];
+const FILTROS = ["CONFIRMADA", "COMPLETADA"];
 
 function CalendarioProfesional() {
   const navigate = useNavigate();
@@ -234,7 +226,7 @@ function CalendarioProfesional() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filtro, setFiltro] = useState("todas");
+  const [filtro, setFiltro] = useState(null);
   const [eventoModal, setEventoModal] = useState(null);
   const [calView, setCalView] = useState("month");
   const [calDate, setCalDate] = useState(new Date());
@@ -247,9 +239,11 @@ function CalendarioProfesional() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const reservasFiltradas = filtro === "todas"
-    ? reservas.filter((r) => r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO"))
-    : reservas.filter((r) => r.estado === filtro && (filtro !== "CONFIRMADA" || r.estadoPago === "PAGADO"));
+  const reservasFiltradas = filtro === "CONFIRMADA"
+    ? reservas.filter((r) => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")
+    : filtro === "COMPLETADA"
+    ? reservas.filter((r) => r.estado === "COMPLETADA")
+    : reservas.filter((r) => r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO"));
 
   const eventos = useCallback(() => reservasAEventos(reservasFiltradas), [reservasFiltradas]);
 
@@ -291,28 +285,27 @@ function CalendarioProfesional() {
         )}
       </div>
 
-      {/* Filtros + leyenda compactos */}
+      {/* Filtros */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {FILTROS.map((f) => {
-          const count = f === "todas"
-            ? reservas.filter((r) => r.estado === "COMPLETADA" || (r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO")).length
-            : f === "CONFIRMADA"
-              ? reservas.filter((r) => r.estado === f && r.estadoPago === "PAGADO").length
-              : reservas.filter((r) => r.estado === f).length;
-          const dot = f === "todas" ? null : ESTADO_META[f]?.evento;
+          const count = f === "CONFIRMADA"
+            ? reservas.filter((r) => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length
+            : reservas.filter((r) => r.estado === f).length;
+          const meta = ESTADO_META[f];
+          const activo = filtro === f;
           return (
             <button
               key={f}
-              onClick={() => setFiltro(f)}
+              onClick={() => setFiltro(activo ? null : f)}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                filtro === f
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                activo
+                  ? `${meta.color}`
+                  : "border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
               }`}
             >
-              {dot && <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: dot }} />}
-              {f === "todas" ? tx("Todas") : ESTADO_META[f]?.label ?? f}
-              <span className="opacity-60">{count}</span>
+              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${meta.dot}`} />
+              {meta.label}
+              <span className="opacity-60 tabular-nums">{count}</span>
             </button>
           );
         })}
@@ -324,7 +317,7 @@ function CalendarioProfesional() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDaysIcon className="h-10 w-10 text-slate-200 mb-3" />
             <p className="text-sm font-medium text-slate-500">
-              {filtro !== "todas"
+              {filtro
                 ? tx("No tienes servicios {estado}", { estado: (ESTADO_META[filtro]?.label ?? filtro).toLowerCase() })
                 : tx("No tienes servicios todavía")}
             </p>
@@ -345,15 +338,14 @@ function CalendarioProfesional() {
             views={["month", "agenda"]}
             components={{ event: EventoCalendario, agenda: { event: AgendaEvento } }}
             onSelectEvent={(event) => setEventoModal(event.resource)}
-            eventPropGetter={(event) => ({
-              style: calView === "agenda"
-                ? { backgroundColor: "transparent", border: "none" }
-                : {
-                    backgroundColor: ESTADO_META[event.resource?.estado]?.evento ?? "#94a3b8",
-                    border: "none",
-                    borderRadius: "6px",
-                  },
-            })}
+            eventPropGetter={(event) => {
+              const meta = ESTADO_META[event.resource?.estado] ?? ESTADO_META.COMPLETADA;
+              return {
+                style: calView === "agenda"
+                  ? { backgroundColor: "transparent", border: "none" }
+                  : { backgroundColor: meta.eventoBg, border: "none", borderRadius: "6px" },
+              };
+            }}
             popup
           />
         )}

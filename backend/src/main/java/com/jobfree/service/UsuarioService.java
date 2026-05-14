@@ -277,4 +277,16 @@ public class UsuarioService {
 		usuarioRepository.delete(usuario);
 	}
 
+	public Usuario suspenderUsuario(Long id) {
+		Usuario usuario = obtenerPorId(id);
+		usuario.setActivo(false);
+		return usuarioRepository.save(usuario);
+	}
+
+	public Usuario activarUsuario(Long id) {
+		Usuario usuario = obtenerPorId(id);
+		usuario.setActivo(true);
+		return usuarioRepository.save(usuario);
+	}
+
 }

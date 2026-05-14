@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { CalendarDaysIcon, ArrowPathIcon, XCircleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { listarTodasReservas, cancelarReservaAdmin, completarReservaAdmin } from "api/admin";
+import { CalendarDaysIcon, ArrowPathIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { listarTodasReservas, cancelarReservaAdmin } from "api/admin";
 import { useLanguage } from "context/LanguageContext";
 
 const ESTADO_COLORES = {
@@ -51,19 +51,6 @@ function ReservasAdmin() {
     setAccionando(reserva.id);
     try {
       const actualizada = await cancelarReservaAdmin(reserva.id);
-      setReservas((prev) => prev.map((r) => r.id === actualizada.id ? { ...r, estado: actualizada.estado } : r));
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setAccionando(null);
-    }
-  }
-
-  async function handleCompletar(reserva) {
-    if (!window.confirm(tx("¿Marcar la reserva #{id} como completada?", { id: reserva.id }))) return;
-    setAccionando(reserva.id);
-    try {
-      const actualizada = await completarReservaAdmin(reserva.id);
       setReservas((prev) => prev.map((r) => r.id === actualizada.id ? { ...r, estado: actualizada.estado } : r));
     } catch (err) {
       alert(err.message);
@@ -172,17 +159,6 @@ function ReservasAdmin() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {r.estado === "CONFIRMADA" && (
-                            <button
-                              onClick={() => handleCompletar(r)}
-                              disabled={enProceso}
-                              title={tx("Marcar como completada")}
-                              className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition disabled:opacity-50"
-                            >
-                              {enProceso ? <ArrowPathIcon className="h-3 w-3 animate-spin" /> : <CheckCircleIcon className="h-3.5 w-3.5" />}
-                              {tx("Completar")}
-                            </button>
-                          )}
                           {(r.estado === "PENDIENTE" || r.estado === "CONFIRMADA") && (
                             <button
                               onClick={() => handleCancelar(r)}

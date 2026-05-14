@@ -72,7 +72,8 @@ public class ReporteController {
                 r.getReportado().getFotoUrl(),
                 r.getMensajesJson(),
                 r.isResuelto(),
-                r.getFecha()
+                r.getFecha(),
+                r.getReportado().isActivo()
         );
     }
 

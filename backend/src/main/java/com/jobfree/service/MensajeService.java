@@ -19,6 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 
+import com.jobfree.util.ContactoFilter;
+
 import com.jobfree.dto.conversacion.ConversacionDTO;
 import com.jobfree.dto.mensaje.MensajeBatchUpdateDTO;
 import com.jobfree.dto.mensaje.MensajeCreateDTO;
@@ -161,6 +163,11 @@ public class MensajeService {
 		if (bloqueoRepository.existsByBloqueadorIdAndBloqueadoId(destinatario.getId(), remitente.getId())
 				|| bloqueoRepository.existsByBloqueadorIdAndBloqueadoId(remitente.getId(), destinatario.getId())) {
 			throw new MensajeBloqueadoException();
+		}
+
+		// Enmascarar teléfonos y correos antes de persistir
+		if (dto.getContenido() != null) {
+			dto.setContenido(ContactoFilter.filtrar(dto.getContenido()));
 		}
 
 		boolean tieneContenido = dto.getContenido() != null && !dto.getContenido().isBlank();
@@ -331,7 +338,7 @@ public class MensajeService {
 	}
 
 	public MensajeDTO editarMensaje(Long mensajeId, String nuevoContenido, Usuario usuario) {
-		String contenido = nuevoContenido != null ? nuevoContenido.trim() : "";
+		String contenido = ContactoFilter.filtrar(nuevoContenido != null ? nuevoContenido.trim() : "");
 		Mensaje mensaje = obtenerPorId(mensajeId);
 
 		if (!mensaje.getRemitente().getId().equals(usuario.getId())) {

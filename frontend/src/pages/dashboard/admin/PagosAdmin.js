@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { CreditCardIcon, ArrowPathIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { listarTodosPagos, confirmarPagoAdmin } from "api/admin";
+import { CreditCardIcon, ArrowPathIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { listarTodosPagos } from "api/admin";
 import { useLanguage } from "context/LanguageContext";
 
 const ESTADO_COLORES = {
@@ -32,8 +32,8 @@ function PagosAdmin() {
   const [pagos, setPagos]           = useState([]);
   const [cargando, setCargando]     = useState(true);
   const [error, setError]           = useState("");
-  const [filtro, setFiltro]         = useState("todos");
-  const [confirmando, setConfirmando] = useState(null);
+  const [filtro, setFiltro]     = useState("todos");
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     listarTodosPagos()
@@ -43,22 +43,17 @@ function PagosAdmin() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleConfirmar(pago) {
-    if (!window.confirm(tx("¿Confirmar el pago #{id} como PAGADO?", { id: pago.id }))) return;
-    setConfirmando(pago.id);
-    try {
-      const actualizado = await confirmarPagoAdmin(pago.id);
-      setPagos((prev) => prev.map((p) => p.id === actualizado.id ? { ...p, estado: actualizado.estado } : p));
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setConfirmando(null);
-    }
-  }
-
   const estados = ["todos", "PENDIENTE", "PAGADO", "REEMBOLSADO", "FALLIDO"];
 
-  const filtrados = filtro === "todos" ? pagos : pagos.filter((p) => p.estado === filtro);
+  const filtrados = pagos.filter((p) => {
+    const coincideFiltro = filtro === "todos" || p.estado === filtro;
+    const coincideBusqueda =
+      busqueda === "" ||
+      String(p.reservaId ?? "").includes(busqueda) ||
+      String(p.id).includes(busqueda) ||
+      (p.metodo ?? "").toLowerCase().includes(busqueda.toLowerCase());
+    return coincideFiltro && coincideBusqueda;
+  });
 
   const totalImporte = filtrados.reduce((acc, p) => acc + Number(p.importe ?? 0), 0);
   const totalPagado  = pagos.filter((p) => p.estado === "PAGADO").reduce((acc, p) => acc + Number(p.importe ?? 0), 0);
@@ -95,14 +90,25 @@ function PagosAdmin() {
             <p className="text-lg font-bold text-slate-900">{totalImporte.toFixed(2)} €</p>
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-right shrink-0">
-            <p className="text-xs text-emerald-600">{tx("Ingresos reales")}</p>
+            <p className="text-xs text-emerald-600">{tx("Pagos completados")}</p>
             <p className="text-lg font-bold text-emerald-700">{totalPagado.toFixed(2)} €</p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {estados.map((e) => (
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder={tx("Buscar por ID, reserva o método de pago...")}
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {estados.map((e) => (
           <button
             key={e}
             onClick={() => setFiltro(e)}
@@ -115,7 +121,8 @@ function PagosAdmin() {
             {e === "todos" ? tx("Todos") : ESTADOS_LABEL[e] || e}
             {` (${e === "todos" ? pagos.length : pagos.filter((p) => p.estado === e).length})`}
           </button>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -134,7 +141,6 @@ function PagosAdmin() {
                   <th className="px-4 py-3">{tx("Metodo")}</th>
                   <th className="px-4 py-3">{tx("Estado")}</th>
                   <th className="px-4 py-3 text-right">{tx("Importe")}</th>
-                  <th className="px-4 py-3 text-right">{tx("Acciones")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -145,25 +151,11 @@ function PagosAdmin() {
                       {p.reservaId ? `#${p.reservaId}` : "—"}
                     </td>
                     <td className="px-4 py-3 text-slate-600 capitalize">
-                      {p.metodoPago?.toLowerCase().replace("_", " ") ?? "—"}
+                      {p.metodo?.toLowerCase().replace("_", " ") ?? "—"}
                     </td>
                     <td className="px-4 py-3"><BadgeEstado estado={p.estado} /></td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-700">
                       {Number(p.importe ?? 0).toFixed(2)}€
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {p.estado === "PENDIENTE" && (
-                        <button
-                          onClick={() => handleConfirmar(p)}
-                          disabled={confirmando === p.id}
-                          className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition disabled:opacity-50"
-                        >
-                          {confirmando === p.id
-                            ? <ArrowPathIcon className="h-3 w-3 animate-spin" />
-                            : <CheckCircleIcon className="h-3.5 w-3.5" />}
-                          {tx("Confirmar")}
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}

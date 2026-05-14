@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { BellIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { listarTodasNotificaciones } from "api/admin";
+import { BellIcon, ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { listarTodasNotificaciones, eliminarNotificacionAdmin } from "api/admin";
 import { useLanguage } from "context/LanguageContext";
 
 function NotificacionesAdmin() {
@@ -10,6 +10,7 @@ function NotificacionesAdmin() {
   const [error, setError]                   = useState("");
   const [filtro, setFiltro]                 = useState("todas");
   const [busqueda, setBusqueda]             = useState("");
+  const [eliminando, setEliminando]         = useState(null);
 
   useEffect(() => {
     listarTodasNotificaciones()
@@ -18,6 +19,18 @@ function NotificacionesAdmin() {
       .finally(() => setCargando(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function handleEliminar(id) {
+    setEliminando(id);
+    try {
+      await eliminarNotificacionAdmin(id);
+      setNotificaciones((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setEliminando(null);
+    }
+  }
 
   const filtradas = notificaciones.filter((n) => {
     const coincideLeida =
@@ -106,6 +119,7 @@ function NotificacionesAdmin() {
                   <th className="px-4 py-3">{tx("Mensaje")}</th>
                   <th className="px-4 py-3">{tx("Leida")}</th>
                   <th className="px-4 py-3">{tx("Fecha")}</th>
+                  <th className="px-4 py-3 text-right">{tx("Acciones")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -129,6 +143,17 @@ function NotificacionesAdmin() {
                       {n.fechaCreacion
                         ? new Date(n.fechaCreacion).toLocaleDateString(idioma === "en" ? "en-GB" : "es-ES", { day: "numeric", month: "short", year: "numeric" })
                         : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleEliminar(n.id)}
+                        disabled={eliminando === n.id}
+                        className="inline-flex items-center justify-center rounded-full p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-50"
+                      >
+                        {eliminando === n.id
+                          ? <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                          : <TrashIcon className="h-4 w-4" />}
+                      </button>
                     </td>
                   </tr>
                 ))}

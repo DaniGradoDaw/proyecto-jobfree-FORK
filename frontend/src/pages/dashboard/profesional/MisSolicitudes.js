@@ -12,6 +12,7 @@ import {
   CalendarDaysIcon,
   ClockIcon,
   BanknotesIcon,
+  PencilSquareIcon,
 } from "@heroicons/react/24/outline";
 import API_URL from "api/config";
 import { useLanguage } from "context/LanguageContext";
@@ -38,7 +39,7 @@ function ClienteAvatar({ src, nombre }) {
 
 function PanelProgreso({ reserva, onActualizar }) {
   const { tx } = useLanguage();
-  const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState(false);
   const [valorSlider, setValorSlider] = useState(reserva.progreso ?? 0);
   const [notas, setNotas] = useState(reserva.notasProgreso ?? "");
   const [guardando, setGuardando] = useState(false);
@@ -49,7 +50,7 @@ function PanelProgreso({ reserva, onActualizar }) {
     try {
       const actualizada = await actualizarProgreso(reserva.id, valorSlider, notas);
       onActualizar(actualizada);
-      setAbierto(false);
+      setEditando(false);
     } catch (err) {
       alert(err.message || tx("Error al guardar el progreso."));
     } finally {
@@ -57,50 +58,71 @@ function PanelProgreso({ reserva, onActualizar }) {
     }
   }
 
+  function cancelar() {
+    setEditando(false);
+    setValorSlider(reserva.progreso ?? 0);
+    setNotas(reserva.notasProgreso ?? "");
+  }
+
   return (
-    <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-      <button onClick={() => setAbierto(v => !v)} className="flex w-full items-center gap-3 text-left">
-        <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700">{tx("Progreso del servicio")}</span>
-            <span className="text-sm font-bold text-emerald-700 tabular-nums">{pct}%</span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-emerald-100 overflow-hidden">
-            <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      {/* Cabecera con barra */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-slate-600">{tx("Actualización para el cliente")}</span>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-bold tabular-nums ${pct === 100 ? "text-emerald-600" : "text-slate-700"}`}>{pct}%</span>
+            {!editando && (
+              <button onClick={() => setEditando(true)}
+                className="flex items-center gap-1 rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-500 hover:bg-slate-50 transition">
+                <PencilSquareIcon className="h-3 w-3" />
+                {tx("Editar")}
+              </button>
+            )}
           </div>
         </div>
-        {abierto
-          ? <ChevronUpIcon className="h-4 w-4 text-emerald-500 shrink-0" />
-          : <ChevronDownIcon className="h-4 w-4 text-emerald-500 shrink-0" />}
-      </button>
+        <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? "bg-emerald-500" : "bg-sky-400"}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
 
-      {!abierto && reserva.notasProgreso && (
-        <p className="mt-2 text-xs text-emerald-700/70 italic leading-relaxed">{reserva.notasProgreso}</p>
+      {/* Nota actual (cuando no está editando) */}
+      {!editando && reserva.notasProgreso && (
+        <div className="mx-4 mb-3 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+          <p className="text-xs text-slate-500 leading-relaxed">"{reserva.notasProgreso}"</p>
+        </div>
       )}
 
-      {abierto && (
-        <div className="mt-3 space-y-3 border-t border-emerald-100 pt-3">
+      {/* Formulario de edición */}
+      {editando && (
+        <div className="px-4 pb-3 space-y-3 border-t border-slate-100 pt-3">
           <div>
-            <div className="flex justify-between text-xs text-emerald-700/80 mb-1">
-              <span>{tx("Completado")}</span>
-              <span className="font-bold">{valorSlider}%</span>
+            <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+              <span>{tx("Porcentaje completado")}</span>
+              <span className="font-bold text-slate-700">{valorSlider}%</span>
             </div>
             <input type="range" min={0} max={100} step={5} value={valorSlider}
               onChange={e => setValorSlider(Number(e.target.value))}
-              className="w-full accent-emerald-500" />
+              className="w-full accent-sky-500" />
           </div>
-          <textarea value={notas} onChange={e => setNotas(e.target.value)}
-            placeholder={tx("Notas para el cliente (opcional)...")}
-            rows={2} maxLength={500}
-            className="w-full resize-none rounded-lg border border-emerald-100 bg-white px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-300" />
+          <div>
+            <label className="text-xs font-medium text-slate-500 mb-1 block">{tx("Mensaje para el cliente")}</label>
+            <textarea value={notas} onChange={e => setNotas(e.target.value)}
+              placeholder={tx("Ej: He completado la primera parte, seguimos mañana...")}
+              rows={2} maxLength={300}
+              className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:border-sky-300 focus:outline-none focus:ring-1 focus:ring-sky-200" />
+          </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { setAbierto(false); setValorSlider(reserva.progreso ?? 0); setNotas(reserva.notasProgreso ?? ""); }}
-              className="rounded-full border border-emerald-200 px-3 py-1.5 text-xs text-emerald-700 hover:bg-white transition">
+            <button onClick={cancelar}
+              className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 transition">
               {tx("Cancelar")}
             </button>
             <button onClick={guardar} disabled={guardando}
-              className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-60">
-              {guardando ? tx("Guardando...") : tx("Guardar")}
+              className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-sky-600 transition disabled:opacity-60">
+              {guardando ? tx("Guardando...") : tx("Publicar")}
             </button>
           </div>
         </div>
@@ -113,7 +135,9 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
   const navigate = useNavigate();
   const { idioma, tx } = useLanguage();
   const [accionando, setAccionando] = useState(false);
+  const [expandida, setExpandida] = useState(false);
   const locale = idioma === "en" ? "en-GB" : "es-ES";
+  const descLarga = (reserva.descripcion ?? "").length > 100;
   const pagada = reserva.estadoPago === "PAGADO";
   const meta = ESTADO[reserva.estado] ?? ESTADO.COMPLETADA;
   const pct = Math.max(0, Math.min(100, reserva.progreso ?? 0));
@@ -154,10 +178,19 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
         </div>
 
         {/* Descripción */}
-        {reserva.descripcion
-          ? <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 rounded-xl px-3.5 py-2.5">{reserva.descripcion}</p>
-          : <p className="text-xs text-slate-400 italic bg-slate-50 rounded-xl px-3.5 py-2.5">{tx("El cliente no añadió descripción.")}</p>
-        }
+        {reserva.descripcion ? (
+          <div className="bg-slate-50 rounded-xl px-3.5 py-2.5">
+            <p className={`text-xs text-slate-500 leading-relaxed ${expandida ? "" : "line-clamp-2"}`}>{reserva.descripcion}</p>
+            {descLarga && (
+              <button onClick={() => setExpandida(v => !v)}
+                className="mt-1 text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition">
+                {expandida ? tx("Ver menos") : tx("Ver más")}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic bg-slate-50 rounded-xl px-3.5 py-2.5">{tx("El cliente no añadió descripción.")}</p>
+        )}
 
         {/* Meta: fecha + recibida + precio */}
         <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
@@ -194,21 +227,9 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
           <PanelProgreso reserva={reserva} onActualizar={onActualizar} />
         )}
 
-        {/* Progreso final — completada */}
-        {reserva.estado === "COMPLETADA" && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500">{tx("Progreso final")}</span>
-              <span className={`text-sm font-bold tabular-nums ${pct === 100 ? "text-emerald-600" : "text-slate-700"}`}>{pct}%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-slate-400"}`}
-                style={{ width: `${pct}%` }} />
-            </div>
-            {reserva.notasProgreso && (
-              <p className="text-xs text-slate-500 italic pt-0.5">{reserva.notasProgreso}</p>
-            )}
-          </div>
+        {/* Notas — completada (sin barra, solo texto si las hay) */}
+        {reserva.estado === "COMPLETADA" && reserva.notasProgreso && (
+          <p className="text-xs text-slate-400 italic px-1">{reserva.notasProgreso}</p>
         )}
 
         {/* Acciones */}
@@ -231,7 +252,7 @@ function TarjetaSolicitud({ reserva, onActualizar }) {
               <CheckIcon className="h-3.5 w-3.5" />{tx("Marcar completado")}
             </button>
           )}
-          {["PENDIENTE", "CONFIRMADA", "COMPLETADA"].includes(reserva.estado) && (
+          {["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && (
             <button onClick={() => navigate(`/dashboard/profesional/mensajes/reserva/${reserva.id}`)}
               className="ml-auto flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
               <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />{tx("Chat")}
