@@ -13,12 +13,13 @@ public class ReporteDTO {
     private String mensajesJson;
     private boolean resuelto;
     private LocalDateTime fecha;
+    private boolean reportadoActivo;
 
     public ReporteDTO() {}
 
     public ReporteDTO(Long id, Long reportadorId, String reportadorNombre, String reportadorFotoUrl,
                       Long reportadoId, String reportadoNombre, String reportadoFotoUrl,
-                      String mensajesJson, boolean resuelto, LocalDateTime fecha) {
+                      String mensajesJson, boolean resuelto, LocalDateTime fecha, boolean reportadoActivo) {
         this.id = id;
         this.reportadorId = reportadorId;
         this.reportadorNombre = reportadorNombre;
@@ -29,6 +30,7 @@ public class ReporteDTO {
         this.mensajesJson = mensajesJson;
         this.resuelto = resuelto;
         this.fecha = fecha;
+        this.reportadoActivo = reportadoActivo;
     }
 
     public Long getId() { return id; }
@@ -41,4 +43,5 @@ public class ReporteDTO {
     public String getMensajesJson() { return mensajesJson; }
     public boolean isResuelto() { return resuelto; }
     public LocalDateTime getFecha() { return fecha; }
+    public boolean isReportadoActivo() { return reportadoActivo; }
 }

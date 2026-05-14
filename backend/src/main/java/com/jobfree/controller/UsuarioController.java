@@ -237,6 +237,20 @@ public class UsuarioController {
 		return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioService.cambiarRol(id, rol)));
 	}
 
+	@Operation(hidden = true)
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{id}/suspender")
+	public ResponseEntity<UsuarioDTO> suspenderUsuario(@PathVariable Long id) {
+		return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioService.suspenderUsuario(id)));
+	}
+
+	@Operation(hidden = true)
+	@PreAuthorize("hasRole('ADMIN')")
+	@PatchMapping("/{id}/activar")
+	public ResponseEntity<UsuarioDTO> activarUsuario(@PathVariable Long id) {
+		return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioService.activarUsuario(id)));
+	}
+
 	/**
 	 * Elimina un usuario del sistema. Solo accesible por usuarios con rol ADMIN.
 	 *

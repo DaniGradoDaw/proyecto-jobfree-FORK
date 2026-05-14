@@ -21,6 +21,12 @@ export async function obtenerSubcategoriaPorId(id) {
   return res.json();
 }
 
+export async function obtenerSubcategoriasPopulares() {
+  const res = await apiFetch("/subcategorias/populares");
+  if (!res.ok) throw new Error("Error al obtener servicios populares");
+  return res.json();
+}
+
 // subcategorías por categoría con paginación
 export async function obtenerSubcategoriasPorCategoria(id, pagina = 0) {
 

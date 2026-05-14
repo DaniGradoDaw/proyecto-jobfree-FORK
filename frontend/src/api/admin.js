@@ -130,6 +130,17 @@ export async function eliminarSubcategoria(id) {
   if (!res.ok) throw new Error("Error al eliminar subcategoría");
 }
 
+export async function subirImagenSubcategoria(archivo) {
+  const form = new FormData();
+  form.append("imagen", archivo);
+  const res = await apiFetch("/subcategorias/upload-imagen", { method: "POST", body: form });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.error || "Error al subir la imagen");
+  }
+  return res.json();
+}
+
 // ── Profesionales ─────────────────────────────────────────────────────────────
 
 export async function eliminarPerfilProfesional(id) {
@@ -167,6 +178,41 @@ export async function completarReservaAdmin(id) {
 export async function confirmarPagoAdmin(id) {
   const res = await apiFetch(`/pagos/${id}/confirmar`, { method: "PATCH" });
   if (!res.ok) throw new Error("Error al confirmar el pago");
+  return res.json();
+}
+
+// ── Notificaciones ────────────────────────────────────────────────────────────
+
+export async function listarTodasNotificaciones() {
+  const res = await apiFetch("/notificaciones");
+  if (!res.ok) throw new Error("Error al cargar notificaciones");
+  return res.json();
+}
+
+export async function eliminarNotificacionAdmin(id) {
+  const res = await apiFetch(`/notificaciones/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar la notificación");
+}
+
+// ── Suspender / Activar usuario ───────────────────────────────────────────────
+
+export async function suspenderUsuario(id) {
+  const res = await apiFetch(`/usuarios/${id}/suspender`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al suspender el usuario");
+  return res.json();
+}
+
+export async function activarUsuario(id) {
+  const res = await apiFetch(`/usuarios/${id}/activar`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al activar el usuario");
+  return res.json();
+}
+
+// ── Mensajes ──────────────────────────────────────────────────────────────────
+
+export async function listarTodosMensajes() {
+  const res = await apiFetch("/mensajes");
+  if (!res.ok) throw new Error("Error al cargar mensajes");
   return res.json();
 }
 

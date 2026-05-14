@@ -67,7 +67,8 @@ public final class UsuarioMapper {
                 usuario.getCiudad(),
                 usuario.getDireccion(),
                 usuario.getFotoUrl(),
-                usuario.getRol().name()
+                usuario.getRol().name(),
+                usuario.isActivo()
         );
     }
 
@@ -86,7 +87,8 @@ public final class UsuarioMapper {
                 usuario.getCiudad(),
                 null,
                 usuario.getFotoUrl(),
-                usuario.getRol().name()
+                usuario.getRol().name(),
+                usuario.isActivo()
         );
     }
 }

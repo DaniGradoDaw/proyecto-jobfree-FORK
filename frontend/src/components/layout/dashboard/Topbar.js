@@ -283,8 +283,8 @@ function Topbar({ setOpen, collapsed = false }) {
       {/* Zona derecha */}
       <div className="flex items-center gap-3 shrink-0">
 
-        {/* ── Notificaciones ── */}
-        <div className="relative" ref={bellRef}>
+        {/* ── Notificaciones — ocultas para admin ── */}
+        {usuario?.rol !== "ADMIN" && <div className="relative" ref={bellRef}>
           <button
             onClick={() => { setBellOpen(v => !v); setUserMenuOpen(false); }}
             className={`relative p-1.5 rounded-full transition ${clsIcono}`}>
@@ -343,7 +343,7 @@ function Topbar({ setOpen, collapsed = false }) {
               )}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* ── Idioma ── */}
         <LanguageMenu variant={esTemaOscuro ? "dark" : "light"} />

@@ -77,6 +77,12 @@ public class NotificacionService {
 	 * @param usuario usuario destinatario
 	 * @return notificación creada
 	 */
+	public void eliminar(Long id) {
+		Notificacion notificacion = notificacionRepository.findById(id)
+				.orElseThrow(() -> new NotificacionNotFoundException(id));
+		notificacionRepository.delete(notificacion);
+	}
+
 	public Notificacion crear(String mensaje, Usuario usuario) {
 
 		Notificacion notificacion = new Notificacion();

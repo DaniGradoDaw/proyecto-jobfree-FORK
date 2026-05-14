@@ -5,12 +5,14 @@ import {
   ArrowPathIcon,
   UserCircleIcon,
   ExclamationTriangleIcon,
-  PencilSquareIcon,
-  XMarkIcon,
+  NoSymbolIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { listarUsuarios, eliminarUsuario, cambiarRolUsuario } from "api/admin";
+import { listarUsuarios, eliminarUsuario, suspenderUsuario, activarUsuario } from "api/admin";
 import API_URL from "api/config";
 import { useLanguage } from "context/LanguageContext";
+
+const PAGE_SIZE = 15;
 
 const ROL_COLORES = {
   ADMIN:        "bg-violet-100 text-violet-700 ring-violet-200",
@@ -59,69 +61,17 @@ function ModalConfirmarEliminar({ usuario, onConfirmar, onCancelar, cargando }) 
   );
 }
 
-function ModalEditarRol({ usuario, onGuardar, onCancelar, cargando }) {
-  const { tx } = useLanguage();
-  const [rol, setRol] = useState(usuario.rol);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-[20px] bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-slate-900">{tx("Cambiar rol")}</h3>
-          <button onClick={onCancelar} className="rounded-full p-1 text-slate-400 hover:bg-slate-100 transition">
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
-
-        <p className="text-sm text-slate-500 mb-4">
-          <span className="font-medium text-slate-700">{usuario.nombreCompleto ?? usuario.email}</span>
-        </p>
-
-        <div className="space-y-2">
-          {["CLIENTE", "PROFESIONAL", "ADMIN"].map((r) => (
-            <button
-              key={r}
-              onClick={() => setRol(r)}
-              className={`w-full flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                rol === r
-                  ? "border-emerald-400 bg-emerald-50 text-emerald-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              <span>{ROLES_LABEL[r]}</span>
-              {rol === r && <span className="h-2 w-2 rounded-full bg-emerald-500" />}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-5 flex gap-3">
-          <button onClick={onCancelar} className="flex-1 rounded-full border border-slate-300 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition">
-            {tx("Cancelar")}
-          </button>
-          <button
-            onClick={() => onGuardar(rol)}
-            disabled={cargando || rol === usuario.rol}
-            className="flex-1 rounded-full bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-50"
-          >
-            {cargando ? tx("Guardando...") : tx("Guardar")}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function UsuariosAdmin() {
   const { tx } = useLanguage();
-  const [usuarios, setUsuarios]               = useState([]);
-  const [cargando, setCargando]               = useState(true);
-  const [error, setError]                     = useState("");
-  const [busqueda, setBusqueda]               = useState("");
-  const [filtroRol, setFiltroRol]             = useState("todos");
-  const [usuarioABorrar, setUsuarioABorrar]   = useState(null);
-  const [eliminando, setEliminando]           = useState(false);
-  const [usuarioAEditar, setUsuarioAEditar]   = useState(null);
-  const [guardandoRol, setGuardandoRol]       = useState(false);
+  const [usuarios, setUsuarios]                     = useState([]);
+  const [cargando, setCargando]                     = useState(true);
+  const [error, setError]                           = useState("");
+  const [busqueda, setBusqueda]                     = useState("");
+  const [filtroRol, setFiltroRol]                   = useState("todos");
+  const [usuarioABorrar, setUsuarioABorrar]         = useState(null);
+  const [eliminando, setEliminando]                 = useState(false);
+  const [accionando, setAccionando]                 = useState(null);
+  const [pagina, setPagina]                         = useState(1);
 
   useEffect(() => {
     listarUsuarios()
@@ -145,17 +95,16 @@ function UsuariosAdmin() {
     }
   }
 
-  async function handleGuardarRol(nuevoRol) {
-    if (!usuarioAEditar) return;
-    setGuardandoRol(true);
+  async function handleToggleSuspender(u) {
+    setAccionando(u.id);
     try {
-      const actualizado = await cambiarRolUsuario(usuarioAEditar.id, nuevoRol);
-      setUsuarios((prev) => prev.map((u) => u.id === actualizado.id ? { ...u, rol: actualizado.rol } : u));
-      setUsuarioAEditar(null);
+      const fn = u.activo ? suspenderUsuario : activarUsuario;
+      const actualizado = await fn(u.id);
+      setUsuarios((prev) => prev.map((x) => x.id === actualizado.id ? { ...x, activo: actualizado.activo } : x));
     } catch (err) {
-      alert(err.message || tx("No se pudo cambiar el rol."));
+      alert(err.message || tx("No se pudo cambiar el estado del usuario."));
     } finally {
-      setGuardandoRol(false);
+      setAccionando(null);
     }
   }
 
@@ -169,6 +118,13 @@ function UsuariosAdmin() {
     const coincideRol = filtroRol === "todos" || u.rol === filtroRol;
     return coincideBusqueda && coincideRol;
   });
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / PAGE_SIZE));
+  const paginaActual = Math.min(pagina, totalPaginas);
+  const paginados    = filtrados.slice((paginaActual - 1) * PAGE_SIZE, paginaActual * PAGE_SIZE);
+
+  function cambiarFiltro(v)   { setFiltroRol(v);  setPagina(1); }
+  function cambiarBusqueda(v) { setBusqueda(v);    setPagina(1); }
 
   if (cargando) {
     return (
@@ -199,7 +155,7 @@ function UsuariosAdmin() {
             type="text"
             placeholder={tx("Buscar por nombre o email...")}
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={(e) => cambiarBusqueda(e.target.value)}
             className="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
           />
         </div>
@@ -207,7 +163,7 @@ function UsuariosAdmin() {
           {roles.map((r) => (
             <button
               key={r}
-              onClick={() => setFiltroRol(r)}
+              onClick={() => cambiarFiltro(r)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 filtroRol === r
                   ? "bg-slate-900 text-white"
@@ -236,11 +192,12 @@ function UsuariosAdmin() {
                   <th className="px-4 py-3">{tx("Email")}</th>
                   <th className="px-4 py-3">{tx("Rol")}</th>
                   <th className="px-4 py-3">{tx("Ciudad")}</th>
+                  <th className="px-4 py-3">{tx("Estado")}</th>
                   <th className="px-4 py-3 text-right">{tx("Acciones")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filtrados.map((u) => {
+                {paginados.map((u) => {
                   const foto = u.fotoUrl
                     ? u.fotoUrl.startsWith("http") ? u.fotoUrl : API_URL + u.fotoUrl
                     : null;
@@ -267,15 +224,35 @@ function UsuariosAdmin() {
                       <td className="px-4 py-3 text-slate-600">{u.email}</td>
                       <td className="px-4 py-3"><BadgeRol rol={u.rol} /></td>
                       <td className="px-4 py-3 text-slate-500">{u.ciudad ?? "—"}</td>
+                      <td className="px-4 py-3">
+                        {u.activo === false ? (
+                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 bg-red-100 text-red-700 ring-red-200">
+                            {tx("Suspendido")}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 bg-emerald-100 text-emerald-700 ring-emerald-200">
+                            {tx("Activo")}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setUsuarioAEditar(u)}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
-                          >
-                            <PencilSquareIcon className="h-3.5 w-3.5" />
-                            {tx("Rol")}
-                          </button>
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {u.rol !== "ADMIN" && (
+                            <button
+                              onClick={() => handleToggleSuspender(u)}
+                              disabled={accionando === u.id}
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
+                                u.activo === false
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                              }`}
+                            >
+                              {u.activo === false
+                                ? <><CheckCircleIcon className="h-3.5 w-3.5" />{tx("Activar")}</>
+                                : <><NoSymbolIcon className="h-3.5 w-3.5" />{tx("Suspender")}</>
+                              }
+                            </button>
+                          )}
                           {u.rol !== "ADMIN" && (
                             <button
                               onClick={() => setUsuarioABorrar(u)}
@@ -294,6 +271,38 @@ function UsuariosAdmin() {
             </table>
           </div>
         )}
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+            <span className="text-xs text-slate-400">
+              {(paginaActual - 1) * PAGE_SIZE + 1}–{Math.min(paginaActual * PAGE_SIZE, filtrados.length)} {tx("de")} {filtrados.length}
+            </span>
+            <div className="flex gap-1">
+              <button onClick={() => setPagina((p) => Math.max(1, p - 1))} disabled={paginaActual === 1}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">
+                ← {tx("Anterior")}
+              </button>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                .filter((n) => n === 1 || n === totalPaginas || Math.abs(n - paginaActual) <= 1)
+                .reduce((acc, n, idx, arr) => {
+                  if (idx > 0 && n - arr[idx - 1] > 1) acc.push("…");
+                  acc.push(n);
+                  return acc;
+                }, [])
+                .map((n, i) =>
+                  n === "…"
+                    ? <span key={`e${i}`} className="px-2 py-1.5 text-xs text-slate-400">…</span>
+                    : <button key={n} onClick={() => setPagina(n)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                          n === paginaActual ? "bg-slate-900 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}>{n}</button>
+                )}
+              <button onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))} disabled={paginaActual === totalPaginas}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">
+                {tx("Siguiente")} →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {usuarioABorrar && (
@@ -305,14 +314,6 @@ function UsuariosAdmin() {
         />
       )}
 
-      {usuarioAEditar && (
-        <ModalEditarRol
-          usuario={usuarioAEditar}
-          onGuardar={handleGuardarRol}
-          onCancelar={() => setUsuarioAEditar(null)}
-          cargando={guardandoRol}
-        />
-      )}
     </div>
   );
 }

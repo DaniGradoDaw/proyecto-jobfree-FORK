@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PlusIcon,
   PencilIcon,
@@ -8,6 +8,7 @@ import {
   CheckIcon,
   XMarkIcon,
   ExclamationTriangleIcon,
+  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import {
   crearCategoria,
@@ -16,10 +17,12 @@ import {
   crearSubcategoria,
   actualizarSubcategoria,
   eliminarSubcategoria,
+  subirImagenSubcategoria,
 } from "api/admin";
 import { obtenerCategorias } from "api/categorias";
 import { obtenerTodasSubcategorias } from "api/subcategorias";
 import { useLanguage } from "context/LanguageContext";
+import API_URL from "api/config";
 
 function FormularioInline({ valorInicial = "", placeholder, onGuardar, onCancelar, guardando }) {
   const [valor, setValor] = useState(valorInicial);
@@ -48,6 +51,90 @@ function FormularioInline({ valorInicial = "", placeholder, onGuardar, onCancela
       >
         <XMarkIcon className="h-4 w-4" />
       </button>
+    </div>
+  );
+}
+
+function resolverImagen(imagen) {
+  if (!imagen) return null;
+  if (imagen.startsWith("http") || imagen.startsWith("/images/")) return imagen;
+  return API_URL + imagen;
+}
+
+function FormularioSubcategoria({ nombreInicial = "", imagenInicial = "", placeholder, onGuardar, onCancelar, guardando }) {
+  const { tx } = useLanguage();
+  const [nombre, setNombre] = useState(nombreInicial);
+  const [archivo, setArchivo] = useState(null);
+  const [preview, setPreview] = useState(imagenInicial ? resolverImagen(imagenInicial) : null);
+  const [subiendo, setSubiendo] = useState(false);
+  const inputRef = useRef(null);
+
+  function onFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setArchivo(file);
+    setPreview(URL.createObjectURL(file));
+  }
+
+  async function handleGuardar() {
+    if (!nombre.trim()) return;
+    setSubiendo(true);
+    try {
+      let imagenUrl = imagenInicial || "";
+      if (archivo) {
+        const data = await subirImagenSubcategoria(archivo);
+        imagenUrl = data.imagenUrl;
+      }
+      onGuardar(nombre.trim(), imagenUrl);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
+  const ocupado = guardando || subiendo;
+
+  return (
+    <div className="space-y-2 mt-2 p-3 rounded-xl border border-slate-200 bg-slate-50">
+      <input
+        autoFocus
+        type="text"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Escape") onCancelar(); }}
+        placeholder={placeholder}
+        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition bg-white"
+      />
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+      <div className="flex items-center gap-2">
+        {preview ? (
+          <img src={preview} alt="" className="h-10 w-10 rounded-lg object-cover border border-slate-200 shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
+        ) : (
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 shrink-0">
+            <PhotoIcon className="h-5 w-5 text-slate-400" />
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex-1 rounded-xl border border-dashed border-slate-300 py-2 text-xs text-slate-500 hover:bg-white hover:border-emerald-400 transition text-center"
+        >
+          {preview ? tx("Cambiar imagen") : tx("Seleccionar imagen")}
+        </button>
+      </div>
+      <div className="flex gap-2 justify-end">
+        <button onClick={onCancelar} className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-100 transition">
+          <XMarkIcon className="h-4 w-4" />
+        </button>
+        <button
+          onClick={handleGuardar}
+          disabled={ocupado || !nombre.trim()}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition disabled:opacity-50"
+        >
+          {ocupado ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <CheckIcon className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   );
 }
@@ -237,12 +324,12 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
     ? todasSubcategorias.filter((s) => s.categoriaId === categoriaSeleccionada.id)
     : [];
 
-  async function handleCrear(nombre) {
+  async function handleCrear(nombre, imagen) {
     if (!nombre || !categoriaSeleccionada) return;
     setGuardando(true);
     setErrorLocal("");
     try {
-      const nueva = await crearSubcategoria({ nombre, categoriaId: categoriaSeleccionada.id });
+      const nueva = await crearSubcategoria({ nombre, imagen: imagen || undefined, categoriaId: categoriaSeleccionada.id });
       setTodasSubcategorias((prev) => [...prev, nueva]);
       setCreando(false);
     } catch (err) {
@@ -252,12 +339,12 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
     }
   }
 
-  async function handleEditar(nombre) {
+  async function handleEditar(nombre, imagen) {
     if (!nombre || !editando) return;
     setGuardando(true);
     setErrorLocal("");
     try {
-      const actualizada = await actualizarSubcategoria(editando.id, { nombre, categoriaId: categoriaSeleccionada?.id });
+      const actualizada = await actualizarSubcategoria(editando.id, { nombre, imagen: imagen || undefined, categoriaId: categoriaSeleccionada?.id });
       setTodasSubcategorias((prev) => prev.map((s) => s.id === actualizada.id ? actualizada : s));
       setEditando(null);
     } catch (err) {
@@ -317,7 +404,7 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
         {errorLocal && <p className="text-xs text-red-500 px-2">{errorLocal}</p>}
 
         {creando && (
-          <FormularioInline
+          <FormularioSubcategoria
             placeholder={tx("Nombre de la subcategoria")}
             onGuardar={handleCrear}
             onCancelar={() => setCreando(false)}
@@ -328,8 +415,9 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
         {subcats.map((sub) => (
           <div key={sub.id}>
             {editando?.id === sub.id ? (
-              <FormularioInline
-                valorInicial={sub.nombre}
+              <FormularioSubcategoria
+                nombreInicial={sub.nombre}
+                imagenInicial={sub.imagen ?? ""}
                 placeholder={tx("Nombre de la subcategoria")}
                 onGuardar={handleEditar}
                 onCancelar={() => setEditando(null)}
@@ -337,7 +425,16 @@ function SeccionSubcategorias({ categoriaSeleccionada, todasSubcategorias, setTo
               />
             ) : (
               <div className="group flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-slate-50 border border-transparent transition">
-                <span className="text-sm text-slate-700 truncate">{sub.nombre}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  {sub.imagen ? (
+                    <img src={resolverImagen(sub.imagen)} alt="" className="h-7 w-7 rounded-md object-cover border border-slate-200 shrink-0" onError={(e) => { e.target.style.display = "none"; }} />
+                  ) : (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 shrink-0">
+                      <TagIcon className="h-3.5 w-3.5 text-slate-400" />
+                    </span>
+                  )}
+                  <span className="text-sm text-slate-700 truncate">{sub.nombre}</span>
+                </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition shrink-0">
                   <button
                     onClick={() => { setEditando(sub); setCreando(false); setErrorLocal(""); }}

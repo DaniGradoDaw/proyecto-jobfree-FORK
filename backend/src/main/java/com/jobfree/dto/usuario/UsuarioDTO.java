@@ -12,12 +12,13 @@ public class UsuarioDTO {
     private String direccion;
     private String fotoUrl;
     private String rol;
+    private boolean activo;
 
     public UsuarioDTO() {}
 
     public UsuarioDTO(Long id, String nombre, String apellidos, String nombreCompleto,
                       String email, String telefono, String ciudad, String direccion,
-                      String fotoUrl, String rol) {
+                      String fotoUrl, String rol, boolean activo) {
         this.id = id;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -28,6 +29,7 @@ public class UsuarioDTO {
         this.direccion = direccion;
         this.fotoUrl = fotoUrl;
         this.rol = rol;
+        this.activo = activo;
     }
 
     public Long getId() { return id; }
@@ -40,4 +42,5 @@ public class UsuarioDTO {
     public String getDireccion() { return direccion; }
     public String getFotoUrl() { return fotoUrl; }
     public String getRol() { return rol; }
+    public boolean isActivo() { return activo; }
 }

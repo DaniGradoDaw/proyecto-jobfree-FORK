@@ -46,11 +46,11 @@ const MENSAJES_CALENDARIO = {
 };
 
 const ESTADO = {
-  PENDIENTE:  { border: "border-l-amber-400",   label: "Pendiente",  badgeBg: "bg-amber-100",   badgeText: "text-amber-700",   dot: "bg-amber-400",   evento: "#f59e0b" },
-  CONFIRMADA: { border: "border-l-emerald-400", label: "Aceptada",   badgeBg: "bg-emerald-100", badgeText: "text-emerald-700", dot: "bg-emerald-500", evento: "#10b981" },
-  COMPLETADA: { border: "border-l-blue-300",    label: "Completada", badgeBg: "bg-blue-50",     badgeText: "text-blue-600",    dot: "bg-blue-400",    evento: "#60a5fa" },
-  CANCELADA:  { border: "border-l-red-300",     label: "Cancelada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     evento: "#f87171" },
-  RECHAZADA:  { border: "border-l-red-300",     label: "Rechazada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     evento: "#f87171" },
+  PENDIENTE:  { border: "border-l-amber-400",   label: "Pendiente",  badgeBg: "bg-amber-100",   badgeText: "text-amber-700",   dot: "bg-amber-400",   eventoBg: "#f59e0b", eventoActivo: true  },
+  CONFIRMADA: { border: "border-l-sky-400",     label: "Aceptada",   badgeBg: "bg-sky-100",     badgeText: "text-sky-700",     dot: "bg-sky-500",     eventoBg: "#0ea5e9", eventoActivo: true  },
+  COMPLETADA: { border: "border-l-slate-300",   label: "Completada", badgeBg: "bg-slate-100",   badgeText: "text-slate-600",   dot: "bg-slate-400",   eventoBg: "#cbd5e1", eventoActivo: false },
+  CANCELADA:  { border: "border-l-red-300",     label: "Cancelada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     eventoBg: "#f87171", eventoActivo: true  },
+  RECHAZADA:  { border: "border-l-red-300",     label: "Rechazada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     eventoBg: "#f87171", eventoActivo: true  },
 };
 
 const FILTROS = ["PENDIENTE", "CONFIRMADA", "COMPLETADA", "CANCELADA", "RECHAZADA"];
@@ -68,13 +68,15 @@ function ProfesionalAvatar({ src, nombre }) {
 function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
   const navigate = useNavigate();
   const { idioma, tx } = useLanguage();
+  const [expandida, setExpandida] = useState(false);
   const locale = idioma === "en" ? "en-GB" : "es-ES";
 
   const pagada = reserva.estadoPago === "PAGADO";
   const reembolsado = reserva.estadoPago === "REEMBOLSADO";
   const meta = ESTADO[reserva.estado] ?? ESTADO.COMPLETADA;
+  const descLarga = (reserva.descripcion ?? "").length > 100;
 
-  const puedeChat     = ["PENDIENTE", "CONFIRMADA", "COMPLETADA"].includes(reserva.estado);
+  const puedeChat     = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado);
   const puedeCancelar = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && !modoModal;
   const puedePagar    = reserva.estado === "CONFIRMADA" && !pagada;
 
@@ -112,10 +114,19 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
         </div>
 
         {/* Descripción */}
-        {reserva.descripcion
-          ? <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 rounded-xl px-3.5 py-2.5">{reserva.descripcion}</p>
-          : <p className="text-xs text-slate-400 italic bg-slate-50 rounded-xl px-3.5 py-2.5">{tx("Sin descripción.")}</p>
-        }
+        {reserva.descripcion ? (
+          <div className="bg-slate-50 rounded-xl px-3.5 py-2.5">
+            <p className={`text-xs text-slate-500 leading-relaxed ${expandida ? "" : "line-clamp-2"}`}>{reserva.descripcion}</p>
+            {descLarga && (
+              <button onClick={() => setExpandida(v => !v)}
+                className="mt-1 text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition">
+                {expandida ? tx("Ver menos") : tx("Ver más")}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic bg-slate-50 rounded-xl px-3.5 py-2.5">{tx("Sin descripción.")}</p>
+        )}
 
         {/* Meta: fecha + recibida + precio */}
         <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
@@ -149,35 +160,28 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
 
         {/* Progreso — en curso (pagada) */}
         {reserva.estado === "CONFIRMADA" && pagada && (
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-semibold text-emerald-700">{tx("Progreso del servicio")}</span>
-              <span className="text-xs font-bold text-emerald-700 tabular-nums">{pct}%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-emerald-100 overflow-hidden">
-              <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <div className="px-4 pt-3 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-slate-600">{tx("Progreso del servicio")}</span>
+                <span className={`text-sm font-bold tabular-nums ${pct === 100 ? "text-emerald-600" : "text-sky-600"}`}>{pct}%</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? "bg-emerald-500" : "bg-sky-400"}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
             </div>
             {reserva.notasProgreso && (
-              <p className="mt-2 text-xs text-emerald-700/80 italic leading-relaxed">{reserva.notasProgreso}</p>
+              <div className="mx-4 mb-3 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+                <p className="text-[11px] font-semibold text-slate-400 mb-0.5">{tx("Mensaje del profesional")}</p>
+                <p className="text-xs text-slate-600 leading-relaxed">"{reserva.notasProgreso}"</p>
+              </div>
             )}
           </div>
         )}
 
-        {/* Progreso final — completada */}
-        {reserva.estado === "COMPLETADA" && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500">{tx("Progreso final")}</span>
-              <span className={`text-sm font-bold tabular-nums ${pct === 100 ? "text-emerald-600" : "text-slate-700"}`}>{pct}%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-slate-400"}`} style={{ width: `${pct}%` }} />
-            </div>
-            {reserva.notasProgreso && (
-              <p className="text-xs text-slate-500 italic pt-0.5">{reserva.notasProgreso}</p>
-            )}
-          </div>
-        )}
 
         {/* Acciones */}
         <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
@@ -202,12 +206,6 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
               <span className="text-sm leading-none">⭐</span>
               {tx("Valorar")}
             </button>
-          )}
-          {reserva.estado === "COMPLETADA" && reserva.valorada && (
-            <span className="flex items-center gap-1 text-xs text-slate-400">
-              <CheckBadgeIcon className="h-3.5 w-3.5 text-slate-400" />
-              {tx("Valorado")}
-            </span>
           )}
           {puedeCancelar && (
             <button
@@ -304,21 +302,25 @@ function vistaCalendario(reservas) {
 }
 
 function EventoCalendario({ event }) {
-  const color = ESTADO[event.resource?.estado]?.evento ?? "#94a3b8";
+  const meta = ESTADO[event.resource?.estado] ?? ESTADO.COMPLETADA;
+  const hora = event.start ? event.start.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) : null;
+  const profesional = event.resource?.profesionalNombre?.split(" ").slice(0, 2).join(" ") ?? null;
   return (
-    <div style={{ backgroundColor: color }} className="truncate rounded-md px-1.5 py-0.5 text-white text-[0.7rem] font-medium shadow-sm">
-      {event.title}
+    <div className={`truncate px-1.5 py-0.5 text-[0.7rem] font-semibold ${meta.eventoActivo ? "text-white" : "text-slate-500"}`}>
+      {hora && <span>{hora}</span>}
+      {profesional && <span className="ml-1 opacity-90">· {profesional}</span>}
     </div>
   );
 }
 
 function AgendaEvento({ event }) {
   const reserva = event.resource;
-  const color = ESTADO[reserva?.estado]?.evento ?? "#94a3b8";
+  const meta = ESTADO[reserva?.estado] ?? ESTADO.COMPLETADA;
   return (
     <div className="flex items-center gap-2.5 py-0.5">
-      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: meta.eventoBg }} />
       <span className="text-sm font-semibold text-slate-800 flex-1 min-w-0 truncate">{event.title}</span>
+      <span className="text-xs text-slate-400 shrink-0">· {reserva?.profesionalNombre}</span>
       <span className="text-xs font-bold text-slate-700 tabular-nums shrink-0">
         {Number(reserva?.precioTotal ?? 0).toFixed(2)} €
       </span>
@@ -479,8 +481,8 @@ function MisReservas() {
         <div>
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {[
-              { key: "CONFIRMADA", label: tx("En curso"),    color: ESTADO.CONFIRMADA.evento },
-              { key: "COMPLETADA", label: tx("Completadas"), color: ESTADO.COMPLETADA.evento },
+              { key: "CONFIRMADA", label: tx("Activas"),     color: ESTADO.CONFIRMADA.eventoBg },
+              { key: "COMPLETADA", label: tx("Completadas"), color: ESTADO.COMPLETADA.eventoBg },
             ].map(({ key, label, color }) => {
               const count = key === "CONFIRMADA"
                 ? reservas.filter(r => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length
@@ -518,15 +520,14 @@ function MisReservas() {
                 views={["month", "agenda"]}
                 components={{ event: EventoCalendario, agenda: { event: AgendaEvento } }}
                 onSelectEvent={(event) => setReservaModal(event.resource)}
-                eventPropGetter={(event) => ({
-                  style: calView === "agenda"
-                    ? { backgroundColor: "transparent", border: "none" }
-                    : {
-                        backgroundColor: ESTADO[event.resource?.estado]?.evento ?? "#94a3b8",
-                        border: "none",
-                        borderRadius: "6px",
-                      },
-                })}
+                eventPropGetter={(event) => {
+                  const meta = ESTADO[event.resource?.estado] ?? ESTADO.COMPLETADA;
+                  return {
+                    style: calView === "agenda"
+                      ? { backgroundColor: "transparent", border: "none" }
+                      : { backgroundColor: meta.eventoBg, border: "none", borderRadius: "6px" },
+                  };
+                }}
                 popup
               />
             )}

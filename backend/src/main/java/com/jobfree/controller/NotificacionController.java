@@ -88,4 +88,12 @@ public class NotificacionController {
 				NotificacionMapper.toDTO(actualizada)
 		);
 	}
+
+	@Operation(hidden = true)
+	@PreAuthorize("hasRole('ADMIN')")
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> eliminarNotificacion(@PathVariable Long id) {
+		notificacionService.eliminar(id);
+		return ResponseEntity.noContent().build();
+	}
 }

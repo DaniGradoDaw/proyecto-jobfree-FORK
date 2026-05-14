@@ -18,7 +18,9 @@ public class MensajeDTO {
 	private LocalDateTime fechaEnvio;
 
 	private Long remitenteId;
+	private String remitenteNombre;
 	private Long destinatarioId;
+	private String destinatarioNombre;
 	private Long conversacionId;
 
 	private Long mensajeRespondidoId;
@@ -77,8 +79,24 @@ public class MensajeDTO {
 		return remitenteId;
 	}
 
+	public String getRemitenteNombre() {
+		return remitenteNombre;
+	}
+
+	public void setRemitenteNombre(String remitenteNombre) {
+		this.remitenteNombre = remitenteNombre;
+	}
+
 	public Long getDestinatarioId() {
 		return destinatarioId;
+	}
+
+	public String getDestinatarioNombre() {
+		return destinatarioNombre;
+	}
+
+	public void setDestinatarioNombre(String destinatarioNombre) {
+		this.destinatarioNombre = destinatarioNombre;
 	}
 
 	public Long getConversacionId() {

@@ -73,6 +73,9 @@ public class Usuario implements Principal {
 	@Column
 	private LocalDateTime ultimaConexion;
 
+	@Column(nullable = false)
+	private boolean activo = true;
+
 	// Un usuario puede tener un perfil profesional si es profesional
 	@JsonIgnore
 	@OneToOne(mappedBy = "usuario", fetch = FetchType.LAZY)
@@ -212,6 +215,14 @@ public class Usuario implements Principal {
 
 	public void setUltimaConexion(LocalDateTime ultimaConexion) {
 		this.ultimaConexion = ultimaConexion;
+	}
+
+	public boolean isActivo() {
+		return activo;
+	}
+
+	public void setActivo(boolean activo) {
+		this.activo = activo;
 	}
 
 	public ProfesionalInfo getProfesionalInfo() {

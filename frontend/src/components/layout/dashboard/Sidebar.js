@@ -134,14 +134,18 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 { key: "configuracion", icono: Cog6ToothIcon, ruta: "/dashboard/profesional/configuracion" },
             ]
             : [
-                { key: "panelAdmin",       icono: ShieldCheckIcon,        ruta: "/dashboard/admin" },
-                { key: "adminUsuarios",    icono: UsersIcon,               ruta: "/dashboard/admin/usuarios" },
-                { key: "adminReservas",    icono: CalendarDaysIcon,        ruta: "/dashboard/admin/reservas" },
-                { key: "adminPagos",       icono: CreditCardIcon,          ruta: "/dashboard/admin/pagos" },
-                { key: "adminServicios",   icono: WrenchScrewdriverIcon,   ruta: "/dashboard/admin/servicios" },
-                { key: "adminValoraciones",icono: StarIcon,                ruta: "/dashboard/admin/valoraciones" },
-                { key: "adminCategorias",  icono: TagIcon,                 ruta: "/dashboard/admin/categorias" },
-                { key: "adminReportes",    icono: FlagIcon,                ruta: "/dashboard/admin/reportes" },
+                // Panel principal
+                { key: "panelAdmin",          icono: ShieldCheckIcon,          ruta: "/dashboard/admin" },
+                // Gestión
+                { key: "adminUsuarios",       icono: UsersIcon,                ruta: "/dashboard/admin/usuarios" },
+                { key: "adminCategorias",     icono: TagIcon,                  ruta: "/dashboard/admin/categorias" },
+                { key: "adminServicios",      icono: WrenchScrewdriverIcon,    ruta: "/dashboard/admin/servicios" },
+                // Transacciones
+                { key: "adminReservas",       icono: CalendarDaysIcon,         ruta: "/dashboard/admin/reservas" },
+                { key: "adminPagos",          icono: CreditCardIcon,           ruta: "/dashboard/admin/pagos" },
+                // Moderación
+                { key: "adminValoraciones",   icono: StarIcon,                 ruta: "/dashboard/admin/valoraciones" },
+                { key: "adminReportes",       icono: FlagIcon,                 ruta: "/dashboard/admin/reportes" },
             ];
 
     /**
