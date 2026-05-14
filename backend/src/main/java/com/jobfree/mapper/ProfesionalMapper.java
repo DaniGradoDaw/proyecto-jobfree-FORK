@@ -3,8 +3,10 @@ package com.jobfree.mapper;
 import com.jobfree.dto.profesional.ProfesionalCreateDTO;
 import com.jobfree.dto.profesional.ProfesionalDTO;
 import com.jobfree.dto.profesional.ProfesionalPrivadoDTO;
+import com.jobfree.dto.profesional.ZonaServicioDTO;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.entity.ZonaServicio;
 import com.jobfree.model.enums.Plan;
 
 public class ProfesionalMapper {
@@ -25,7 +27,9 @@ public class ProfesionalMapper {
                 p.getUsuario().getCiudad(),
                 p.getUsuario().getFotoUrl()
         );
-        dto.setCiudadesServicio(p.getCiudadesServicio());
+        dto.setCiudadesServicio(p.getZonasServicio().stream()
+                .map(ZonaServicio::getNombre)
+                .toList());
         return dto;
     }
 
@@ -47,7 +51,9 @@ public class ProfesionalMapper {
                 p.getValoracionMedia(),
                 p.getNumeroValoraciones(),
                 p.getUsuario().getId(),
-                p.getCiudadesServicio()
+                p.getZonasServicio().stream()
+                        .map(z -> new ZonaServicioDTO(z.getNombre(), z.getLatitud(), z.getLongitud()))
+                        .toList()
         );
     }
 

@@ -125,6 +125,31 @@ public class StripeService {
     }
 
     /**
+     * Crea un PaymentIntent para recargar el monedero del usuario.
+     * Devuelve un mapa con clientSecret y paymentIntentId.
+     */
+    public java.util.Map<String, String> crearPaymentIntentRecarga(BigDecimal importe, Long usuarioId) {
+        long importeCentavos = importe.multiply(BigDecimal.valueOf(100)).longValue();
+        try {
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setAmount(importeCentavos)
+                    .setCurrency("eur")
+                    .putMetadata("tipo", "RECARGA_MONEDERO")
+                    .putMetadata("usuarioId", String.valueOf(usuarioId))
+                    .setAutomaticPaymentMethods(
+                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                    .setEnabled(true).build())
+                    .build();
+            PaymentIntent intent = PaymentIntent.create(params);
+            log.info("PaymentIntent recarga {} creado para usuario {}", intent.getId(), usuarioId);
+            return java.util.Map.of("clientSecret", intent.getClientSecret(), "paymentIntentId", intent.getId());
+        } catch (StripeException e) {
+            log.error("Error creando PaymentIntent de recarga para usuario {}: {}", usuarioId, e.getMessage());
+            throw new RuntimeException("Error al iniciar la recarga con Stripe: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Comprueba con la API de Stripe si el PaymentIntent ha sido completado con éxito.
      * Usado como fallback cuando el webhook no ha procesado el evento todavía.
      */

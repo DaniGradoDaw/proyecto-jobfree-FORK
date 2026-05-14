@@ -57,6 +57,11 @@ public class PagoService {
 				usuario.getId(), List.of(EstadoPago.PAGADO, EstadoPago.REEMBOLSADO));
 	}
 
+	public List<Pago> listarCobros(Usuario profesional) {
+		return pagoRepository.findByReservaServicioProfesionalUsuarioIdAndEstadoInOrderByFechaPagoDesc(
+				profesional.getId(), List.of(EstadoPago.PAGADO, EstadoPago.REEMBOLSADO));
+	}
+
 	public Pago obtenerPorId(Long id) {
 		return pagoRepository.findById(id).orElseThrow(() -> new PagoNotFoundException(id));
 	}

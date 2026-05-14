@@ -32,17 +32,20 @@ public class ReservaService {
 	private final NotificacionService notificacionService;
 	private final PagoService         pagoService;
 	private final StripeService       stripeService;
+	private final MonederoService     monederoService;
 
 	public ReservaService(ReservaRepository reservaRepository,
 	                      ConversacionService conversacionService,
 	                      NotificacionService notificacionService,
 	                      PagoService pagoService,
-	                      StripeService stripeService) {
+	                      StripeService stripeService,
+	                      MonederoService monederoService) {
 		this.reservaRepository   = reservaRepository;
 		this.conversacionService = conversacionService;
 		this.notificacionService = notificacionService;
 		this.pagoService         = pagoService;
 		this.stripeService       = stripeService;
+		this.monederoService     = monederoService;
 	}
 
 	public List<Reserva> listarReservas() {
@@ -78,6 +81,10 @@ public class ReservaService {
 	}
 
 	public Reserva crearReserva(Reserva reserva) {
+		return crearReserva(reserva, null);
+	}
+
+	public Reserva crearReserva(Reserva reserva, BigDecimal precioHoraPersonalizado) {
 		validarReserva(reserva);
 
 		ServicioOfrecido servicio = reserva.getServicio();
@@ -97,8 +104,12 @@ public class ReservaService {
 			horas = BigDecimal.ONE;
 		}
 
+		BigDecimal precioHora = (precioHoraPersonalizado != null && precioHoraPersonalizado.compareTo(BigDecimal.ZERO) > 0)
+				? precioHoraPersonalizado
+				: servicio.getPrecioHora();
+
 		reserva.setPrecioTotal(
-				servicio.getPrecioHora().multiply(horas).setScale(2, RoundingMode.HALF_UP));
+				precioHora.multiply(horas).setScale(2, RoundingMode.HALF_UP));
 
 		Reserva guardada = reservaRepository.save(reserva);
 		log.info("Reserva {} creada por cliente {} para servicio {}", guardada.getId(), reserva.getCliente().getId(), servicio.getId());
@@ -168,14 +179,14 @@ public class ReservaService {
 			throw new ReservaInvalidaException("La reserva ya está cancelada");
 		}
 
-		// Si el pago está confirmado, emitir reembolso antes de cancelar
+		// Si el pago está confirmado, acreditar el importe en el monedero del cliente
 		pagoService.buscarPorReservaId(reserva.getId()).ifPresent(pago -> {
 			if (pago.getEstado() == EstadoPago.PAGADO) {
-				if (pago.getStripePaymentIntentId() != null && !pago.getStripePaymentIntentId().isBlank()) {
-					stripeService.crearReembolso(pago); // lanza RuntimeException si Stripe falla
-				}
+				String concepto = "Reembolso: " + reserva.getServicio().getTitulo();
+				monederoService.acreditar(reserva.getCliente(), pago.getImporte(), concepto);
 				pagoService.actualizarEstado(pago.getId(), EstadoPago.REEMBOLSADO);
-				log.info("Reembolso procesado para pago {} al cancelar reserva {}", pago.getId(), reserva.getId());
+				log.info("Reembolso de {} € acreditado en monedero del cliente {} al cancelar reserva {}",
+						pago.getImporte(), reserva.getCliente().getId(), reserva.getId());
 			}
 		});
 
@@ -207,11 +218,13 @@ public class ReservaService {
 			reserva.setNotasProgreso(notas);
 		}
 		Reserva guardada = reservaRepository.save(reserva);
-		notificacionService.crear(
-				"El profesional ha actualizado el progreso de «" + guardada.getServicio().getTitulo() +
-				"» al " + guardada.getProgreso() + "%.",
-				guardada.getCliente()
-		);
+		if (progreso == 50 || progreso == 100) {
+			notificacionService.crear(
+					"El profesional ha actualizado el progreso de «" + guardada.getServicio().getTitulo() +
+					"» al " + guardada.getProgreso() + "%.",
+					guardada.getCliente()
+			);
+		}
 		return guardada;
 	}
 
@@ -234,6 +247,13 @@ public class ReservaService {
 		reserva.setEstado(EstadoReserva.COMPLETADA);
 		Reserva guardada = reservaRepository.save(reserva);
 
+		// Acreditar el importe al monedero del profesional
+		Usuario profesionalUsuario = guardada.getServicio().getProfesional().getUsuario();
+		String concepto = "Cobro por: " + guardada.getServicio().getTitulo();
+		monederoService.acreditar(profesionalUsuario, guardada.getPrecioTotal(), concepto);
+		log.info("Cobro de {} € acreditado en monedero del profesional {} al completar reserva {}",
+				guardada.getPrecioTotal(), profesionalUsuario.getId(), guardada.getId());
+
 		notificacionService.crear(
 				"El profesional ha marcado «" + guardada.getServicio().getTitulo() +
 				"» como completado. ¡Deja tu valoración!",
@@ -252,6 +272,10 @@ public class ReservaService {
 		}
 		reserva.setEstado(EstadoReserva.COMPLETADA);
 		Reserva guardada = reservaRepository.save(reserva);
+
+		Usuario profesionalUsuario = guardada.getServicio().getProfesional().getUsuario();
+		monederoService.acreditar(profesionalUsuario, guardada.getPrecioTotal(), "Cobro por: " + guardada.getServicio().getTitulo());
+
 		notificacionService.crear(
 				"El administrador ha marcado «" + guardada.getServicio().getTitulo() + "» como completado. ¡Deja tu valoración!",
 				guardada.getCliente()

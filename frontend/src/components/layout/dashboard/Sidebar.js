@@ -5,6 +5,7 @@ import {
     ChatBubbleLeftRightIcon,
     StarIcon,
     CreditCardIcon,
+    BanknotesIcon,
     HeartIcon,
     Cog6ToothIcon,
     Squares2X2Icon,
@@ -128,6 +129,7 @@ function Sidebar({ tipo, open, setOpen, collapsed = false, onToggle }) {
                 { key: "miCalendario", icono: CalendarDaysIcon, ruta: "/dashboard/profesional/calendario" },
                 { key: "misServicios", icono: WrenchScrewdriverIcon, ruta: "/dashboard/profesional/servicios" },
                 { key: "resenas", icono: StarIcon, ruta: "/dashboard/profesional/resenas" },
+                { key: "facturas", icono: BanknotesIcon, ruta: "/dashboard/profesional/facturas" },
                 { key: "miPlan", icono: CreditCardIcon, ruta: "/dashboard/profesional/plan" },
                 { key: "configuracion", icono: Cog6ToothIcon, ruta: "/dashboard/profesional/configuracion" },
             ]

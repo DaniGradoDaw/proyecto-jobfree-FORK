@@ -15,14 +15,14 @@ public class ProfesionalPrivadoDTO {
     private Double valoracionMedia;
     private Integer numeroValoraciones;
     private Long usuarioId;
-    private List<String> ciudadesServicio;
+    private List<ZonaServicioDTO> zonasServicio;
 
     public ProfesionalPrivadoDTO() {
     }
 
     public ProfesionalPrivadoDTO(Long id, String descripcion, Integer experiencia, String nombreEmpresa,
             String cif, Plan plan, String codigoPostal, Double valoracionMedia,
-            Integer numeroValoraciones, Long usuarioId, List<String> ciudadesServicio) {
+            Integer numeroValoraciones, Long usuarioId, List<ZonaServicioDTO> zonasServicio) {
         this.id = id;
         this.descripcion = descripcion;
         this.experiencia = experiencia;
@@ -33,7 +33,7 @@ public class ProfesionalPrivadoDTO {
         this.valoracionMedia = valoracionMedia;
         this.numeroValoraciones = numeroValoraciones;
         this.usuarioId = usuarioId;
-        this.ciudadesServicio = ciudadesServicio;
+        this.zonasServicio = zonasServicio;
     }
 
     public Long getId() { return id; }
@@ -46,5 +46,5 @@ public class ProfesionalPrivadoDTO {
     public Double getValoracionMedia() { return valoracionMedia; }
     public Integer getNumeroValoraciones() { return numeroValoraciones; }
     public Long getUsuarioId() { return usuarioId; }
-    public List<String> getCiudadesServicio() { return ciudadesServicio; }
+    public List<ZonaServicioDTO> getZonasServicio() { return zonasServicio; }
 }

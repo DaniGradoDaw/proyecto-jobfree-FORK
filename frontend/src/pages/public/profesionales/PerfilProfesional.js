@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
   ArrowPathIcon,
-  BriefcaseIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
   MapPinIcon,
@@ -226,10 +225,6 @@ function PerfilProfesional() {
                     {perfil.ciudad}
                   </span>
                 )}
-                <span className="flex items-center gap-1.5">
-                  <BriefcaseIcon className="h-4 w-4 shrink-0" />
-                  {tx("{n} años de experiencia", { n: perfil.experiencia || 0 })}
-                </span>
                 {mediaStr && (
                   <span className="flex items-center gap-1.5 font-semibold text-slate-700">
                     <StarSolid className="h-4 w-4 text-amber-400 shrink-0" />

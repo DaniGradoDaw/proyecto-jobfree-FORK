@@ -24,6 +24,7 @@ import com.jobfree.model.entity.Pago;
 import com.jobfree.model.entity.Reserva;
 import com.jobfree.model.entity.Usuario;
 import com.jobfree.model.enums.EstadoPago;
+import com.jobfree.service.MonederoService;
 import com.jobfree.service.PagoService;
 import com.jobfree.service.ReservaService;
 import com.jobfree.service.StripeService;
@@ -38,11 +39,14 @@ public class PagoController {
 	private final PagoService pagoService;
 	private final ReservaService reservaService;
 	private final StripeService stripeService;
+	private final MonederoService monederoService;
 
-	public PagoController(PagoService pagoService, ReservaService reservaService, StripeService stripeService) {
+	public PagoController(PagoService pagoService, ReservaService reservaService,
+						  StripeService stripeService, MonederoService monederoService) {
 		this.pagoService = pagoService;
 		this.reservaService = reservaService;
 		this.stripeService = stripeService;
+		this.monederoService = monederoService;
 	}
 
 	/**
@@ -57,6 +61,18 @@ public class PagoController {
 				.map(PagoMapper::toFacturaDTO)
 				.toList();
 		return ResponseEntity.ok(facturas);
+	}
+
+	/** Devuelve todos los cobros recibidos por el profesional autenticado. */
+	@PreAuthorize("hasRole('PROFESIONAL')")
+	@GetMapping("/mis-cobros")
+	public ResponseEntity<List<FacturaDTO>> misCobros() {
+		Usuario usuario = getUsuarioAutenticado();
+		List<FacturaDTO> cobros = pagoService.listarCobros(usuario)
+				.stream()
+				.map(PagoMapper::toFacturaDTO)
+				.toList();
+		return ResponseEntity.ok(cobros);
 	}
 
 	/**
@@ -181,6 +197,27 @@ public class PagoController {
 			throw new IllegalArgumentException("El pago no está completado en Stripe");
 		}
 
+		Pago pagado = pagoService.actualizarEstado(id, EstadoPago.PAGADO);
+		return ResponseEntity.ok(PagoMapper.toDTO(pagado));
+	}
+
+	/**
+	 * Paga una reserva descontando el importe del monedero del cliente.
+	 * No involucra Stripe: el saldo del monedero actúa como método de pago directo.
+	 */
+	@PreAuthorize("hasRole('CLIENTE')")
+	@PostMapping("/{id}/pagar-con-monedero")
+	public ResponseEntity<PagoDTO> pagarConMonedero(@PathVariable Long id) {
+		Usuario usuario = getUsuarioAutenticado();
+		Pago pago = pagoService.obtenerPorIdSeguro(id, usuario);
+		if (!pago.getReserva().getCliente().getId().equals(usuario.getId())) {
+			throw new IllegalArgumentException("Solo el cliente puede pagar esta reserva");
+		}
+		if (pago.getEstado() == EstadoPago.PAGADO) {
+			return ResponseEntity.ok(PagoMapper.toDTO(pago));
+		}
+		String titulo = pago.getReserva().getServicio().getTitulo();
+		monederoService.cargar(usuario, pago.getImporte(), "Pago reserva: " + titulo);
 		Pago pagado = pagoService.actualizarEstado(id, EstadoPago.PAGADO);
 		return ResponseEntity.ok(PagoMapper.toDTO(pagado));
 	}

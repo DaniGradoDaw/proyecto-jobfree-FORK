@@ -42,6 +42,7 @@ import PlanProfesional from "./pages/dashboard/profesional/PlanProfesional";
 import MisSolicitudes from "./pages/dashboard/profesional/MisSolicitudes";
 import MisServicios from "./pages/dashboard/profesional/MisServicios";
 import CalendarioProfesional from "./pages/dashboard/profesional/CalendarioProfesional";
+import FacturasProfesional from "./pages/dashboard/profesional/FacturasProfesional";
 import Configuracion from "./pages/dashboard/Configuracion";
 import ChatReserva from "./pages/dashboard/mensajes/ChatReserva";
 import MensajesLayout, { PlaceholderChat } from "./pages/dashboard/mensajes/MensajesLayout";
@@ -162,6 +163,7 @@ function App() {
               <Route path="buscar/servicios" element={<Servicios />} />
               <Route path="buscar/servicios/subcategoria/:id" element={<ServiciosSubcategoria />} />
               <Route path="buscar/profesionales/:id" element={<Profesionales />} />
+              <Route path="perfil-profesional/:id" element={<PerfilProfesional />} />
               <Route path="configuracion" element={<Configuracion />} />
             </Route>
 
@@ -188,6 +190,7 @@ function App() {
               {/* Página para publicar y gestionar servicios */}
               <Route path="servicios" element={<MisServicios />} />
               <Route path="resenas" element={<ResenasRecibidas />} />
+              <Route path="facturas" element={<FacturasProfesional />} />
               <Route path="plan" element={<PlanProfesional />} />
               <Route path="mensajes" element={<MensajesLayout />}>
                 <Route index element={<PlaceholderChat />} />
@@ -197,6 +200,7 @@ function App() {
               <Route path="buscar/servicios" element={<Servicios />} />
               <Route path="buscar/servicios/subcategoria/:id" element={<ServiciosSubcategoria />} />
               <Route path="buscar/profesionales/:id" element={<Profesionales />} />
+              <Route path="perfil-profesional/:id" element={<PerfilProfesional />} />
               <Route path="configuracion" element={<Configuracion />} />
             </Route>
 

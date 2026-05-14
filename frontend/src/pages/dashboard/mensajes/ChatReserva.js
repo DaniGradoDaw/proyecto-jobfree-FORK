@@ -122,20 +122,27 @@ function ModalProponerServicio({ abierta, servicios, cargando, errorCarga, onCer
   const [servicioId, setServicioId] = useState("");
   const [fechaInicio, setFechaInicio] = useState(fechaMinima);
   const [descripcion, setDescripcion] = useState("");
+  const [precioHora, setPrecioHora] = useState("");
   const [error, setError] = useState("");
+
+  const servicioSeleccionado = servicios.find((s) => String(s.id) === String(servicioId));
 
   useEffect(() => {
     if (!abierta) return;
     setError("");
     setDescripcion("");
     setFechaInicio(fechaMinima);
-    setServicioId((prev) => prev || String(servicios[0]?.id || ""));
+    const primero = servicios[0];
+    setServicioId(String(primero?.id || ""));
+    setPrecioHora(primero ? String(Number(primero.precioHora).toFixed(2)) : "");
   }, [abierta, fechaMinima, servicios]);
 
-  useEffect(() => {
-    if (!abierta) return;
-    setServicioId(String(servicios[0]?.id || ""));
-  }, [abierta, servicios]);
+  function handleServicioChange(e) {
+    const id = e.target.value;
+    setServicioId(id);
+    const s = servicios.find((sv) => String(sv.id) === id);
+    if (s) setPrecioHora(String(Number(s.precioHora).toFixed(2)));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -143,12 +150,19 @@ function ModalProponerServicio({ abierta, servicios, cargando, errorCarga, onCer
       setError(tx("Selecciona un servicio para enviar la propuesta."));
       return;
     }
+    const precioNum = parseFloat(precioHora);
+    if (!precioHora || isNaN(precioNum) || precioNum <= 0) {
+      setError(tx("Introduce un precio por hora válido."));
+      return;
+    }
     setError("");
     try {
+      const precioOriginal = servicioSeleccionado ? Number(servicioSeleccionado.precioHora) : null;
       await onConfirmar({
         servicioId: Number(servicioId),
         fechaInicio: `${fechaInicio}:00`,
         descripcion: descripcion.trim(),
+        precioPersonalizado: precioOriginal !== null && precioNum !== precioOriginal ? precioNum : undefined,
       });
     } catch (err) {
       setError(err.message || tx("No se pudo crear la solicitud."));
@@ -192,15 +206,34 @@ function ModalProponerServicio({ abierta, servicios, cargando, errorCarga, onCer
                 </label>
                 <select
                   value={servicioId}
-                  onChange={(e) => setServicioId(e.target.value)}
+                  onChange={handleServicioChange}
                   className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
                 >
                   {servicios.map((servicio) => (
                     <option key={servicio.id} value={servicio.id}>
-                      {servicio.titulo} · {Number(servicio.precioHora).toFixed(2)}€/h
+                      {servicio.titulo}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-2.5">
+                <span className="text-sm text-slate-500">{tx("Precio por hora")}</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.5"
+                    value={precioHora}
+                    onChange={(e) => setPrecioHora(e.target.value)}
+                    className="w-20 text-right text-sm font-semibold text-slate-800 bg-transparent outline-none border-b border-slate-300 focus:border-emerald-500"
+                    required
+                  />
+                  <span className="text-xs text-slate-400">€/h</span>
+                  {servicioSeleccionado && parseFloat(precioHora) !== Number(servicioSeleccionado.precioHora) && (
+                    <span className="text-[10px] text-amber-500 font-medium">personalizado</span>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -224,7 +257,7 @@ function ModalProponerServicio({ abierta, servicios, cargando, errorCarga, onCer
                 <textarea
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  rows={4}
+                  rows={3}
                   placeholder={tx("Describe lo que necesitas...")}
                   className="w-full resize-none rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
                 />

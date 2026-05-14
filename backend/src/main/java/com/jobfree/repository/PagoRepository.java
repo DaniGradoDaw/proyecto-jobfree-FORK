@@ -13,4 +13,6 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
 	Optional<Pago> findByReservaId(Long reservaId);
 
 	List<Pago> findByReservaClienteIdAndEstadoInOrderByFechaPagoDesc(Long clienteId, List<EstadoPago> estados);
+
+	List<Pago> findByReservaServicioProfesionalUsuarioIdAndEstadoInOrderByFechaPagoDesc(Long profesionalUsuarioId, List<EstadoPago> estados);
 }

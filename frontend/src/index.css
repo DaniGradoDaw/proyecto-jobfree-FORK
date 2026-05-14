@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide Stripe Link badge injected into the body by stripe.js */
+body > div > iframe[title*="Stripe"],
+body > iframe[title*="Stripe"],
+body > div[style*="position: fixed"][style*="bottom"] > iframe { display: none !important; }
+
 @keyframes marquee {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.jobfree.dto.profesional.ProfesionalCreateDTO;
 import com.jobfree.dto.profesional.ProfesionalDTO;
 import com.jobfree.dto.profesional.ProfesionalPrivadoDTO;
+import com.jobfree.dto.profesional.ZonaServicioDTO;
 import com.jobfree.mapper.ProfesionalMapper;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
@@ -64,7 +65,7 @@ public class ProfesionalInfoController {
         List<ProfesionalDTO> dtos = profesionalInfoService.buscarCercanos(lat, lng, radio)
                 .stream()
                 .map(p -> {
-                    double distancia = GeoUtils.calcularDistanciaKm(lat, lng, p.getLatitud(), p.getLongitud());
+                    double distancia = profesionalInfoService.calcularMinDistanciaKm(lat, lng, p);
                     return ProfesionalMapper.toDTOCercano(p, GeoUtils.redondear1Decimal(distancia));
                 })
                 .toList();
@@ -88,13 +89,13 @@ public class ProfesionalInfoController {
         return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(p));
     }
 
-    /** Actualiza las ciudades donde el profesional ofrece sus servicios. */
+    /** Actualiza las zonas de servicio del profesional (nombre + coordenadas). */
     @PreAuthorize("hasRole('PROFESIONAL')")
     @PutMapping("/mio/ciudades")
-    public ResponseEntity<ProfesionalPrivadoDTO> actualizarCiudades(@RequestBody List<String> ciudades) {
+    public ResponseEntity<ProfesionalPrivadoDTO> actualizarCiudades(@RequestBody List<ZonaServicioDTO> zonas) {
         Usuario usuario = usuarioActual();
         ProfesionalInfo perfil = profesionalInfoService.obtenerOCrearPorUsuario(usuario);
-        ProfesionalInfo actualizado = profesionalInfoService.actualizarCiudadesServicio(perfil.getId(), ciudades, usuario);
+        ProfesionalInfo actualizado = profesionalInfoService.actualizarCiudadesServicio(perfil.getId(), zonas, usuario);
         return ResponseEntity.ok(ProfesionalMapper.toPrivateDTO(actualizado));
     }
 

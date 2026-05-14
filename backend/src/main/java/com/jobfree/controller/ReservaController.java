@@ -79,7 +79,10 @@ public class ReservaController {
 	public ResponseEntity<ReservaDTO> crearReserva(@Valid @RequestBody ReservaCreateDTO dto) {
 		Usuario cliente = getUsuarioAutenticado();
 		ServicioOfrecido servicio = servicioService.obtenerPorId(dto.getServicioId());
-		Reserva nueva = reservaService.crearReserva(ReservaMapper.toEntity(dto, cliente, servicio));
+		Reserva nueva = reservaService.crearReserva(
+				ReservaMapper.toEntity(dto, cliente, servicio),
+				dto.getPrecioPersonalizado()
+		);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ReservaMapper.toDTO(nueva));
 	}
 

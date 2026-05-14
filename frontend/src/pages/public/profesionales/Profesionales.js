@@ -1234,7 +1234,13 @@ function Profesionales() {
   }
 
   function handleVerPerfil(servicio) {
-    navigate(`/perfil-profesional/${servicio.profesionalId}`);
+    if (location.pathname.startsWith("/dashboard/cliente")) {
+      navigate(`/dashboard/cliente/perfil-profesional/${servicio.profesionalId}`);
+    } else if (location.pathname.startsWith("/dashboard/profesional")) {
+      navigate(`/dashboard/profesional/perfil-profesional/${servicio.profesionalId}`);
+    } else {
+      navigate(`/perfil-profesional/${servicio.profesionalId}`);
+    }
   }
 
   async function handleToggleFavorito(servicio) {

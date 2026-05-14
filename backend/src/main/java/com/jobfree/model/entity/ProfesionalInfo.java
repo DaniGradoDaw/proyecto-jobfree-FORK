@@ -74,11 +74,10 @@ public class ProfesionalInfo {
 	@Column(name = "ubicacion_manual", nullable = false)
 	private boolean ubicacionManual = false;
 
-	// Ciudades donde el profesional ofrece sus servicios
+	// Zonas donde el profesional ofrece sus servicios (con coordenadas reales)
 	@ElementCollection(fetch = FetchType.LAZY)
-	@CollectionTable(name = "profesional_ciudad_servicio", joinColumns = @JoinColumn(name = "profesional_id"))
-	@Column(name = "ciudad", length = 100)
-	private List<String> ciudadesServicio = new ArrayList<>();
+	@CollectionTable(name = "profesional_zona_servicio", joinColumns = @JoinColumn(name = "profesional_id"))
+	private List<ZonaServicio> zonasServicio = new ArrayList<>();
 
 	// Se actualiza cuando reciba valoraciones
 	@Column(nullable = false)
@@ -226,12 +225,12 @@ public class ProfesionalInfo {
 		this.ubicacionManual = ubicacionManual;
 	}
 
-	public List<String> getCiudadesServicio() {
-		return ciudadesServicio;
+	public List<ZonaServicio> getZonasServicio() {
+		return zonasServicio;
 	}
 
-	public void setCiudadesServicio(List<String> ciudadesServicio) {
-		this.ciudadesServicio = ciudadesServicio;
+	public void setZonasServicio(List<ZonaServicio> zonasServicio) {
+		this.zonasServicio = zonasServicio;
 	}
 
 	public List<ServicioOfrecido> getServicios() {

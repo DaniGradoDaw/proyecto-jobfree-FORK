@@ -49,3 +49,21 @@ export async function obtenerMisFacturas() {
   return res.json();
 }
 
+export async function pagarConMonedero(pagoId) {
+  const res = await apiFetch(`/pagos/${pagoId}/pagar-con-monedero`, { method: "POST" });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Saldo insuficiente en el monedero");
+  }
+  return res.json();
+}
+
+export async function obtenerMisCobros() {
+  const res = await apiFetch("/pagos/mis-cobros");
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || "Error al obtener los cobros");
+  }
+  return res.json();
+}
+

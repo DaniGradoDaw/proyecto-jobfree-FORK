@@ -12,16 +12,12 @@ import {
   EyeSlashIcon,
   CheckCircleIcon,
   XCircleIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  MinusIcon,
   BriefcaseIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "context/AuthContext";
 import { actualizarMiUsuario, subirFotoPerfil } from "api/usuario";
-import { obtenerMiPerfil, actualizarMiPerfil, actualizarCiudadesServicio } from "api/profesional";
+import { obtenerMiPerfil, actualizarMiPerfil } from "api/profesional";
 import API_URL from "api/config";
 import { useLanguage } from "context/LanguageContext";
 
@@ -84,7 +80,6 @@ function Configuracion() {
   const { cargarUsuarioActual } = useAuth();
   const { tx } = useLanguage();
   const fileInputRef = useRef();
-  const dropdownRef = useRef();
 
   const [tabActiva, setTabActiva] = useState("perfil");
   const [esProfesional, setEsProfesional] = useState(false);
@@ -94,6 +89,7 @@ function Configuracion() {
 
   const [emailActual, setEmailActual] = useState("");
   const [form, setForm] = useState({ nombre: "", apellidos: "", telefono: "", ciudad: "", direccion: "" });
+  const [formOriginal, setFormOriginal] = useState({ nombre: "", apellidos: "", telefono: "", ciudad: "", direccion: "" });
   const [tocados, setTocados] = useState({});
   const [preview, setPreview] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
@@ -109,30 +105,26 @@ function Configuracion() {
   const [errorPw, setErrorPw] = useState("");
 
   const [perfilPro, setPerfilPro] = useState(null);
-  const [formPro, setFormPro] = useState({ descripcion: "", experiencia: 0, codigoPostal: "", nombreEmpresa: "", cif: "" });
+  const [formPro, setFormPro] = useState({ descripcion: "", codigoPostal: "", nombreEmpresa: "", cif: "" });
+  const [formProOriginal, setFormProOriginal] = useState({ descripcion: "", codigoPostal: "", nombreEmpresa: "", cif: "" });
   const [guardandoPro, setGuardandoPro] = useState(false);
   const [exitoPro, setExitoPro] = useState(false);
   const [errorPro, setErrorPro] = useState("");
 
-  const [ciudadesServicio, setCiudadesServicio] = useState([]);
-  const [busquedaZona, setBusquedaZona] = useState("");
-  const [sugerenciasZona, setSugerenciasZona] = useState([]);
-  const [buscandoZona, setBuscandoZona] = useState(false);
-  const [guardandoCiudades, setGuardandoCiudades] = useState(false);
-  const [exitoCiudades, setExitoCiudades] = useState(false);
-  const [errorCiudades, setErrorCiudades] = useState("");
 
   useEffect(() => {
     cargarUsuarioActual()
       .then(u => {
         setEmailActual(u.email || "");
-        setForm({
+        const initialForm = {
           nombre: u.nombre || "",
           apellidos: u.apellidos || "",
           telefono: u.telefono || "",
           ciudad: u.ciudad || "",
           direccion: u.direccion || "",
-        });
+        };
+        setForm(initialForm);
+        setFormOriginal(initialForm);
         setFotoUrlActual(u.fotoUrl || null);
 
         const esPro = u.rol?.toLowerCase() === "profesional";
@@ -142,14 +134,14 @@ function Configuracion() {
           obtenerMiPerfil()
             .then(p => {
               setPerfilPro(p);
-              setFormPro({
+              const initialPro = {
                 descripcion: p.descripcion || "",
-                experiencia: p.experiencia ?? 0,
                 codigoPostal: p.codigoPostal || "",
                 nombreEmpresa: p.nombreEmpresa || "",
                 cif: p.cif || "",
-              });
-              setCiudadesServicio(p.ciudadesServicio || []);
+              };
+              setFormPro(initialPro);
+              setFormProOriginal(initialPro);
             })
             .catch(() => {});
         }
@@ -159,46 +151,14 @@ function Configuracion() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const q = busquedaZona.trim();
-    if (q.length < 2) { setSugerenciasZona([]); return; }
-    setBuscandoZona(true);
-    const timer = setTimeout(async () => {
-      try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=es&format=json&limit=7&addressdetails=1`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const nombres = [...new Set(
-          data.map(r => {
-            const a = r.address;
-            return a?.municipality || a?.city || a?.town || a?.village || a?.hamlet || r.display_name.split(",")[0].trim();
-          }).filter(Boolean)
-        )].slice(0, 6);
-        setSugerenciasZona(nombres);
-      } catch {
-        setSugerenciasZona([]);
-      } finally {
-        setBuscandoZona(false);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [busquedaZona]);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setSugerenciasZona([]);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const erroresForm = {
     telefono: tocados.telefono && !telefonoValido(form.telefono) ? tx("Teléfono no válido") : "",
   };
 
   const formularioPersonalValido = telefonoValido(form.telefono);
+  const hayDirtyPersonal = !!archivoFoto || JSON.stringify(form) !== JSON.stringify(formOriginal);
+  const hayDirtyPro = JSON.stringify(formPro) !== JSON.stringify(formProOriginal);
   const reglasPw = validarPassword(pw.nueva);
   const pwValida = reglasPw.longitud && reglasPw.numero && reglasPw.mayuscula;
   const pwCoincide = pw.confirmar.length > 0 && pw.nueva === pw.confirmar;
@@ -235,6 +195,7 @@ function Configuracion() {
 
       await actualizarMiUsuario(payload);
       await cargarUsuarioActual();
+      setFormOriginal({ ...form });
       setExitoPersonal(true);
       setTimeout(() => setExitoPersonal(false), 4000);
     } catch (err) {
@@ -273,13 +234,13 @@ function Configuracion() {
     try {
       const perfil = await actualizarMiPerfil(perfilPro.id, {
         descripcion: formPro.descripcion,
-        experiencia: Number(formPro.experiencia),
         codigoPostal: formPro.codigoPostal,
         nombreEmpresa: formPro.nombreEmpresa,
         cif: formPro.cif || null,
         plan: perfilPro.plan,
       });
       setPerfilPro(perfil);
+      setFormProOriginal({ ...formPro });
       setExitoPro(true);
       setTimeout(() => setExitoPro(false), 4000);
     } catch (err) {
@@ -289,32 +250,6 @@ function Configuracion() {
     }
   }
 
-  function handleSeleccionarZona(zona) {
-    if (!zona || ciudadesServicio.includes(zona)) return;
-    setCiudadesServicio(prev => [...prev, zona]);
-    setBusquedaZona("");
-    setSugerenciasZona([]);
-  }
-
-  function handleEliminarCiudad(ciudad) {
-    setCiudadesServicio(prev => prev.filter(c => c !== ciudad));
-  }
-
-  async function handleGuardarCiudades() {
-    setErrorCiudades("");
-    setExitoCiudades(false);
-    setGuardandoCiudades(true);
-    try {
-      const perfil = await actualizarCiudadesServicio(ciudadesServicio);
-      setCiudadesServicio(perfil.ciudadesServicio || []);
-      setExitoCiudades(true);
-      setTimeout(() => setExitoCiudades(false), 4000);
-    } catch (err) {
-      setErrorCiudades(err.message || tx("Error al guardar las ciudades."));
-    } finally {
-      setGuardandoCiudades(false);
-    }
-  }
 
   const fotoActual = preview || (fotoUrlActual ? API_URL + fotoUrlActual : null);
 
@@ -435,8 +370,11 @@ function Configuracion() {
               <Banner tipo={errorPersonal ? "error" : "exito"} texto={errorPersonal || `✓ ${tx("Datos personales guardados.")}`} />
             )}
 
-            <div className="flex justify-end pt-1">
-              <button type="submit" disabled={guardandoPersonal || !formularioPersonalValido}
+            <div className="flex items-center justify-end gap-3 pt-1">
+              {hayDirtyPersonal && !guardandoPersonal && (
+                <span className="text-xs text-amber-600 font-medium">{tx("Cambios sin guardar")}</span>
+              )}
+              <button type="submit" disabled={guardandoPersonal || !formularioPersonalValido || !hayDirtyPersonal}
                 className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40">
                 {guardandoPersonal ? tx("Guardando...") : tx("Guardar cambios")}
               </button>
@@ -557,30 +495,6 @@ function Configuracion() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-700">{tx("Años de experiencia")}</label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormPro(p => ({ ...p, experiencia: Math.max(0, Number(p.experiencia) - 1) }))}
-                  disabled={Number(formPro.experiencia) === 0}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30"
-                >
-                  <MinusIcon className="h-3.5 w-3.5" />
-                </button>
-                <span className="w-14 text-center text-sm font-semibold text-slate-900 tabular-nums">
-                  {formPro.experiencia} {tx("años")}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setFormPro(p => ({ ...p, experiencia: Math.min(40, Number(p.experiencia) + 1) }))}
-                  disabled={Number(formPro.experiencia) === 40}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition disabled:opacity-30"
-                >
-                  <PlusIcon className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Campo label={tx("Código postal")} name="codigoPostal" value={formPro.codigoPostal}
@@ -606,8 +520,11 @@ function Configuracion() {
               <Banner tipo={errorPro ? "error" : "exito"} texto={errorPro || `✓ ${tx("Perfil profesional guardado.")}`} />
             )}
 
-            <div className="flex justify-end">
-              <button type="submit" disabled={guardandoPro}
+            <div className="flex items-center justify-end gap-3">
+              {hayDirtyPro && !guardandoPro && (
+                <span className="text-xs text-amber-600 font-medium">{tx("Cambios sin guardar")}</span>
+              )}
+              <button type="submit" disabled={guardandoPro || !hayDirtyPro}
                 className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40">
                 {guardandoPro ? tx("Guardando...") : tx("Guardar perfil")}
               </button>
@@ -616,95 +533,6 @@ function Configuracion() {
         </form>
       )}
 
-      {/* ── Ciudades de servicio (solo profesional, misma pestaña) ── */}
-      {tabActiva === "profesional" && esProfesional && (
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-6 py-4 flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
-              <MapPinIcon className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-slate-800">{tx("Ciudades donde trabajo")}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {tx("Añade todas las ciudades en las que ofreces tus servicios. Aparecerás en búsquedas de esas zonas.")}
-              </p>
-            </div>
-          </div>
-          <div className="p-6 space-y-4">
-
-            {/* Buscador de zona */}
-            <div className="relative" ref={dropdownRef}>
-              <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={busquedaZona}
-                onChange={e => setBusquedaZona(e.target.value)}
-                placeholder={tx("Busca una ciudad, pueblo o zona...")}
-                className="w-full border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
-              />
-              {buscandoZona && (
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 animate-pulse">···</span>
-              )}
-              {sugerenciasZona.length > 0 && (
-                <div className="absolute z-20 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
-                  {sugerenciasZona
-                    .filter(z => !ciudadesServicio.includes(z))
-                    .map(z => (
-                      <button
-                        key={z}
-                        type="button"
-                        onMouseDown={e => { e.preventDefault(); handleSeleccionarZona(z); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition text-left"
-                      >
-                        <MapPinIcon className="h-4 w-4 text-emerald-500 shrink-0" />
-                        {z}
-                      </button>
-                    ))}
-                </div>
-              )}
-            </div>
-
-            {/* Lista de ciudades */}
-            {ciudadesServicio.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {ciudadesServicio.map(ciudad => (
-                  <span
-                    key={ciudad}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-800"
-                  >
-                    <MapPinIcon className="h-3.5 w-3.5 text-emerald-500" />
-                    {ciudad}
-                    <button
-                      type="button"
-                      onClick={() => handleEliminarCiudad(ciudad)}
-                      className="ml-0.5 text-emerald-400 hover:text-red-500 transition"
-                    >
-                      <TrashIcon className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400 italic">{tx("Aún no has añadido ninguna ciudad.")}</p>
-            )}
-
-            {(errorCiudades || exitoCiudades) && (
-              <Banner tipo={errorCiudades ? "error" : "exito"} texto={errorCiudades || `✓ ${tx("Ciudades guardadas correctamente.")}`} />
-            )}
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleGuardarCiudades}
-                disabled={guardandoCiudades}
-                className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-40"
-              >
-                {guardandoCiudades ? tx("Guardando...") : tx("Guardar ciudades")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

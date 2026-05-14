@@ -1,0 +1,3 @@
+ALTER TABLE monedero
+    ADD COLUMN iban VARCHAR(34),
+    ADD COLUMN titular VARCHAR(100);

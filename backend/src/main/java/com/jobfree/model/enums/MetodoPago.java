@@ -12,7 +12,10 @@ public enum MetodoPago {
 	EFECTIVO("Efectivo"),
 
 	// Pago mediante transferencia
-	TRANSFERENCIA("Transferencia");
+	TRANSFERENCIA("Transferencia"),
+
+	// Pago con saldo del monedero
+	MONEDERO("Monedero");
 
 	// Texto para mostrar
 	private final String label;

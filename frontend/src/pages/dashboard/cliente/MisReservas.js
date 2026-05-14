@@ -15,6 +15,7 @@ import {
   Bars3Icon,
   CalendarIcon,
   XMarkIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import { CalendarDaysIcon as CalendarSolid } from "@heroicons/react/24/solid";
 import API_URL from "api/config";
@@ -44,46 +45,24 @@ const MENSAJES_CALENDARIO = {
   noEventsInRange: "Sin servicios este período.",
 };
 
-const ESTADO_META = {
-  PENDIENTE:  { color: "bg-amber-100 text-amber-700 ring-amber-200",       dot: "bg-amber-400",   evento: "#f59e0b" },
-  CONFIRMADA: { color: "bg-emerald-100 text-emerald-700 ring-emerald-200", dot: "bg-emerald-400", evento: "#10b981" },
-  COMPLETADA: { color: "bg-slate-100 text-slate-600 ring-slate-200",       dot: "bg-slate-400",   evento: "#94a3b8" },
-  CANCELADA:  { color: "bg-red-100 text-red-600 ring-red-200",             dot: "bg-red-400",     evento: "#f87171" },
-  RECHAZADA:  { color: "bg-red-100 text-red-600 ring-red-200",             dot: "bg-red-400",     evento: "#f87171" },
+const ESTADO = {
+  PENDIENTE:  { border: "border-l-amber-400",   label: "Pendiente",  badgeBg: "bg-amber-100",   badgeText: "text-amber-700",   dot: "bg-amber-400",   evento: "#f59e0b" },
+  CONFIRMADA: { border: "border-l-emerald-400", label: "Aceptada",   badgeBg: "bg-emerald-100", badgeText: "text-emerald-700", dot: "bg-emerald-500", evento: "#10b981" },
+  COMPLETADA: { border: "border-l-blue-300",    label: "Completada", badgeBg: "bg-blue-50",     badgeText: "text-blue-600",    dot: "bg-blue-400",    evento: "#60a5fa" },
+  CANCELADA:  { border: "border-l-red-300",     label: "Cancelada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     evento: "#f87171" },
+  RECHAZADA:  { border: "border-l-red-300",     label: "Rechazada",  badgeBg: "bg-red-100",     badgeText: "text-red-600",     dot: "bg-red-400",     evento: "#f87171" },
 };
 
-const FILTRO_COLORES = {
-  todas:      { activo: "bg-slate-800 text-white",        inactivo: "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" },
-  PENDIENTE:  { activo: "bg-amber-500 text-white",        inactivo: "border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" },
-  CONFIRMADA: { activo: "bg-emerald-500 text-white",      inactivo: "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
-  COMPLETADA: { activo: "bg-slate-500 text-white",        inactivo: "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100" },
-  CANCELADA:  { activo: "bg-red-500 text-white",          inactivo: "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100" },
-};
+const FILTROS = ["PENDIENTE", "CONFIRMADA", "COMPLETADA", "CANCELADA", "RECHAZADA"];
 
-function estadoTexto(estado, tx) {
-  const map = { PENDIENTE: "Pendiente", CONFIRMADA: "Aceptada", COMPLETADA: "Completada", CANCELADA: "Cancelada", RECHAZADA: "Rechazada" };
-  return tx(map[estado] ?? estado);
-}
-
-function BadgeEstado({ reserva }) {
-  const { tx } = useLanguage();
-  const estado = reserva.estado;
-  const pagada = reserva.estadoPago === "PAGADO";
-  const reembolsado = reserva.estadoPago === "REEMBOLSADO";
-  const meta = ESTADO_META[estado] ?? ESTADO_META.COMPLETADA;
-  const label = estado === "CONFIRMADA" && pagada
-    ? tx("Pagada")
-    : estado === "CONFIRMADA"
-      ? tx("Pendiente de pago")
-      : estado === "CANCELADA" && reembolsado
-        ? tx("Cancelada · Reembolsada")
-        : estadoTexto(estado, tx);
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${meta.color}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-      {label}
-    </span>
-  );
+function ProfesionalAvatar({ src, nombre }) {
+  const foto = src ? (src.startsWith("http") ? src : API_URL + src) : null;
+  const iniciales = (nombre ?? "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
+  return foto
+    ? <img src={foto} alt="" className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 shrink-0" />
+    : <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center shrink-0 ring-2 ring-slate-100">
+        <span className="text-xs font-bold text-white">{iniciales}</span>
+      </div>;
 }
 
 function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
@@ -91,19 +70,21 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
   const { idioma, tx } = useLanguage();
   const locale = idioma === "en" ? "en-GB" : "es-ES";
 
-  const foto = reserva.profesionalFotoUrl
-    ? reserva.profesionalFotoUrl.startsWith("http")
-      ? reserva.profesionalFotoUrl
-      : API_URL + reserva.profesionalFotoUrl
-    : null;
-
-  const iniciales = (reserva.profesionalNombre ?? "?")
-    .split(" ").slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-
-  const puedeChat     = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado);
-  const puedeCancelar = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && !modoModal;
   const pagada = reserva.estadoPago === "PAGADO";
+  const reembolsado = reserva.estadoPago === "REEMBOLSADO";
+  const meta = ESTADO[reserva.estado] ?? ESTADO.COMPLETADA;
+
+  const puedeChat     = ["PENDIENTE", "CONFIRMADA", "COMPLETADA"].includes(reserva.estado);
+  const puedeCancelar = ["PENDIENTE", "CONFIRMADA"].includes(reserva.estado) && !modoModal;
   const puedePagar    = reserva.estado === "CONFIRMADA" && !pagada;
+
+  const badgeLabel = reserva.estado === "CONFIRMADA" && pagada
+    ? tx("Pagada")
+    : reserva.estado === "CONFIRMADA"
+    ? tx("Sin pagar")
+    : reserva.estado === "CANCELADA" && reembolsado
+    ? tx("Cancelada · Reembolsada")
+    : tx(meta.label);
 
   const fechaServicio = reserva.fechaInicio
     ? new Date(reserva.fechaInicio).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short", year: "numeric" })
@@ -111,117 +92,115 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
   const horaServicio = reserva.fechaInicio
     ? new Date(reserva.fechaInicio).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
     : null;
-
-  const accentBorder = {
-    PENDIENTE:  "border-l-amber-400",
-    CONFIRMADA: "border-l-emerald-400",
-    COMPLETADA: "border-l-[#2596be]",
-    CANCELADA:  "border-l-red-300",
-  }[reserva.estado] ?? "border-l-slate-300";
+  const fechaRecibida = new Date(reserva.fechaCreacion).toLocaleDateString(locale, { day: "numeric", month: "short" });
+  const pct = Math.max(0, Math.min(100, reserva.progreso ?? 0));
 
   return (
-    <article className={`flex flex-col rounded-2xl border border-slate-200 border-l-4 ${accentBorder} bg-white shadow-sm transition-shadow hover:shadow-md`}>
+    <article className={`flex flex-col rounded-2xl border border-slate-200 border-l-4 ${meta.border} bg-white shadow-sm hover:shadow-md transition-shadow`}>
+      <div className="p-5 flex flex-col gap-4">
 
-      <div className="flex flex-col gap-3 p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="truncate text-sm font-bold text-slate-900">{reserva.servicioTitulo}</h2>
-          <BadgeEstado reserva={reserva} />
+        {/* Fila superior: avatar + info + badge */}
+        <div className="flex items-start gap-3">
+          <ProfesionalAvatar src={reserva.profesionalFotoUrl} nombre={reserva.profesionalNombre} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-900 truncate">{reserva.profesionalNombre}</p>
+            <p className="text-xs text-slate-400 truncate mt-0.5">{reserva.servicioTitulo}</p>
+          </div>
+          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${meta.badgeBg} ${meta.badgeText}`}>
+            {badgeLabel}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {foto ? (
-            <img src={foto} alt="" className="h-7 w-7 shrink-0 rounded-lg object-cover" />
-          ) : (
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[11px] font-bold text-slate-500">
-              {iniciales}
-            </div>
-          )}
-          <p className="text-sm font-medium text-slate-700">{reserva.profesionalNombre}</p>
+        {/* Descripción */}
+        {reserva.descripcion
+          ? <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 rounded-xl px-3.5 py-2.5">{reserva.descripcion}</p>
+          : <p className="text-xs text-slate-400 italic bg-slate-50 rounded-xl px-3.5 py-2.5">{tx("Sin descripción.")}</p>
+        }
+
+        {/* Meta: fecha + recibida + precio */}
+        <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+          {fechaServicio ? (
+            <span className="flex items-center gap-1.5 font-medium text-slate-700">
+              <CalendarDaysIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              {fechaServicio}
+              {horaServicio && (
+                <span className="flex items-center gap-1 text-slate-400 font-normal">
+                  <ClockIcon className="h-3 w-3" />{horaServicio}
+                </span>
+              )}
+            </span>
+          ) : null}
+          <span className="text-slate-400">{tx("Recibida")} {fechaRecibida}</span>
+          <span className="ml-auto flex items-center gap-1">
+            <BanknotesIcon className="h-4 w-4 text-emerald-500" />
+            <span className="text-base font-bold text-slate-900 tabular-nums">
+              {Number(reserva.precioTotal).toFixed(2)}€
+            </span>
+          </span>
         </div>
 
-        {reserva.descripcion && (
-          <p className="line-clamp-1 text-xs text-slate-400">{reserva.descripcion}</p>
+        {/* Aviso: pendiente de pago */}
+        {puedePagar && (
+          <div className="flex items-center gap-2.5 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+            <div className="h-2 w-2 rounded-full bg-sky-400 shrink-0 animate-pulse" />
+            <p className="text-xs font-medium text-sky-700 flex-1">{tx("El profesional ha aceptado tu reserva. Completa el pago para iniciar el servicio.")}</p>
+          </div>
         )}
 
+        {/* Progreso — en curso (pagada) */}
         {reserva.estado === "CONFIRMADA" && pagada && (
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3.5 py-2.5">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold text-emerald-700">{tx("Progreso del servicio")}</span>
-              <span className="text-xs font-bold text-emerald-700 tabular-nums">{reserva.progreso ?? 0}%</span>
+              <span className="text-xs font-bold text-emerald-700 tabular-nums">{pct}%</span>
             </div>
             <div className="h-2 w-full rounded-full bg-emerald-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                style={{ width: `${reserva.progreso ?? 0}%` }}
-              />
+              <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${pct}%` }} />
             </div>
             {reserva.notasProgreso && (
-              <p className="mt-2 text-xs text-emerald-700/80 italic leading-relaxed">
-                {reserva.notasProgreso}
-              </p>
+              <p className="mt-2 text-xs text-emerald-700/80 italic leading-relaxed">{reserva.notasProgreso}</p>
             )}
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3.5 py-2.5">
-          <div className="flex items-center gap-2 text-sm">
-            {fechaServicio ? (
-              <>
-                <CalendarDaysIcon className="h-4 w-4 shrink-0 text-slate-400" />
-                <span className="font-medium text-slate-700">{fechaServicio}</span>
-                {horaServicio && (
-                  <span className="flex items-center gap-1 text-slate-400">
-                    <ClockIcon className="h-3.5 w-3.5" />
-                    {horaServicio}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-slate-400 text-xs">{tx("Fecha no indicada")}</span>
+        {/* Progreso final — completada */}
+        {reserva.estado === "COMPLETADA" && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">{tx("Progreso final")}</span>
+              <span className={`text-sm font-bold tabular-nums ${pct === 100 ? "text-emerald-600" : "text-slate-700"}`}>{pct}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+              <div className={`h-full rounded-full transition-all ${pct === 100 ? "bg-emerald-500" : "bg-slate-400"}`} style={{ width: `${pct}%` }} />
+            </div>
+            {reserva.notasProgreso && (
+              <p className="text-xs text-slate-500 italic pt-0.5">{reserva.notasProgreso}</p>
             )}
           </div>
-          <p className="font-bold text-slate-900 tabular-nums">
-            {Number(reserva.precioTotal).toFixed(2)}€
-          </p>
-        </div>
+        )}
 
-        <div className="flex flex-wrap items-center gap-2 pt-0.5">
-          {puedeChat && (
-            <button
-              onClick={() => navigate(`/dashboard/cliente/mensajes/reserva/${reserva.id}`)}
-              className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition">
-              <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
-              {tx("Chat")}
-            </button>
-          )}
+        {/* Acciones */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
           {puedePagar && (
             <button
               onClick={() => navigate(`/dashboard/cliente/pagar/${reserva.id}`)}
-              className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition">
+              className="flex items-center gap-1.5 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 transition shadow-sm shadow-blue-100">
               <CreditCardIcon className="h-3.5 w-3.5" />
-              {tx("Pagar")}
+              {tx("Pagar ahora")}
             </button>
           )}
           {reserva.estado === "CONFIRMADA" && pagada && (
-            <span className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-medium text-emerald-700">
+            <span className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700">
               <CheckBadgeIcon className="h-3.5 w-3.5" />
               {tx("Pagada")}
             </span>
           )}
-          {puedeCancelar && (
-            <button
-              onClick={() => onCancelar(reserva)}
-              className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition">
-              <XCircleIcon className="h-3.5 w-3.5" />
-              {tx("Cancelar")}
-            </button>
-          )}
           {reserva.estado === "COMPLETADA" && !reserva.valorada && (
             <button
               onClick={() => navigate(`/dashboard/cliente/valorar/${reserva.id}`)}
-              className="flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-600 active:scale-95 transition">
+              className="flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-600 transition active:scale-95">
               <span className="text-sm leading-none">⭐</span>
-              {tx("Dejar valoración")}
+              {tx("Valorar")}
             </button>
           )}
           {reserva.estado === "COMPLETADA" && reserva.valorada && (
@@ -229,6 +208,22 @@ function TarjetaReserva({ reserva, onCancelar, modoModal = false }) {
               <CheckBadgeIcon className="h-3.5 w-3.5 text-slate-400" />
               {tx("Valorado")}
             </span>
+          )}
+          {puedeCancelar && (
+            <button
+              onClick={() => onCancelar(reserva)}
+              className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition">
+              <XCircleIcon className="h-3.5 w-3.5" />
+              {tx("Cancelar")}
+            </button>
+          )}
+          {puedeChat && (
+            <button
+              onClick={() => navigate(`/dashboard/cliente/mensajes/reserva/${reserva.id}`)}
+              className="ml-auto flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+              <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
+              {tx("Chat")}
+            </button>
           )}
         </div>
       </div>
@@ -262,7 +257,7 @@ function ModalConfirmarCancelar({ reserva, onConfirmar, onCancelar, cargando }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-[20px] bg-white p-6 shadow-2xl">
-        <h3 className="text-base font-semibold text-slate-900">{tx("Cancelar esta reserva?")}</h3>
+        <h3 className="text-base font-semibold text-slate-900">{tx("¿Cancelar esta reserva?")}</h3>
         <p className="mt-1 text-sm text-slate-500">
           {tx("Vas a cancelar la reserva de {servicio} con {profesional}.", {
             servicio: reserva.servicioTitulo,
@@ -290,7 +285,7 @@ function ModalConfirmarCancelar({ reserva, onConfirmar, onCancelar, cargando }) 
           </button>
           <button onClick={onConfirmar} disabled={cargando}
             className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition disabled:opacity-60">
-            {cargando ? tx("Procesando...") : tx("Si, cancelar")}
+            {cargando ? tx("Procesando...") : tx("Sí, cancelar")}
           </button>
         </div>
       </div>
@@ -309,8 +304,7 @@ function vistaCalendario(reservas) {
 }
 
 function EventoCalendario({ event }) {
-  const estado = event.resource?.estado;
-  const color = ESTADO_META[estado]?.evento ?? "#94a3b8";
+  const color = ESTADO[event.resource?.estado]?.evento ?? "#94a3b8";
   return (
     <div style={{ backgroundColor: color }} className="truncate rounded-md px-1.5 py-0.5 text-white text-[0.7rem] font-medium shadow-sm">
       {event.title}
@@ -320,7 +314,7 @@ function EventoCalendario({ event }) {
 
 function AgendaEvento({ event }) {
   const reserva = event.resource;
-  const color = ESTADO_META[reserva?.estado]?.evento ?? "#94a3b8";
+  const color = ESTADO[reserva?.estado]?.evento ?? "#94a3b8";
   return (
     <div className="flex items-center gap-2.5 py-0.5">
       <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
@@ -337,7 +331,7 @@ function MisReservas() {
   const [reservas, setReservas]     = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState("");
-  const [filtro, setFiltro]         = useState("todas");
+  const [filtro, setFiltro]         = useState(null);
   const [vista, setVista]           = useState("lista");
   const [reservaACancelar, setReservaACancelar] = useState(null);
   const [reservaModal, setReservaModal]         = useState(null);
@@ -353,12 +347,11 @@ function MisReservas() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const estados = ["todas", "PENDIENTE", "CONFIRMADA", "COMPLETADA", "CANCELADA"];
-  const reservasFiltradas = filtro === "todas"
-    ? reservas
-    : reservas.filter((r) => r.estado === filtro);
+  const reservasFiltradas = filtro ? reservas.filter(r => r.estado === filtro) : reservas;
 
-  const activas = reservas.filter((r) => ["PENDIENTE", "CONFIRMADA"].includes(r.estado)).length;
+  const pendientesCount = reservas.filter(r => r.estado === "PENDIENTE").length;
+  const sinPagar        = reservas.filter(r => r.estado === "CONFIRMADA" && r.estadoPago !== "PAGADO").length;
+  const enCurso         = reservas.filter(r => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length;
 
   const eventosCalendario = useCallback(() => vistaCalendario(reservas), [reservas]);
 
@@ -367,7 +360,7 @@ function MisReservas() {
     setCancelando(true);
     try {
       const actualizada = await cancelarReserva(reservaACancelar.id);
-      setReservas((prev) => prev.map((r) => r.id === actualizada.id ? actualizada : r));
+      setReservas(prev => prev.map(r => r.id === actualizada.id ? actualizada : r));
       window.dispatchEvent(new CustomEvent("reservas:actualizadas"));
       setReservaACancelar(null);
     } catch (err) {
@@ -377,53 +370,62 @@ function MisReservas() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <ArrowPathIcon className="h-5 w-5 animate-spin mr-2" />
-        {tx("Cargando...")}
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-red-500 text-sm py-10 text-center">{error}</p>;
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center py-20 text-slate-500">
+      <ArrowPathIcon className="h-5 w-5 animate-spin mr-2" />{tx("Cargando...")}
+    </div>
+  );
+  if (error) return <p className="text-red-500 text-sm py-10 text-center">{error}</p>;
 
   return (
     <div>
       {/* Cabecera */}
-      <div className="mb-7 flex items-center gap-4">
+      <div className="mb-6 flex items-start gap-4 flex-wrap">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100">
           <CalendarSolid className="h-6 w-6 text-emerald-600" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-slate-900">{tx("Mis reservas")}</h1>
-          <p className="text-sm text-slate-500">{tx("Seguimiento de todos tus servicios contratados.")}</p>
+          <p className="mt-0.5 text-sm text-slate-500">{tx("Seguimiento de todos tus servicios contratados.")}</p>
         </div>
-        {activas > 0 && (
-          <span className="ml-auto rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-            {activas} {activas === 1 ? tx("activa") : tx("activas")}
-          </span>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {pendientesCount > 0 && (
+            <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-bold text-white">
+              {pendientesCount} {pendientesCount > 1 ? tx("pendientes") : tx("pendiente")}
+            </span>
+          )}
+          {sinPagar > 0 && (
+            <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+              {sinPagar} {tx("sin pagar")}
+            </span>
+          )}
+          {enCurso > 0 && (
+            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+              {enCurso} {tx("en curso")}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Barra de controles: filtros + toggle de vista */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        {/* Filtros — solo visibles en lista */}
+      {/* Barra de controles: filtros + toggle vista */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        {/* Filtros — clic en activo deselecciona, sin botón Todas */}
         {vista === "lista" && (
-          <div className="flex flex-wrap gap-2">
-            {estados.map((e) => {
-              const colores = FILTRO_COLORES[e] ?? FILTRO_COLORES.todas;
-              const count = e === "todas" ? reservas.length : reservas.filter((r) => r.estado === e).length;
+          <div className="flex flex-wrap gap-2 flex-1">
+            {FILTROS.map(e => {
+              const count = reservas.filter(r => r.estado === e).length;
+              const activo = filtro === e;
+              const meta = ESTADO[e];
               return (
-                <button
-                  key={e}
-                  onClick={() => setFiltro(e)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${filtro === e ? colores.activo : colores.inactivo}`}
-                >
-                  {e === "todas" ? tx("Todas") : estadoTexto(e, tx)}
-                  <span className={`ml-1.5 ${filtro === e ? "opacity-70" : "opacity-60"}`}>{count}</span>
+                <button key={e} onClick={() => setFiltro(activo ? null : e)}
+                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                    activo
+                      ? `${meta.badgeBg} ${meta.badgeText}`
+                      : "border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                  }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${meta.dot}`} />
+                  {tx(meta.label)}
+                  <span className="opacity-60 tabular-nums">{count}</span>
                 </button>
               );
             })}
@@ -436,8 +438,7 @@ function MisReservas() {
             onClick={() => setVista("lista")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
               vista === "lista" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
+            }`}>
             <Bars3Icon className="h-3.5 w-3.5" />
             {tx("Lista")}
           </button>
@@ -445,8 +446,7 @@ function MisReservas() {
             onClick={() => setVista("calendario")}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
               vista === "calendario" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
+            }`}>
             <CalendarIcon className="h-3.5 w-3.5" />
             {tx("Calendario")}
           </button>
@@ -461,15 +461,13 @@ function MisReservas() {
               <CalendarDaysIcon className="h-7 w-7 text-slate-300" />
             </div>
             <p className="text-sm font-semibold text-slate-600">
-              {filtro !== "todas"
-                ? tx("No tienes reservas {estado}", { estado: estadoTexto(filtro, tx).toLowerCase() })
-                : tx("No tienes reservas todavía")}
+              {filtro ? tx("No tienes reservas con ese estado") : tx("No tienes reservas todavía")}
             </p>
             <p className="mt-1 text-xs text-slate-400">{tx("Cuando contrates un profesional, aparecerá aquí.")}</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {reservasFiltradas.map((r) => (
+            {reservasFiltradas.map(r => (
               <TarjetaReserva key={r.id} reserva={r} onCancelar={setReservaACancelar} />
             ))}
           </div>
@@ -479,33 +477,24 @@ function MisReservas() {
       {/* Vista calendario */}
       {vista === "calendario" && (
         <div>
-          {/* Filtros compactos con leyenda integrada */}
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {[
-              { key: "todas",      label: tx("Todas"),      dot: null },
-              { key: "CONFIRMADA", label: tx("Pagadas"),    dot: ESTADO_META.CONFIRMADA.evento },
-              { key: "COMPLETADA", label: tx("Completadas"),dot: ESTADO_META.COMPLETADA.evento },
-            ].map(({ key, label, dot }) => {
-              const count = key === "todas"
-                ? reservas.filter((r) => r.estado === "CONFIRMADA" || r.estado === "COMPLETADA").length
-                : key === "CONFIRMADA"
-                  ? reservas.filter((r) => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length
-                  : reservas.filter((r) => r.estado === key).length;
+              { key: "CONFIRMADA", label: tx("En curso"),    color: ESTADO.CONFIRMADA.evento },
+              { key: "COMPLETADA", label: tx("Completadas"), color: ESTADO.COMPLETADA.evento },
+            ].map(({ key, label, color }) => {
+              const count = key === "CONFIRMADA"
+                ? reservas.filter(r => r.estado === "CONFIRMADA" && r.estadoPago === "PAGADO").length
+                : reservas.filter(r => r.estado === key).length;
               return (
-                <button
-                  key={key}
-                  onClick={() => {}}
-                  className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 cursor-default"
-                >
-                  {dot && <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: dot }} />}
+                <span key={key} className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600">
+                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                   {label}
                   <span className="opacity-60">{count}</span>
-                </button>
+                </span>
               );
             })}
           </div>
 
-          {/* Calendario con card */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             {eventosCalendario().length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -533,7 +522,7 @@ function MisReservas() {
                   style: calView === "agenda"
                     ? { backgroundColor: "transparent", border: "none" }
                     : {
-                        backgroundColor: ESTADO_META[event.resource?.estado]?.evento ?? "#94a3b8",
+                        backgroundColor: ESTADO[event.resource?.estado]?.evento ?? "#94a3b8",
                         border: "none",
                         borderRadius: "6px",
                       },
@@ -545,12 +534,10 @@ function MisReservas() {
         </div>
       )}
 
-      {/* Modal detalle desde calendario */}
       {reservaModal && (
         <ModalReserva reserva={reservaModal} onCerrar={() => setReservaModal(null)} />
       )}
 
-      {/* Modal confirmar cancelación */}
       {reservaACancelar && (
         <ModalConfirmarCancelar
           reserva={reservaACancelar}

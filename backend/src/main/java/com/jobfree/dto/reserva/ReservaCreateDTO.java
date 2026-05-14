@@ -1,5 +1,6 @@
 package com.jobfree.dto.reserva;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,9 @@ public class ReservaCreateDTO {
 	private LocalDateTime fechaInicio;
 
 	private String descripcion;
+
+	// Precio por hora negociado (opcional; si es null se usa el del servicio)
+	private BigDecimal precioPersonalizado;
 
 	public Long getServicioId() {
 		return servicioId;
@@ -50,4 +54,11 @@ public class ReservaCreateDTO {
 		this.descripcion = descripcion;
 	}
 
+	public BigDecimal getPrecioPersonalizado() {
+		return precioPersonalizado;
+	}
+
+	public void setPrecioPersonalizado(BigDecimal precioPersonalizado) {
+		this.precioPersonalizado = precioPersonalizado;
+	}
 }

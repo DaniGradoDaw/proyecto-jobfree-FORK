@@ -8,10 +8,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.jobfree.dto.profesional.ProfesionalCreateDTO;
+import com.jobfree.dto.profesional.ZonaServicioDTO;
 import com.jobfree.exception.profesional.ProfesionalInvalidoException;
 import com.jobfree.exception.profesional.ProfesionalNotFoundException;
 import com.jobfree.model.entity.ProfesionalInfo;
 import com.jobfree.model.entity.Usuario;
+import com.jobfree.model.entity.ZonaServicio;
 import com.jobfree.model.enums.Plan;
 import com.jobfree.model.enums.Rol;
 import com.jobfree.repository.ProfesionalInfoRepository;
@@ -102,41 +104,53 @@ public class ProfesionalInfoService {
     }
 
     /**
-     * Actualiza las ciudades donde el profesional ofrece sus servicios.
+     * Actualiza las zonas de servicio del profesional (nombre + coordenadas reales).
      */
-    public ProfesionalInfo actualizarCiudadesServicio(Long id, List<String> ciudades, Usuario usuario) {
+    public ProfesionalInfo actualizarCiudadesServicio(Long id, List<ZonaServicioDTO> zonas, Usuario usuario) {
         ProfesionalInfo existente = obtenerPorId(id);
         if (!existente.getUsuario().getId().equals(usuario.getId())) {
             throw new ProfesionalInvalidoException("No puedes modificar este perfil");
         }
-        existente.getCiudadesServicio().clear();
-        if (ciudades != null) {
-            ciudades.stream()
-                    .filter(c -> c != null && !c.isBlank())
-                    .map(String::trim)
-                    .distinct()
-                    .forEach(existente.getCiudadesServicio()::add);
+        existente.getZonasServicio().clear();
+        if (zonas != null) {
+            zonas.stream()
+                    .filter(z -> z != null && z.getNombre() != null && !z.getNombre().isBlank())
+                    .map(z -> new ZonaServicio(z.getNombre().trim(), z.getLatitud(), z.getLongitud()))
+                    .forEach(existente.getZonasServicio()::add);
         }
         return profesionalInfoRepository.save(existente);
     }
 
     /**
-     * Devuelve profesionales con coordenadas ordenados por distancia al punto dado,
-     * filtrando los que superen el radio indicado en km.
+     * Devuelve profesionales cuya ubicación principal o alguna zona de servicio
+     * está dentro del radio indicado, ordenados por la distancia mínima al punto dado.
      */
     public List<ProfesionalInfo> buscarCercanos(double lat, double lng, double radioKm) {
         double latDelta = radioKm / 111.0;
         double cosLat = Math.cos(Math.toRadians(lat));
         double lngDelta = Math.abs(cosLat) < 0.000001 ? 180.0 : radioKm / (111.0 * cosLat);
 
-        return profesionalInfoRepository.findByLatitudBetweenAndLongitudBetween(
+        return profesionalInfoRepository.findCercanosConZonas(
                         lat - latDelta, lat + latDelta,
                         lng - lngDelta, lng + lngDelta)
                 .stream()
-                .filter(p -> GeoUtils.calcularDistanciaKm(lat, lng, p.getLatitud(), p.getLongitud()) <= radioKm)
-                .sorted(Comparator.comparingDouble(
-                        p -> GeoUtils.calcularDistanciaKm(lat, lng, p.getLatitud(), p.getLongitud())))
+                .filter(p -> calcularMinDistanciaKm(lat, lng, p) <= radioKm)
+                .sorted(Comparator.comparingDouble(p -> calcularMinDistanciaKm(lat, lng, p)))
                 .toList();
+    }
+
+    /** Distancia mínima desde el punto a la ubicación principal o cualquier zona del profesional. */
+    public double calcularMinDistanciaKm(double lat, double lng, ProfesionalInfo p) {
+        double min = Double.MAX_VALUE;
+        if (p.getLatitud() != null && p.getLongitud() != null) {
+            min = GeoUtils.calcularDistanciaKm(lat, lng, p.getLatitud(), p.getLongitud());
+        }
+        for (ZonaServicio z : p.getZonasServicio()) {
+            if (z.getLatitud() != null && z.getLongitud() != null) {
+                min = Math.min(min, GeoUtils.calcularDistanciaKm(lat, lng, z.getLatitud(), z.getLongitud()));
+            }
+        }
+        return min;
     }
 
     public ProfesionalInfo obtenerPorUsuario(Long usuarioId) {

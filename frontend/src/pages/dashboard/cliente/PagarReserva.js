@@ -9,9 +9,11 @@ import {
   ExclamationTriangleIcon,
   LockClosedIcon,
   ShieldCheckIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import { obtenerReservaPorId } from "api/reservas";
-import { crearPago, crearPaymentIntent, confirmarPago, obtenerPagoPorReserva } from "api/pagos";
+import { crearPago, crearPaymentIntent, confirmarPago, obtenerPagoPorReserva, pagarConMonedero } from "api/pagos";
+import { obtenerMonedero } from "api/monedero";
 import { useLanguage } from "context/LanguageContext";
 
 const _stripeKey = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
@@ -195,6 +197,8 @@ function PagarReserva() {
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
   const [yaPagado, setYaPagado] = useState(false);
+  const [saldoMonedero, setSaldoMonedero] = useState(null);
+  const [procesandoWallet, setProcesandoWallet] = useState(false);
   const initRef = useRef(null);
 
   useEffect(() => {
@@ -210,17 +214,21 @@ function PagarReserva() {
 
     (async () => {
       try {
-        const [reservaData, pagoExistente] = await Promise.all([
+        const [reservaData, pagoExistente, monederoData] = await Promise.all([
           obtenerReservaPorId(reservaId),
           obtenerPagoPorReserva(reservaId),
+          obtenerMonedero().catch(() => null),
         ]);
         setReserva(reservaData);
+        if (monederoData?.saldo != null) setSaldoMonedero(Number(monederoData.saldo));
         if (pagoExistente?.estado === "PAGADO") { setYaPagado(true); return; }
         const pago = pagoExistente ?? (await crearPago(reservaId));
         setPagoId(pago.id);
-        const { clientSecret: cs, yaPagado: yaConfirmado } = await crearPaymentIntent(pago.id);
-        if (yaConfirmado === "true") { setYaPagado(true); return; }
-        setClientSecret(cs);
+        if (stripePromise) {
+          const { clientSecret: cs, yaPagado: yaConfirmado } = await crearPaymentIntent(pago.id);
+          if (yaConfirmado === "true") { setYaPagado(true); return; }
+          setClientSecret(cs);
+        }
       } catch (err) {
         setError(err.message || tx("No se pudo inicializar el pago."));
       } finally {
@@ -229,6 +237,18 @@ function PagarReserva() {
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservaId]);
+
+  async function handlePagarConWallet() {
+    if (!pagoId || procesandoWallet) return;
+    setProcesandoWallet(true);
+    try {
+      await pagarConMonedero(pagoId);
+      setExito(true);
+    } catch (err) {
+      setError(err.message || "Error al pagar con el monedero");
+      setProcesandoWallet(false);
+    }
+  }
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -320,7 +340,42 @@ function PagarReserva() {
         </div>
       )}
 
-      {clientSecret && (
+      {/* ── Pagar con monedero ── */}
+      {saldoMonedero !== null && reserva && saldoMonedero >= Number(reserva.precioTotal) && (
+        <div className="mb-5">
+          {procesandoWallet ? (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <div className="relative h-12 w-12">
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-100" />
+                <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-emerald-500" />
+              </div>
+              <p className="text-sm text-slate-500 animate-pulse">Procesando pago con monedero...</p>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handlePagarConWallet}
+                className="w-full rounded-2xl py-4 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-200"
+                style={{ background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", boxShadow: "0 8px 24px rgba(13,148,136,0.35)" }}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <BanknotesIcon className="h-4 w-4" />
+                  Pagar con monedero · Saldo: {Number(saldoMonedero).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+                </span>
+              </button>
+              {clientSecret && (
+                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs text-slate-400 shrink-0">o paga con tarjeta</span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {clientSecret && !procesandoWallet && (
         <Elements
           key={clientSecret}
           stripe={stripePromise}
