@@ -450,8 +450,8 @@ function ModalRecarga({ onCerrar, onExito }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm" onClick={onCerrar}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden" style={{ maxHeight: "90vh" }} onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
                     <p className="font-semibold text-gray-900">
                         {paso === "importe" ? "Recargar monedero" : paso === "pago" ? "Datos de pago" : "¡Recarga completada!"}
                     </p>
@@ -460,7 +460,7 @@ function ModalRecarga({ onCerrar, onExito }) {
                     </button>
                 </div>
 
-                <div className="p-5">
+                <div className="p-5 overflow-y-auto">
                     {paso === "importe" && (
                         <div className="space-y-4">
                             <p className="text-sm text-gray-500">¿Cuánto quieres añadir a tu monedero?</p>
