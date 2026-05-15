@@ -15,7 +15,13 @@ export async function login(email, password) {
   if (res.status === 429) throw new Error(await extraerMensajeError(res, "Demasiados intentos. Espera un minuto."));
   if (!res.ok) throw new Error(await extraerMensajeError(res, "Credenciales incorrectas"));
   const data = await res.json(); // { usuario, token }
-  if (data.token) localStorage.setItem("jf_token", data.token);
+  console.log("[DEBUG] login response token present:", !!data.token, "| token preview:", data.token?.substring(0, 20));
+  if (data.token) {
+    localStorage.setItem("jf_token", data.token);
+    console.log("[DEBUG] jf_token guardado en localStorage");
+  } else {
+    console.warn("[DEBUG] El backend NO devolvió token en la respuesta del login");
+  }
   return data;
 }
 
