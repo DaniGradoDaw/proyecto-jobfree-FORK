@@ -49,7 +49,7 @@ public class AuthController {
 		Usuario usuario = authService.login(dto.getEmail(), dto.getPassword());
 		String token = jwtUtil.generarToken(usuario.getEmail());
 		response.addHeader(HttpHeaders.SET_COOKIE, jwtUtil.crearCookieJwt(token).toString());
-		return ResponseEntity.ok(Map.of("usuario", UsuarioMapper.toDTO(usuario)));
+		return ResponseEntity.ok(Map.of("usuario", UsuarioMapper.toDTO(usuario), "token", token));
 	}
 
 	@PostMapping("/logout")
@@ -116,10 +116,10 @@ public class AuthController {
 
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/refresh")
-	public ResponseEntity<Void> refresh(HttpServletResponse response) {
+	public ResponseEntity<Map<String, Object>> refresh(HttpServletResponse response) {
 		Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String token = jwtUtil.generarToken(usuario.getEmail());
 		response.addHeader(HttpHeaders.SET_COOKIE, jwtUtil.crearCookieJwt(token).toString());
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok(Map.of("token", token));
 	}
 }

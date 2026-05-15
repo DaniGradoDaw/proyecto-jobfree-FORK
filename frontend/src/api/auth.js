@@ -14,10 +14,13 @@ export async function login(email, password) {
   }
   if (res.status === 429) throw new Error(await extraerMensajeError(res, "Demasiados intentos. Espera un minuto."));
   if (!res.ok) throw new Error(await extraerMensajeError(res, "Credenciales incorrectas"));
-  return res.json(); // { usuario }
+  const data = await res.json(); // { usuario, token }
+  if (data.token) localStorage.setItem("jf_token", data.token);
+  return data;
 }
 
 export async function logout() {
+  localStorage.removeItem("jf_token");
   try {
     await apiFetch("/auth/logout", { method: "POST" });
   } catch {
@@ -86,7 +89,14 @@ export async function iniciarOAuth(rol) {
 export async function refreshToken() {
   try {
     const res = await apiFetch("/auth/refresh", { method: "POST" });
-    return res.ok;
+    if (res.ok) {
+      try {
+        const data = await res.json();
+        if (data.token) localStorage.setItem("jf_token", data.token);
+      } catch {}
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }

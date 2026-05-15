@@ -17,6 +17,10 @@ export async function apiFetch(path, options = {}) {
   if (options.body && typeof options.body === "string") {
     headers["Content-Type"] = "application/json";
   }
+  const token = localStorage.getItem("jf_token");
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const res = await fetch(API_URL + path, {
     ...options,
     credentials: "include",

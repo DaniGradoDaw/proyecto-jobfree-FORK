@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
     // Cuando apiFetch recibe un 401 en endpoints protegidos (sesión expirada),
     // emite este evento para cerrar la sesión y redirigir al login.
     function handleSesionExpirada() {
+      localStorage.removeItem("jf_token");
       setUsuario(null);
       window.location.href = "/login";
     }
@@ -78,7 +79,7 @@ export function AuthProvider({ children }) {
   }
 
   async function cerrarSesion() {
-    await logoutAPI(); // el backend limpia la cookie
+    await logoutAPI(); // el backend limpia la cookie y logoutAPI limpia localStorage
     setUsuario(null);
   }
 
