@@ -1139,9 +1139,26 @@ function Profesionales() {
       const kmSeleccionado = PASOS_DISTANCIA[distanciaTemporal];
       let coords = coordenadasBusquedaTemporal;
       if (kmSeleccionado !== null && !coords) {
-        // Sin ubicación: solicitamos GPS automáticamente en vez de mostrar error
-        coords = await usarUbicacionActual();
-        if (!coords) return; // el usuario denegó el GPS o falló
+        if (textoUbicacionTemporal.trim()) {
+          // Hay texto escrito sin geocodificar → buscamos esa dirección
+          try {
+            setBuscandoUbicacion(true);
+            setErrorBusquedaUbicacion("");
+            coords = await buscarUbicacionEnEspana(textoUbicacionTemporal);
+            setCoordenadasBusquedaTemporal(coords);
+            setTextoUbicacionTemporal(coords.etiqueta);
+            if (PASOS_DISTANCIA[distanciaTemporal] === null) setDistanciaTemporal(IDX_DEFECTO_KM);
+          } catch (e) {
+            setErrorBusquedaUbicacion(e.message || "No se pudo buscar esa ubicación.");
+            return;
+          } finally {
+            setBuscandoUbicacion(false);
+          }
+        } else {
+          // Sin texto → solicitamos GPS automáticamente
+          coords = await usarUbicacionActual();
+        }
+        if (!coords) return;
       }
       setZonaSeleccionada("");
       if (kmSeleccionado === null) {
