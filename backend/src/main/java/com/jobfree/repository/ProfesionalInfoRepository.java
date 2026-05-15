@@ -23,7 +23,7 @@ public interface ProfesionalInfoRepository extends JpaRepository<ProfesionalInfo
 	 * Candidatos para búsqueda por proximidad: profesionales cuya ubicación principal
 	 * O alguna de sus zonas de servicio cae dentro del bounding box dado.
 	 */
-	@Query("SELECT DISTINCT p FROM ProfesionalInfo p LEFT JOIN p.zonasServicio z " +
+	@Query("SELECT DISTINCT p FROM ProfesionalInfo p JOIN FETCH p.usuario LEFT JOIN p.zonasServicio z " +
 	       "WHERE (p.latitud BETWEEN :latMin AND :latMax AND p.longitud BETWEEN :lngMin AND :lngMax) " +
 	       "OR (z.latitud IS NOT NULL AND z.latitud BETWEEN :latMin AND :latMax " +
 	       "    AND z.longitud IS NOT NULL AND z.longitud BETWEEN :lngMin AND :lngMax)")
