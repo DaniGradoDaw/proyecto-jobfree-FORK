@@ -83,7 +83,7 @@ public class JwtUtil {
 				.secure(cookieSecure)
 				.path("/")
 				.maxAge(Duration.ofHours(2))
-				.sameSite("Lax")
+				.sameSite(cookieSecure ? "None" : "Lax")
 				.build();
 	}
 
@@ -93,7 +93,7 @@ public class JwtUtil {
 				.secure(cookieSecure)
 				.path("/")
 				.maxAge(0)
-				.sameSite("Lax")
+				.sameSite(cookieSecure ? "None" : "Lax")
 				.build();
 	}
 
