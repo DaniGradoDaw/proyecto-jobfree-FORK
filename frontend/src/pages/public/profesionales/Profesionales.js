@@ -1134,12 +1134,14 @@ function Profesionales() {
     setModalUbicacionAbierto(true);
   }
 
-  function aplicarUbicacion() {
+  async function aplicarUbicacion() {
     if (tabUbicacion === "cerca") {
       const kmSeleccionado = PASOS_DISTANCIA[distanciaTemporal];
-      if (kmSeleccionado !== null && !coordenadasBusquedaTemporal) {
-        setErrorBusquedaUbicacion(tx("Introduce una dirección o pulsa Estoy aquí para buscar por distancia."));
-        return;
+      let coords = coordenadasBusquedaTemporal;
+      if (kmSeleccionado !== null && !coords) {
+        // Sin ubicación: solicitamos GPS automáticamente en vez de mostrar error
+        coords = await usarUbicacionActual();
+        if (!coords) return; // el usuario denegó el GPS o falló
       }
       setZonaSeleccionada("");
       if (kmSeleccionado === null) {
@@ -1147,7 +1149,7 @@ function Profesionales() {
         setCoordenadasBusqueda(null);
       } else {
         setDistanciaMax(kmSeleccionado);
-        setCoordenadasBusqueda(coordenadasBusquedaTemporal);
+        setCoordenadasBusqueda(coords);
       }
     } else {
       if (zonaTemporal.trim() && !zonaTemporalValida) {
@@ -1207,14 +1209,17 @@ function Profesionales() {
         etiqueta = tx("Ubicación actual detectada");
       }
 
-      setCoordenadasBusquedaTemporal({ ...coords, etiqueta });
+      const coordsConEtiqueta = { ...coords, etiqueta };
+      setCoordenadasBusquedaTemporal(coordsConEtiqueta);
       setTextoUbicacionTemporal(etiqueta);
       // Si el slider está en "Toda España", saltar a 10 km por defecto
       setDistanciaTemporal((prev) =>
         PASOS_DISTANCIA[prev] === null ? IDX_DEFECTO_KM : prev
       );
+      return coordsConEtiqueta;
     } catch {
       // El hook ya expone el mensaje de error; aquí solo evitamos romper el flujo.
+      return null;
     } finally {
       setBuscandoUbicacion(false);
     }
